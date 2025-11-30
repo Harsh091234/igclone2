@@ -4,6 +4,7 @@ import User, { IUser } from "#models/user.model.js";
 import { log, profile } from "console";
 import { Request, Response } from "express";
 
+
 export const syncUser = async(req: Request, res: Response) => {
   try {
     const {userId: clerkId} = req.auth!();
@@ -14,12 +15,15 @@ export const syncUser = async(req: Request, res: Response) => {
     const {email} = req.body;
     
     if(!email) return res.status(400).json({message: "Email is required"});
-    
+    const user = await User.findOne({clerkId})
+    if (user) {
+    return res.status(400).json({message: "User already exists"}); // or update if needed
+}
     const newUser = await User.create({
       clerkId,
       email,
     });
-    console.log("user synced in backend:", newUser);
+  
     return res.status(201).json({ success: true, user: newUser });
 
     
@@ -35,7 +39,7 @@ export const syncUser = async(req: Request, res: Response) => {
 export const getAuthUser = async (req: Request, res: Response) => {
   try {
      const {userId: clerkId} = req.auth!();
-
+    
     if (!clerkId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -43,12 +47,12 @@ export const getAuthUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ clerkId })
       .populate("following", "userName fullName profilePic")
       .populate("followers", "userName fullName profilePic")
-      .populate("posts");
+      // .populate("posts"); for later
 
     if (!user) {
       console.log("user not present");
       
-       return res.status(204).json({ message: "User not found in DB" });
+       return res.status(401).json({ message: "User not found in DB" });
     }
 
     return res.status(200).json({
@@ -63,28 +67,22 @@ export const getAuthUser = async (req: Request, res: Response) => {
 };
 
 export const getProfile = async (req: Request, res: Response) => {
+   
   try {
-    const { clerkId } = req.params;
-
-    if (!clerkId) {
+    const { userName } = req.params;
+ 
+    if (!userName) {
       return res.status(400).json({
         success: false,
-        message: "Clerk ID is required",
+        message: "Username is required",
       });
     }
-
-    const user = await User.findOne({clerkId})
+    
+    const user = await User.findOne({userName})
     .populate("following", "userName fullName profilePic")
     .populate("followers", "userName fullName profilePic")
-    .populate("posts");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
+    // .populate("posts";
+    
     return res.status(200).json({
       success: true,
       user,

@@ -14,7 +14,7 @@ export interface IUser extends Document {
 
     profilePic: string;
     profilePicPublicId: string;
-    image: string;
+    
 
     followers: mongoose.Types.ObjectId[];
     following: mongoose.Types.ObjectId[];
@@ -114,10 +114,7 @@ const userSchema = new Schema<IUser>(
 
 
 
-        image: {
-            type: String,
-            default: "",
-        },
+       
     },
     { timestamps: true }
 );
