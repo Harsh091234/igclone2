@@ -50,11 +50,12 @@ export const getAuthUser = async (req: Request, res: Response) => {
       // .populate("posts"); for later
 
     if (!user) {
-      console.log("user not present");
-      
-       return res.status(401).json({ message: "User not found in DB" });
+    
+      return res.status(200).json({
+        success: true,
+        user: null,
+      });
     }
-
     return res.status(200).json({
       success: true,
       user,

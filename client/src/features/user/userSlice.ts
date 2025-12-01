@@ -47,13 +47,14 @@ export const syncUser = createAsyncThunk
 
 export const getAuthUser = createAsyncThunk("/user/getAuthUser", async(token: string, thunkAPI) => {
   try {
+   
     const res = await api.get("/user/auth-user", {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-    if(!res.data.user) return thunkAPI.rejectWithValue("User not found in DB");
-    return res.data.user;
+    
+    return res.data.user?? null;
 
   } catch (error: any) {
       return thunkAPI.rejectWithValue(

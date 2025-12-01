@@ -1,32 +1,40 @@
-import { useEffect } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
 import { useDispatch } from "react-redux";
-import { syncUser } from "../features/user/userSlice";
 import type { AppDispatch } from "../store/store";
+import { getAuthUser, syncUser } from "../features/user/userSlice";
+import { useAuth } from "@clerk/clerk-react";
+import type { UserResource } from "@clerk/types";
 
-export default function SyncUserToBackend() {
-  const { isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+export const useInitUser = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { getToken } = useAuth();
 
-  useEffect(() => {
-    if (!user) return;
+  const initUser = async (user: UserResource) => {
+    const token = await getToken();
+    if (!token) return;
 
-    (async () => {
-      const token = await getToken();
+    const email =
+      user.primaryEmailAddress?.emailAddress ||
+      user.emailAddresses[0]?.emailAddress;
 
-      if (!token) return;
+    if (!email) return;
 
-      const data = {
-        email:
-          user.primaryEmailAddress?.emailAddress ||
-          user.emailAddresses[0]?.emailAddress,
-      };
-         const syncedUser = dispatch(syncUser({ token, data }));
-      console.log("synced user:", syncedUser);
+    // Try fetching user from DB first
+    const res = await dispatch(getAuthUser(token));
+  
+     // CASE 1: Thunk rejected → error or server issue
+    if (getAuthUser.rejected.match(res)) {
+    
+      await dispatch(syncUser({ token, email }));
+      return;
+    }
+
+      // CASE 2: Fulfilled but user does not exist (payload === null)
+    if (res.payload === null) {
      
-    })();
-  }, [isSignedIn, user]);
-
-  return null;
-}
+      await dispatch(syncUser({ token, email }));
+      return;
+    }
+    return;
+  }
+  return initUser;
+};
