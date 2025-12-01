@@ -104,6 +104,7 @@ export const editProfile = async (req: Request, res: Response) => {
     const user = await User.findOne({ clerkId });
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    const profileComplete = user.isProfileComplete;
     const { fullName, bio, userName, gender, profilePic } = req.body as {
       fullName: string;
       bio: string;
@@ -113,7 +114,7 @@ export const editProfile = async (req: Request, res: Response) => {
 
     };
     
-        if (!userName || userName.trim() === "") {
+        if (!userName) {
       return res.status(400).json({ message: "Username is required" });
     }
 
@@ -129,7 +130,7 @@ export const editProfile = async (req: Request, res: Response) => {
     user.gender = gender;
 
 
-        if (profilePic) {
+      if (profilePic) {
       // Delete old profile pic from Cloudinary if exists
       if (user.profilePicPublicId) {
         await cloudinary.uploader.destroy(user.profilePicPublicId);
@@ -142,7 +143,7 @@ export const editProfile = async (req: Request, res: Response) => {
       user.profilePic = uploaded.secure_url;
       user.profilePicPublicId = uploaded.public_id;
     }
-
+    if (!profileComplete) user.isProfileComplete = true;
 
     await user.save();
 

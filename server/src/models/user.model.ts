@@ -22,6 +22,7 @@ export interface IUser extends Document {
     bookmarks: mongoose.Types.ObjectId[];
     posts: mongoose.Types.ObjectId[];
 
+    isProfileComplete: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -67,6 +68,7 @@ const userSchema = new Schema<IUser>(
 
         gender: {
             type: String,
+            lowercase: true,
             enum: ["male", "female", "other"],
             default: "other",
         },
@@ -79,7 +81,7 @@ const userSchema = new Schema<IUser>(
 
         profilePic: {
             type: String,
-            default: "",
+            default: "https://res.cloudinary.com/djt8dpogs/image/upload/v1764092240/instagram_clone_uploads/uwoxn6lq0lyrrlkw2tlo.png",
         },
         profilePicPublicId: {
             type: String,
@@ -111,7 +113,10 @@ const userSchema = new Schema<IUser>(
                 ref: "Post",
             },
         ],
-
+        isProfileComplete: {
+            type: Boolean,
+            default: false,
+        },
 
 
        

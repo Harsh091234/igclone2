@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+button{
+    @apply cursor-pointer
+}
+
+:root {
+  --primary-hover: rgb(40, 119, 247);
+  --primary: #2f8bfc;
+}

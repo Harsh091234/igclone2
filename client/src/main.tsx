@@ -14,17 +14,38 @@ if (!PUBLISHABLE_KEY) {
   throw new Error('Missing Publishable Key')
 }
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <BrowserRouter>
-      <Provider store={store}><App /></Provider>
-  <Toaster position="top-right" reverseOrder={false} />
-
-
-    </BrowserRouter>      
-       
-         </ClerkProvider>
-   
-  </StrictMode>,
-)
+      <BrowserRouter>
+        <Provider store={store}>
+          <App />
+        </Provider>
+        <Toaster
+          toastOptions={{
+            success: {
+              style: {
+                background: "#fff",
+                color: "#0EA5E9", // sky-500
+                border: "1px solid #bae6fd",
+              },
+              iconTheme: {
+                primary: "#0EA5E9", // sky-500
+                secondary: "#fff",
+              },
+            },
+            error: {
+              style: {
+                background: "#fff",
+                color: "#ef4444", // red-500
+                border: "1px solid #fecaca", // red-200
+              },
+            },
+          }}
+          position="top-right"
+          reverseOrder={false}
+        />
+      </BrowserRouter>
+    </ClerkProvider>
+  </StrictMode>
+);

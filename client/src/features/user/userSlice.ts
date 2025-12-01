@@ -1,19 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../utils/axios";
+import type { EditProfileData, User } from "../../types/user.types";
+import toast from "react-hot-toast";
 
 
-export interface IUser {
-  
-  email: string;
-   fullName?: string;
-  userName?: string;
-  profilePic?: string;
-  followers?: any[];
-  following?: any[];
-  posts?: any[];
-  bio?: string,
- 
-}
+
 
 export const selectUser = (state: any) => state.user.data;
 export const selectUserLoading = (state: any) => state.user.loading;
@@ -34,7 +25,7 @@ export const syncUser = createAsyncThunk
         }
       );
 
-      return res.data.user as IUser;
+      return res.data.user;
 
     } catch (error: any) {
      
@@ -79,7 +70,7 @@ export const getProfile = createAsyncThunk(
         
      
       
-      return res.data.user as IUser;
+      return res.data.user;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Failed to fetch profile"
@@ -88,15 +79,32 @@ export const getProfile = createAsyncThunk(
   }
 );
 
+export const editProfile = createAsyncThunk("/user/editProfile", async({token,data}: {token: string, data: EditProfileData}, thunkApi) => {
+  try {
+    
+    const res = await api.put("/user/edit-profile", data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }) 
+    toast.success("Profile Saved");
+    return res.data.user;
+  } catch (error: any) {
+    toast.error("Failed to edit profile");
+    return thunkApi.rejectWithValue(error.response?.data?.message || "Failed to edit profile")
+  }
+})
+
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    data: null as IUser | null,
+    data: null as User | null,
     loading: false,
     error: null as string | null,
   },
   reducers: {},
   extraReducers(builder) {
+
     // sync user
     builder
       .addCase(syncUser.pending, (state) => {
@@ -110,6 +118,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Error";
       });
+
       // get auth user
     builder
     .addCase(getAuthUser.pending, (state) => {
@@ -123,6 +132,7 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = action.error.message || "Error"
     })
+
     // get profile
     builder
       .addCase(getProfile.pending, (state) => {
@@ -137,6 +147,21 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
+
+    //edit profile
+    builder
+    .addCase(editProfile.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    } )
+    .addCase(editProfile.fulfilled, (state, action) => {
+      state.loading = false;
+      state.data = action.payload;
+    })
+    .addCase(editProfile.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    })
 
   },
 
