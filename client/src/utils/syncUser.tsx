@@ -6,12 +6,13 @@ import type { UserResource } from "@clerk/types";
 
 export const useInitUser = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { getToken } = useAuth();
+  const { sessionId,getToken } = useAuth();
 
   const initUser = async (user: UserResource) => {
     const token = await getToken();
     if (!token) return;
-
+    // console.log("token:", token)
+    // console.log("id:", sessionId)
     const email =
       user.primaryEmailAddress?.emailAddress ||
       user.emailAddresses[0]?.emailAddress;

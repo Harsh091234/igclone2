@@ -7,7 +7,8 @@ const router = Router();
 router.put("/edit-profile",requireAuth(), editProfile)
 router.post("/sync-user", requireAuth(), syncUser)
 router.get('/auth-user', requireAuth(), getAuthUser);
-router.get("/profile/:userName", requireAuth(), getProfile)
+router.get("/profile/:name", requireAuth(), getProfile) //fullname or username
+// for later search by ID ROUTE
 
 export default router;
 

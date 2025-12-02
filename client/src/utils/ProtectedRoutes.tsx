@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { selectUser } from '../features/user/userSlice'
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import CenterLoading from '../components/CenterLoading';
 
 
 interface ProtectedRoutesProps {
@@ -13,9 +14,7 @@ interface ProtectedRoutesProps {
 const ProtectedRoutes = ({children}: ProtectedRoutesProps) => {
     const user = useSelector(selectUser);
     if(!user) return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-12 h-12 animate-spin text-(--primary)" />
-      </div>
+      <CenterLoading />
     );
     if(!user.isProfileComplete){
         return <Navigate to={"/onboarding"} replace />

@@ -68,22 +68,30 @@ export const getAuthUser = async (req: Request, res: Response) => {
 };
 
 export const getProfile = async (req: Request, res: Response) => {
-   
+  
   try {
-    const { userName } = req.params;
+    const { name } = req.params;
+    console.log(name)
+  //   const regex = new RegExp("^" + name, "i");
+    
+  //   const users = await User.find({
+  //     $or: [
+  //       {userName: {$regex: regex}},
+
+  //     {fullName: {$regex: regex}}]
+      
+      
+  // },
+  //   )
+  //   .populate("following", "userName fullName profilePic") 
+  //   .populate("followers", "userName fullName profilePic")
+  //   // .populate("posts";
+
+  const user = await User.findOne({userName: name});
+   if(!user) return res.status(400).json({success:false, message:"User not found"});
+    console.log(user)
  
-    if (!userName) {
-      return res.status(400).json({
-        success: false,
-        message: "Username is required",
-      });
-    }
-    
-    const user = await User.findOne({userName})
-    .populate("following", "userName fullName profilePic")
-    .populate("followers", "userName fullName profilePic")
-    // .populate("posts";
-    
+
     return res.status(200).json({
       success: true,
       user,

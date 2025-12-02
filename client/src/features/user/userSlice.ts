@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 
 
 export const selectUser = (state: any) => state.user.data;
+export const selectProfileUser = (state: any) => state.user.profileUser;
 export const selectUserLoading = (state: any) => state.user.loading;
 export const selectUserError = (state: any) => state.user.error;
 
@@ -56,19 +57,19 @@ export const getAuthUser = createAsyncThunk("/user/getAuthUser", async(token: st
 
 export const getProfile = createAsyncThunk(
   "user/getProfile",
-  async ({ token, userName  }: {  token: string ,userName: string;}, thunkAPI) => {   
+  async ({ token, name  }: {  token: string ,name: string;}, thunkAPI) => {   
    
     
     try {
      
    
-      const res = await api.get(`/user/profile/${userName}`, {
+      const res = await api.get(`/user/profile/${name}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-        
-     
+    
+      console.log("store:",res.data.user)
       
       return res.data.user;
     } catch (error: any) {
@@ -99,6 +100,7 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     data: null as User | null,
+    profileUser: null as User | null,
     loading: false,
     error: null as string | null,
   },
@@ -141,7 +143,7 @@ const userSlice = createSlice({
       })
       .addCase(getProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        state.profileUser = action.payload;
       })
       .addCase(getProfile.rejected, (state, action) => {
         state.loading = false;

@@ -56,7 +56,11 @@ const App = () => {
             }
           />
 
-          <Route path="profile/:userName" element={<ProfilePage />} />
+          <Route path="profile/:name" element={
+             <ProtectedRoutes>
+                <ProfilePage />
+             </ProtectedRoutes>
+          } />
         </Routes>
       </SignedIn>
     </header>

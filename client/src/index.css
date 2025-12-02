@@ -8,3 +8,36 @@ button{
   --primary-hover: rgb(40, 119, 247);
   --primary: #2f8bfc;
 }
+
+html, body {
+  height: 100%;
+  overflow: auto; /* or overflow: hidden if you want to disable scrolling entirely */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.my-scroll {
+  overflow: auto;              /* enable scrolling */
+  -ms-overflow-style: none;    /* IE 10+ */
+  scrollbar-width: none;       /* Firefox */
+  /* optional: ensure any background doesn't show a thin track */
+  background-clip: padding-box;
+}
+
+/* WebKit browsers */
+.my-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.my-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Firefox: hide */
+.my-scroll {
+  scrollbar-width: none; /* hide scrollbar in Firefox */
+}
