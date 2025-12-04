@@ -88,6 +88,7 @@ export const editProfile = createAsyncThunk("/user/editProfile", async({token,da
         Authorization: `Bearer ${token}`
       }
     }) 
+    console.log("hi")
     toast.success("Profile Saved");
     return res.data.user;
   } catch (error: any) {

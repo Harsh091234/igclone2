@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
@@ -18,6 +18,7 @@ import useDragScroll from "../utils/useDragScroll";
 const ProfilePage = () => {
   const { name } = useParams();
   const navigate = useNavigate();
+  
   const { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove } =
     useDragScroll();
   const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +26,11 @@ const ProfilePage = () => {
   const user = useSelector(selectProfileUser);
   const authUser = useSelector(selectUser);
   const loading = useSelector(selectUserLoading);
+
+  const handleClick = () => {
+    
+    navigate('/settings/edit-profile');
+  }
 
   useEffect(() => {
     const getDetails = async () => {
@@ -113,7 +119,7 @@ const ProfilePage = () => {
 
                 {isAuthUser && (
                   <div className="flex gap-2">
-                    <button className="px-4 py-1.5 rounded-lg border border-zinc-600 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 transition-all duration-200">
+                    <button onClick={handleClick} className="px-4 py-1.5 rounded-lg border border-zinc-600 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 transition-all duration-200">
                       Edit Profile
                     </button>
 

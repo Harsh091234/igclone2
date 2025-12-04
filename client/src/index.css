@@ -7,6 +7,7 @@ button{
 :root {
   --primary-hover: rgb(40, 119, 247);
   --primary: #2f8bfc;
+  --secondary: #d4d4d4;
 }
 
 html, body {

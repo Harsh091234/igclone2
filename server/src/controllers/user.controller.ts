@@ -108,7 +108,7 @@ export const getProfile = async (req: Request, res: Response) => {
 export const editProfile = async (req: Request, res: Response) => {
   try {
     const {userId: clerkId}= req.auth!();
-
+    
     const user = await User.findOne({ clerkId });
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -121,14 +121,14 @@ export const editProfile = async (req: Request, res: Response) => {
       profilePic: string;
 
     };
-    
+      console.log(profilePic)
         if (!userName) {
       return res.status(400).json({ message: "Username is required" });
     }
 
     
-    if (!gender || !["male", "female", "other"].includes(gender)) {
-      return res.status(400).json({ message: "Valid gender is required" });
+    if (!gender) {
+      return res.status(400).json({ message: "Gender is required" });
     }
 
     user.fullName = fullName.trim();
@@ -137,20 +137,15 @@ export const editProfile = async (req: Request, res: Response) => {
     user.userName = userName.toLowerCase().trim();
     user.gender = gender;
 
+if (profilePic && profilePic.startsWith("data:image")) {
+  if (user.profilePicPublicId) {
+    await cloudinary.uploader.destroy(user.profilePicPublicId);
+  }
 
-      if (profilePic) {
-      // Delete old profile pic from Cloudinary if exists
-      if (user.profilePicPublicId) {
-        await cloudinary.uploader.destroy(user.profilePicPublicId);
-      }
-
-      // Upload new image
-      const uploaded = await uploadBase64Image(profilePic, "profile_pics");
-
-      // Save new URL and public_id
-      user.profilePic = uploaded.secure_url;
-      user.profilePicPublicId = uploaded.public_id;
-    }
+  const uploaded = await uploadBase64Image(profilePic, "profile_pics");
+  user.profilePic = uploaded.secure_url;
+  user.profilePicPublicId = uploaded.public_id;
+}
     if (!profileComplete) user.isProfileComplete = true;
 
     await user.save();

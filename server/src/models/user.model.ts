@@ -9,7 +9,7 @@ export interface IUser extends Document {
     email: string;
     password: string;
 
-    gender: "male" | "female" | "other";
+    gender: string;
     bio: string;
 
     profilePic: string;
@@ -45,14 +45,17 @@ const userSchema = new Schema<IUser>(
         },
 
         userName: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            unique: true,
-            default: "",
-            match: [/^[a-zA-Z._]+$/, "Username can only contain letters, dots, or underscores"],
-        },
-
+  type: String,
+  trim: true,
+  lowercase: true,
+  unique: true,
+  default: "",
+  match: [
+    /^[a-zA-Z0-9._]+$/,
+    "Username can only contain letters, numbers, dots, or underscores"
+  ],
+},
+        
 
         email: {
             type: String,
@@ -66,12 +69,13 @@ const userSchema = new Schema<IUser>(
             default: "",
         },
 
-        gender: {
-            type: String,
-            lowercase: true,
-            enum: ["male", "female", "other"],
-            default: "other",
-        },
+       gender: {
+        trim:true,
+   type: String,
+  lowercase: true,
+  default: "prefer not to say",
+},
+
 
         bio: {
             type: String,
