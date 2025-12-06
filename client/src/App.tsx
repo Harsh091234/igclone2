@@ -15,6 +15,7 @@ import { selectUser } from "./features/user/userSlice";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
+import LeftSideBar from "./components/LeftSideBar";
 
 const App = () => {
   const { user, isSignedIn, isLoaded } = useUser();
@@ -32,6 +33,7 @@ const App = () => {
     }
   }, [isLoaded, isSignedIn, user]);
 
+ 
   return (
     <header>
       <SignedOut>
@@ -39,47 +41,55 @@ const App = () => {
       </SignedOut>
 
       <SignedIn>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoutes>
-                <FeedPage />
-              </ProtectedRoutes>
-            }
-          />
+        <div className="flex">
+          <div className="w-[7%]">
+            <LeftSideBar
+             />
+          </div>
+          <div className="w-[93%]">
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoutes>
+                    <FeedPage />
+                  </ProtectedRoutes>
+                }
+              />
 
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoutes>
-                <UserSetupPage />
-              </ProtectedRoutes>
-            }
-          />
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoutes>
+                    <UserSetupPage />
+                  </ProtectedRoutes>
+                }
+              />
 
-          <Route
-            path="profile/:name"
-            element={
-              <ProtectedRoutes>
-                <ProfilePage />
-              </ProtectedRoutes>
-            }
-          />
+              <Route
+                path="profile/:name"
+                element={
+                  <ProtectedRoutes>
+                    <ProfilePage />
+                  </ProtectedRoutes>
+                }
+              />
 
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoutes>
-                <SettingsPage />
-              </ProtectedRoutes>
-            }
-          >
-            {" "}
-            <Route index element={<Navigate to="edit-profile" replace />} />
-            <Route path="edit-profile" element={<EditProfilePage />} />
-          </Route>
-        </Routes>
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoutes>
+                    <SettingsPage />
+                  </ProtectedRoutes>
+                }
+              >
+                {" "}
+                <Route index element={<Navigate to="edit-profile" replace />} />
+                <Route path="edit-profile" element={<EditProfilePage />} />
+              </Route>
+            </Routes>
+          </div>
+        </div>
       </SignedIn>
     </header>
   );

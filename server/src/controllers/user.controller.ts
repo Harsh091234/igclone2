@@ -121,7 +121,7 @@ export const editProfile = async (req: Request, res: Response) => {
       profilePic: string;
 
     };
-      console.log(profilePic)
+      
         if (!userName) {
       return res.status(400).json({ message: "Username is required" });
     }

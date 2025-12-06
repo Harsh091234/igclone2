@@ -11,7 +11,7 @@ import CustomGenderModal from "../../components/modals/CustomGenderModal";
 
 
 const EditProfilePage = () => {
-   const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const authUser = useSelector(selectUser);
   const loading = useSelector(selectUserLoading);
   const [profilePic, setProfilePic] = useState<File | string>(authUser.profilePic); // 
@@ -81,14 +81,14 @@ const EditProfilePage = () => {
           {/* LEFT SIDE: avatar + username */}
           <div className="flex items-center gap-3">
             <img
-              src={authUser.profilePic}
+              src={profilePic ||  authUser.profilePic}
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover border"
             />
 
             <div className="flex flex-col">
               <span className="font-semibold text-gray-900">
-                {authUser.userName || "username"}
+                {userName || authUser.userName}
               </span>
             </div>
           </div>
