@@ -3,9 +3,11 @@
     import { Search, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "../../store/store";
-import { searchUsers, selectUsers } from "../../features/user/userSlice";
+import { searchUsers, selectUserLoading, selectUsers } from "../../features/user/userSlice";
 import { useAuth } from "@clerk/clerk-react";
 import type { SearchUser } from "../../types/user.types";
+import SearchUserSkeleton from "../Skeletons/SearchUserSkeleton";
+
 
     interface SearchPanelProps {
     isSearchPanelOpen: boolean;
@@ -21,7 +23,10 @@ import type { SearchUser } from "../../types/user.types";
       const [query, setQuery] = useState<string>("");
       const [isClicked, setIsClicked] = useState<boolean>(false);
       const inputRef = useRef<HTMLInputElement>(null);
-      const handleClear = () => {
+      const loading = useSelector(selectUserLoading);
+      
+   
+        const handleClear = () => {
         setIsClicked(false);
         setQuery("");
       };
@@ -137,7 +142,10 @@ import type { SearchUser } from "../../types/user.types";
             {/* Clear Button (X) */}
             {isClicked && (
               <button
-                onClick={(e) => {handleClear(); e.stopPropagation()}}
+                onClick={(e) => {
+                  handleClear();
+                  e.stopPropagation();
+                }}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
                 <X size={18} className="text-gray-500 hover:text-gray-700" />
@@ -146,33 +154,38 @@ import type { SearchUser } from "../../types/user.types";
           </div>
 
           {/* Search Results */}
-          {query && users.length > 0 && (
-            <div className="mt-5  rounded-lg max-h-60 overflow-y-auto">
-              {users.map((user: SearchUser) => (
-                <div
-                  key={user._id}
-                  className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition"
-                >
-                  {/* Profile Picture */}
-                  <img
-                    src={user.profilePic}
-                    alt={user.userName}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
 
-                  {/* Text Section */}
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-sm">
-                      @{user.userName}
-                    </span>
-                    <span className="text-gray-600 text-sm">
-                      {user.fullName}
-                    </span>
+          {query &&
+            (loading ? (
+              <div className="mt-5 w-full">
+                <SearchUserSkeleton />
+              </div>
+            ) : users.length > 0 ? (
+              <div className="mt-5 rounded-lg max-h-60 overflow-y-auto">
+                {users.map((user: SearchUser) => (
+                  <div
+                    key={user._id}
+                    className="flex items-center hover:bg-(--secondary) gap-4 p-2 rounded-lg cursor-pointer transition"
+                  >
+                    <img
+                      src={user.profilePic}
+                      alt={user.userName}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">
+                        @{user.userName}
+                      </span>
+                      <span className="text-gray-600 text-sm">
+                        {user.fullName}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6 text-gray-500 text-sm pl-5">No users found.</div>
+            ))}
         </div>
       );
     };
