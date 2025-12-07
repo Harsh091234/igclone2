@@ -1,12 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../utils/axios";
-import type { EditProfileData, User } from "../../types/user.types";
+import type { EditProfileData, User, SearchUser } from "../../types/user.types";
 import toast from "react-hot-toast";
 
 
 
 
+
 export const selectUser = (state: any) => state.user.data;
+export const selectUsers = (state: any) => state.user.users;
 export const selectProfileUser = (state: any) => state.user.profileUser;
 export const selectUserLoading = (state: any) => state.user.loading;
 export const selectUserError = (state: any) => state.user.error;
@@ -97,11 +99,30 @@ export const editProfile = createAsyncThunk("/user/editProfile", async({token,da
   }
 })
 
+export const searchUsers = createAsyncThunk("/user/searchUsers", async({token, query}: {token: string, query: string}, thunkApi) => {
+  try {
+    
+    const res = await api.get(`/user/search?q=${query}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }) 
+       
+    return res.data.users;
+  } catch (error: any) {
+   
+    return thunkApi.rejectWithValue(error.response?.data?.message || "Failed to search users");
+  }
+})
+
+
 const userSlice = createSlice({
   name: "user",
   initialState: {
     data: null as User | null,
     profileUser: null as User | null,
+    users: [] as SearchUser[],
+
     loading: false,
     error: null as string | null,
   },
@@ -166,6 +187,21 @@ const userSlice = createSlice({
       state.error = action.payload as string;
     })
 
+    //search users
+    builder
+    .addCase(searchUsers.pending, (state) => {
+      state.loading = true;
+      state.error =  null;
+    })
+    .addCase(searchUsers.fulfilled, (state, action) => {
+      state.loading = false;
+      state.users = action.payload;
+      
+    })
+    .addCase(searchUsers.rejected, (state, action) => {
+      state.loading = false;
+      state.error =  action.payload as string;
+    })
   },
 
   

@@ -18,3 +18,10 @@ export interface EditProfileData{
     profilePic?: string;
     gender: string;
 }
+
+export interface SearchUser{
+  _id: string,
+  userName: string,
+  profilePic: string,
+  fullName: string;
+}

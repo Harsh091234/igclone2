@@ -1,30 +1,33 @@
 @import "tailwindcss";
 
-button{
-    @apply cursor-pointer
+button {
+  @apply cursor-pointer;
 }
 
 :root {
   --primary-hover: rgb(40, 119, 247);
   --primary: #2f8bfc;
-  --secondary: #d4d4d4;
+  --secondary: #e7e4e4;       /* background for search items */
+  --secondary-hover: #d4d2d2; /* hover background for search items */
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: auto; /* or overflow: hidden if you want to disable scrolling entirely */
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-html::-webkit-scrollbar, body::-webkit-scrollbar {
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
 
 .my-scroll {
-  overflow: auto;              /* enable scrolling */
-  -ms-overflow-style: none;    /* IE 10+ */
-  scrollbar-width: none;       /* Firefox */
+  overflow: auto; /* enable scrolling */
+  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none; /* Firefox */
   /* optional: ensure any background doesn't show a thin track */
   background-clip: padding-box;
 }

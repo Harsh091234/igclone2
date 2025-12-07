@@ -1,6 +1,11 @@
     import React, { useEffect, useRef, useState } from "react";
     import { gsap } from "gsap";
     import { Search, X } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch } from "../../store/store";
+import { searchUsers, selectUsers } from "../../features/user/userSlice";
+import { useAuth } from "@clerk/clerk-react";
+import type { SearchUser } from "../../types/user.types";
 
     interface SearchPanelProps {
     isSearchPanelOpen: boolean;
@@ -10,6 +15,9 @@
     const SearchPanel = ({ isSearchPanelOpen, onClose }: SearchPanelProps) => {
       const panelRef = useRef<HTMLDivElement>(null);
       const wrapperRef = useRef<HTMLDivElement>(null);
+      const users = useSelector(selectUsers);
+      const dispatch = useDispatch<AppDispatch>();
+      const {getToken} = useAuth();
       const [query, setQuery] = useState<string>("");
       const [isClicked, setIsClicked] = useState<boolean>(false);
       const inputRef = useRef<HTMLInputElement>(null);
@@ -28,12 +36,12 @@
           }
         };
 
-        if (isSearchPanelOpen) {
-          document.addEventListener("mousedown", handleClickOutside);
-        }
+        
+          document.addEventListener("click", handleClickOutside);
+        
 
         return () =>
-          document.removeEventListener("mousedown", handleClickOutside);
+          document.removeEventListener("click", handleClickOutside);
       }, [isSearchPanelOpen, onClose]);
 
       // Close when clicking outside
@@ -77,6 +85,20 @@
         }
       }, [isSearchPanelOpen]);
 
+      useEffect(() => {
+
+        const timer = setTimeout(async () => {
+          if (!query) return;
+          console.log(users)
+          const token: string | null = await getToken();
+          if (!token) return;
+
+          dispatch(searchUsers({ token, query }));
+        }, 300);
+        
+        return () => clearTimeout(timer); // debounce to not flood users
+      }, [query])
+
       return (
         <div
           ref={panelRef}
@@ -115,7 +137,7 @@
             {/* Clear Button (X) */}
             {isClicked && (
               <button
-                onClick={handleClear}
+                onClick={(e) => {handleClear(); e.stopPropagation()}}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
                 <X size={18} className="text-gray-500 hover:text-gray-700" />
@@ -124,14 +146,29 @@
           </div>
 
           {/* Search Results */}
-          {query && (
-            <div className="mt-3 bg-gray-100 rounded-lg max-h-60 overflow-y-auto">
-              {[1, 2, 3, 4, 5].map((i) => (
+          {query && users.length > 0 && (
+            <div className="mt-5  rounded-lg max-h-60 overflow-y-auto">
+              {users.map((user: SearchUser) => (
                 <div
-                  key={i}
-                  className="p-2 hover:bg-gray-200 cursor-pointer transition"
+                  key={user._id}
+                  className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition"
                 >
-                  {query} result {i}
+                  {/* Profile Picture */}
+                  <img
+                    src={user.profilePic}
+                    alt={user.userName}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+
+                  {/* Text Section */}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-sm">
+                      @{user.userName}
+                    </span>
+                    <span className="text-gray-600 text-sm">
+                      {user.fullName}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

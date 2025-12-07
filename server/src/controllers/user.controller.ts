@@ -159,3 +159,30 @@ if (profilePic && profilePic.startsWith("data:image")) {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const searchUsers = async(req: Request, res: Response) => {
+  try {
+    const {q} = req.query;
+    if(!q || typeof q !== "string"){
+          return res.status(400).json({ success: false, message: "Query is required" });
+    }
+
+    const regex = new RegExp("^" + q, "i");
+
+    const users = await User.find({
+      $or: [
+        {username: regex},
+        {
+          fullName: regex, 
+        }
+      ]
+    }).select("userName profilePic fullName");
+
+    if(!users) return res.status(200).json({message:"No users found"});
+
+        res.json({ success: true, users });
+
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Error in searchUsers" });
+  }
+}

@@ -56,7 +56,9 @@ const LeftSideBar = () => {
       <Link to="/" className="">
         <Home className="w-6 h-6" />
       </Link>
-      <button onClick={() => setIsSearchPanelOpen(!isSearchPanelOpen)} className="">
+      <button onClick={(e) => {
+        e.stopPropagation();
+        setIsSearchPanelOpen(!isSearchPanelOpen)}} className="">
         <Search className="w-6 h-6" />
       </button>
       <SearchPanel
