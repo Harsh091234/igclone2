@@ -22,7 +22,7 @@ const LeftSideBar = () => {
   
 
   return (
-    <aside className="w-16 min-h-screen border-r border-gray-200 flex flex-col items-center py-6 gap-6 select-none">
+    <aside className="w-16 bg-green-400 h-screen border-r border-gray-200 flex flex-col items-center py-6 gap-6 select-none">
       {/* Instagram Logo */}
       <Link to="/" className="cursor-pointer">
         <svg

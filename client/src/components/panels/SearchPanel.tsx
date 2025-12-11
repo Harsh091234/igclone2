@@ -7,6 +7,7 @@ import { searchUsers, selectUserLoading, selectUsers } from "../../features/user
 import { useAuth } from "@clerk/clerk-react";
 import type { SearchUser } from "../../types/user.types";
 import SearchUserSkeleton from "../Skeletons/SearchUserSkeleton";
+import { useNavigate, type Navigate } from "react-router-dom";
 
 
     interface SearchPanelProps {
@@ -24,6 +25,7 @@ import SearchUserSkeleton from "../Skeletons/SearchUserSkeleton";
       const [isClicked, setIsClicked] = useState<boolean>(false);
       const inputRef = useRef<HTMLInputElement>(null);
       const loading = useSelector(selectUserLoading);
+      const navigate = useNavigate();
       
    
         const handleClear = () => {
@@ -104,6 +106,11 @@ import SearchUserSkeleton from "../Skeletons/SearchUserSkeleton";
         return () => clearTimeout(timer); // debounce to not flood users
       }, [query])
 
+      const handleNavigate = (userName: string) => {
+        onClose();
+        navigate(`/profile/${userName}`);
+      }
+
       return (
         <div
           ref={panelRef}
@@ -165,6 +172,7 @@ import SearchUserSkeleton from "../Skeletons/SearchUserSkeleton";
                 {users.map((user: SearchUser) => (
                   <div
                     key={user._id}
+                    onClick={e => handleNavigate(user.userName)}
                     className="flex items-center hover:bg-(--secondary) gap-4 p-2 rounded-lg cursor-pointer transition"
                   >
                     <img

@@ -41,12 +41,12 @@ const App = () => {
       </SignedOut>
 
       <SignedIn>
-        <div className="flex">
+        <div className="flex max-h-screen overflow-hidden ">
           <div className="w-[7%]">
             <LeftSideBar
              />
           </div>
-          <div className="w-[93%]">
+          <div className="w-[93%] overflow-y-auto">
             <Routes>
               <Route
                 path="/"
