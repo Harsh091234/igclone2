@@ -46,20 +46,23 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
      <div
        ref={panelRef}
        className="
-        absolute 
-        bottom-5 
-        left-12 
-        w-64 p-3 
-        border bg-white border-gray-200 
-        animate-fadeIn 
-        shadow-xl rounded-2xl
-        z-50
-      "
+    absolute bottom-5 left-17 w-64 p-3
+    border border-border
+    bg-card
+    shadow-xl rounded-2xl
+    z-50
+  "
      >
+       {/* Links */}
        <Link
          to="/settings"
          onClick={onClose}
-         className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-(--secondary)"
+         className="
+      flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200
+    "
        >
          <Settings size={18} />
          <span>Settings</span>
@@ -68,7 +71,10 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
        <Link
          to="/activity"
          onClick={onClose}
-         className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-(--secondary)"
+         className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200"
        >
          <Activity size={18} />
          <span>Your activity</span>
@@ -77,17 +83,25 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
        <Link
          to="/saved"
          onClick={onClose}
-         className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-(--secondary)"
+         className="flex items-center gap-3 px-3 py-2 text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200"
        >
          <Bookmark size={18} />
          <span>Saved</span>
        </Link>
 
-       <hr className="my-2 mx-2 text-(--secondary)" />
+       <hr className="my-2 mx-2 border-t border-border" />
 
        <button
          onClick={onClose}
-         className="flex items-center gap-3 px-3 py-2 w-full text-sm rounded-lg hover:bg-(--secondary)"
+         className="
+      flex items-center gap-3 px-3 py-2 w-full text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200
+    "
        >
          <SunMedium size={18} />
          <span>Switch appearance</span>
@@ -95,35 +109,56 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
 
        <button
          onClick={onClose}
-         className="flex items-center gap-3 px-3 py-2 w-full text-sm rounded-lg hover:bg-(--secondary)"
+         className="
+      flex items-center gap-3 px-3 py-2 w-full text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200
+    "
        >
          <MessageCircleWarning size={18} />
          <span>Report a problem</span>
        </button>
 
-       <hr className="my-2 mx-2 text-(--secondary)" />
+       <hr className="my-2 mx-2 border-t border-border" />
 
        <button
          onClick={onClose}
-         className="flex items-center w-full gap-3 px-3 py-2 text-sm rounded-lg hover:bg-(--secondary)"
+         className="
+      flex items-center w-full gap-3 px-3 py-2 text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200
+    "
        >
          <CircleEllipsis size={18} />
          <span>Threads</span>
        </button>
 
-       <hr className="my-2 mx-2 text-(--secondary)" />
+       <hr className="my-2 mx-2 border-t border-border" />
 
        <button
          onClick={onClose}
-         className="flex items-center w-full gap-3 px-3 py-2 text-sm rounded-lg hover:bg-(--secondary)"
+         className="
+      flex items-center w-full gap-3 px-3 py-2 text-sm rounded-lg
+      text-foreground
+      hover:bg-accent
+      transition-colors duration-200
+    "
        >
          <UserPlus size={18} />
          <span>Switch accounts</span>
        </button>
 
+       {/* Destructive Logout Button */}
        <button
          onClick={onHandleLogout}
-         className="flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg hover:bg-(--secondary) text-red-500"
+         className="
+      flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg
+      text-destructive
+      hover:bg-destructive/10
+      transition-colors duration-200
+    "
        >
          <LogOut size={18} />
          <span>Log out</span>

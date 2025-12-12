@@ -123,32 +123,16 @@ export default function SettingsMenu() {
 
   return (
     <div className="w-full max-h-screen overflow-y-auto p-4 space-y-6">
-      {/* META CARD */}
+      {/* PAGE HEADER */}
       <h1 className="pl-8 font-bold text-2xl">Settings</h1>
-      {/* <div className="bg-white shadow-sm rounded-xl p-4 border">
-        <h2 className="font-semibold text-lg">Meta</h2>
-        <p className="text-sm mt-1 text-gray-600">
-          Manage your connected experiences and account settings across Meta
-          technologies.
-        </p>
-
-        <div className="mt-3 space-y-2">
-          <p className="text-sm text-gray-700">• Personal details</p>
-          <p className="text-sm text-gray-700">• Password and security</p>
-          <p className="text-sm text-gray-700">• Ad preferences</p>
-        </div>
-
-        <Link className="text-blue-600 text-sm mt-2 inline-block" to="#">
-          See more in Accounts Center
-        </Link>
-      </div> */}
 
       {/* MENU SECTIONS */}
       {sections.map((section, index) => (
         <div key={index}>
-          <h3 className="text-sm font-semibold text-gray-500 mb-2">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-2">
             {section.title}
           </h3>
+
           <div className="space-y-1">
             {section.items.map((item, i) => {
               const Icon = item.icon;
@@ -158,13 +142,17 @@ export default function SettingsMenu() {
                 <Link
                   key={i}
                   to={item.path}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition 
-                    ${
-                      active ? "bg-gray-200 font-medium" : "hover:bg-gray-100"
-                    }`}
+                  className={`
+    flex items-center gap-2.5 p-2.5 rounded-md transition
+    ${
+      active
+        ? "bg-secondary text-foreground font-medium"
+        : "hover:bg-accent hover:text-accent-foreground"
+    }
+  `}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <Icon size={18} />
+                  <span className="text-sm">{item.label}</span>
                 </Link>
               );
             })}

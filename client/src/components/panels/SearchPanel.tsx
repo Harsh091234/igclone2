@@ -114,17 +114,21 @@ import { useNavigate, type Navigate } from "react-router-dom";
       return (
         <div
           ref={panelRef}
-          className="fixed top-0 left-16 w-full max-w-sm min-h-screen bg-white shadow-lg z-50 py-3 px-6 opacity-0 pointer-events-none scale-x-0"
+          className="
+    fixed top-0 left-16 w-full max-w-sm min-h-screen
+    bg-card
+    shadow-lg z-50 py-3 px-6
+    opacity-0 pointer-events-none scale-x-0 rounded-r-2xl border-r-2 border-r-border 
+  "
         >
-          <h1 className="font-semibold text-2xl mt-4">Search</h1>
+          <h1 className="font-semibold text-2xl mt-4 text-foreground">
+            Search
+          </h1>
 
           {/* Search bar wrapper */}
-          <div
-            ref={wrapperRef}
-            className="relative mt-4 bg-(--secondary) rounded-full"
-          >
+          <div ref={wrapperRef} className="relative mt-4 bg-input rounded-full">
             <div
-              className="flex items-center w-full px-4 py-2 "
+              className="flex items-center w-full px-4 py-2 cursor-text"
               onClick={() => {
                 setIsClicked(true);
                 inputRef.current?.focus();
@@ -132,14 +136,14 @@ import { useNavigate, type Navigate } from "react-router-dom";
             >
               {/* Search Icon */}
               {!isClicked && (
-                <Search size={18} className="text-gray-500 mr-2" />
+                <Search size={18} className="text-muted-foreground mr-2" />
               )}
 
               {/* Search Input */}
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full bg-transparent outline-none text-sm"
+                className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
                 value={query}
                 ref={inputRef}
                 onChange={(e) => setQuery(e.target.value)}
@@ -155,13 +159,15 @@ import { useNavigate, type Navigate } from "react-router-dom";
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
-                <X size={18} className="text-gray-500 hover:text-gray-700" />
+                <X
+                  size={18}
+                  className="text-muted-foreground hover:text-foreground transition"
+                />
               </button>
             )}
           </div>
 
           {/* Search Results */}
-
           {query &&
             (loading ? (
               <div className="mt-5 w-full">
@@ -172,19 +178,23 @@ import { useNavigate, type Navigate } from "react-router-dom";
                 {users.map((user: SearchUser) => (
                   <div
                     key={user._id}
-                    onClick={e => handleNavigate(user.userName)}
-                    className="flex items-center hover:bg-(--secondary) gap-4 p-2 rounded-lg cursor-pointer transition"
+                    onClick={(e) => handleNavigate(user.userName)}
+                    className="
+              flex items-center gap-4 p-2 rounded-lg cursor-pointer
+              hover:bg-accent
+              transition
+            "
                   >
                     <img
                       src={user.profilePic}
                       alt={user.userName}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover border border-border"
                     />
                     <div className="flex flex-col">
-                      <span className="font-semibold text-sm">
+                      <span className="font-semibold text-sm text-foreground">
                         @{user.userName}
                       </span>
-                      <span className="text-gray-600 text-sm">
+                      <span className="text-sm text-muted-foreground">
                         {user.fullName}
                       </span>
                     </div>
@@ -192,7 +202,9 @@ import { useNavigate, type Navigate } from "react-router-dom";
                 ))}
               </div>
             ) : (
-              <div className="mt-6 text-gray-500 text-sm pl-5">No users found.</div>
+              <div className="mt-6 text-sm text-muted-foreground pl-5">
+                No users found.
+              </div>
             ))}
         </div>
       );

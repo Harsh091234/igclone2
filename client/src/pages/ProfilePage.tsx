@@ -15,9 +15,11 @@ import type { AppDispatch } from "../store/store";
 import CenterLoading from "../components/CenterLoading";
 import useDragScroll from "../utils/useDragScroll";
 
+
 const ProfilePage = () => {
   const { name } = useParams();
   const navigate = useNavigate();
+ 
   
   const { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove } =
     useDragScroll();
@@ -101,8 +103,11 @@ const ProfilePage = () => {
   if (loading || !user) return <CenterLoading />;
 
   return (
-    <div className="min-h-screen bg-black text-white flex justify-center px-30">
-      <div className="w-full max-w-4xl mt-16">
+    <div
+      className="min-h-screen 
+     flex justify-center px-30 py-6"
+    >
+      <div className="w-full max-w-4xl mt-13">
         {/* TOP SECTION */}
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-30 mb-8">
@@ -119,11 +124,28 @@ const ProfilePage = () => {
 
                 {isAuthUser && (
                   <div className="flex gap-2">
-                    <button onClick={handleClick} className="px-4 py-1.5 rounded-lg border border-zinc-600 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 transition-all duration-200">
+                    <button
+                      onClick={handleClick}
+                      className="
+      px-4 py-1.5 rounded-lg text-xs font-medium
+      bg-secondary text-secondary-foreground
+      border border-border
+      hover:bg-secondary/80
+      transition-all duration-200
+    "
+                    >
                       Edit Profile
                     </button>
 
-                    <button className="px-4 py-1 rounded-lg border border-zinc-600 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 transition-all duration-200">
+                    <button
+                      className="
+      px-4 py-1 rounded-lg text-xs font-medium
+      bg-secondary text-secondary-foreground
+      border border-border
+      hover:bg-secondary/80
+      transition-all duration-200
+    "
+                    >
                       Settings
                     </button>
                   </div>

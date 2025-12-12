@@ -20,9 +20,16 @@ const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   
-
+  if(!authUser) return;
   return (
-    <aside className="w-16 bg-green-400 h-screen border-r border-gray-200 flex flex-col items-center py-6 gap-6 select-none">
+    <aside
+      className="
+  w-full h-screen flex flex-col items-center py-6 gap-6 select-none
+  bg-white dark:bg-background
+  border-r border-primary/20
+  text-foreground dark:text-foreground
+"
+    >
       {/* Instagram Logo */}
       <Link to="/" className="cursor-pointer">
         <svg
@@ -56,14 +63,18 @@ const LeftSideBar = () => {
       <Link to="/" className="">
         <Home className="w-6 h-6" />
       </Link>
-      <button onClick={(e) => {
-        e.stopPropagation();
-        setIsSearchPanelOpen(!isSearchPanelOpen)}} className="">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsSearchPanelOpen(!isSearchPanelOpen);
+        }}
+        className=""
+      >
         <Search className="w-6 h-6" />
       </button>
       <SearchPanel
-       isSearchPanelOpen={isSearchPanelOpen}
-       onClose={() => setIsSearchPanelOpen(false)}
+        isSearchPanelOpen={isSearchPanelOpen}
+        onClose={() => setIsSearchPanelOpen(false)}
       />
       <Link to="/explore" className="">
         <Compass className="w-6 h-6" />
@@ -96,8 +107,8 @@ const LeftSideBar = () => {
       {/* Menu / Settings */}
       <button className="mt-auto" onClick={() => setIsOpen(!isOpen)}>
         <Menu className="w-6 h-6" />
+        <MoreMenu isOpen={isOpen} onClose={() => setIsOpen(false)} />
       </button>
-      <MoreMenu isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </aside>
   );
 };
