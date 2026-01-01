@@ -3,6 +3,7 @@ import { uploadBase64Image } from "#config/uploadPic.js";
 import User, { IUser } from "#models/user.model.js";
 import { log, profile } from "console";
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 
 
 export const syncUser = async(req: Request, res: Response) => {
@@ -184,5 +185,107 @@ export const searchUsers = async(req: Request, res: Response) => {
 
   } catch (error) {
       res.status(500).json({ success: false, message: "Error in searchUsers" });
+  }
+}
+
+export const getSuggestedUsers = async(req: Request, res: Response) => {
+  try {
+    const {userId: clerkId} = req.auth!();
+    
+    
+    if (!clerkId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const suggestedUsers = await User.find({clerkId: {$ne: clerkId}  }).select("userName fullName profilePic");
+
+   
+    if (suggestedUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No users found",
+      });
+    }
+
+
+
+
+    return res.status(200).json({success: true, suggestedUsers})
+
+  } catch (error) {
+    
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getSuggestedUsers",
+    });
+  }
+}
+
+export const followOrUnfollowUser = async(req: Request, res: Response) => {
+  try {
+    const {userId: clerkId} = req.auth!();
+    // const {clerkId} = req.body as {
+    //   clerkId: string
+    // }
+    if (!clerkId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const targetUserId = req.params.id.trim();
+  
+
+if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+  return res.status(400).json({ message: "Invalid user id" });
+}
+    
+
+    const authUser = await User.findOne({clerkId});
+    const targetUser = await User.findById(targetUserId);
+    if(!authUser || !targetUser){
+       return res.status(400).json({ message: "User not found" });
+    }
+ if (authUser._id.equals(targetUserId)) {
+      return res
+        .status(400)
+        .json({ message: "You cannot follow/unfollow yourself" });
+    }
+    
+  const isFollowing = authUser.following.some(
+      (id) => id.equals(targetUserId)
+    );
+
+    
+    if(isFollowing){
+      //unfollow
+      await Promise.all([
+        User.updateOne({_id: authUser._id},{$pull: {following: targetUserId}} ),
+        User.updateOne({_id: targetUserId}, {$pull: {followers: authUser._id}})
+      ]);
+
+      return res.status(200).json({
+      success: true,
+      message: "User unfollowed successfully",
+    });
+    }
+    else{
+      //follow
+      await Promise.all([
+        User.updateOne({_id: authUser._id},{$push: {following: targetUserId}} ),
+        User.updateOne({_id: targetUserId}, {$push: {followers: authUser._id}})
+      ]);
+      
+     return res.status(200).json({
+      success: true,
+      message: "User followed successfully",
+    });
+    }
+  } catch (error: any) {
+    console.log("Error in followOrUnfollowUser:", error.message)
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in followOrUnfollowUser",
+    });
   }
 }
