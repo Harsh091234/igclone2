@@ -225,9 +225,7 @@ export const getSuggestedUsers = async(req: Request, res: Response) => {
 export const followOrUnfollowUser = async(req: Request, res: Response) => {
   try {
     const {userId: clerkId} = req.auth!();
-    // const {clerkId} = req.body as {
-    //   clerkId: string
-    // }
+   
     if (!clerkId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -289,3 +287,5 @@ if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
     });
   }
 }
+
+

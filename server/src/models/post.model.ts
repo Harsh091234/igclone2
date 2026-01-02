@@ -6,6 +6,7 @@ export interface IPost extends Document {
   media: {
     url: string;
     type: "image" | "video";
+    publicId: string;
   }[];
   likes: mongoose.Types.ObjectId[];
   comments: mongoose.Types.ObjectId[];
@@ -33,6 +34,7 @@ const postSchema = new Schema<IPost>(
     media: [
       {
         url: { type: String, required: true },
+        publicId: { type: String, required: true },
         type: {
           type: String,
           enum: ["image", "video"],

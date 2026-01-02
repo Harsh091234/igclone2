@@ -2,7 +2,8 @@ import express, { urlencoded } from "express";
 import { Application, Request, Response } from "express";
 import dotenv from "dotenv";
 import connectDB from "#config/db.js";
-import userRoutes from "#routes/user.route.js"
+import userRoutes from "#routes/user.route.js";
+import postRoutes from "#routes/post.route.js";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 
@@ -32,6 +33,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/user", userRoutes);
+app.use("/api/post", postRoutes);
 
 
 app.listen(PORT, () => {
