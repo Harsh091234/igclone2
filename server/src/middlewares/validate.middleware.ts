@@ -7,6 +7,9 @@ export const validate = (schema: ZodType) => async(req: Request, res: Response, 
         req.body = parseBody;
         next();
     } catch (error: any) {
-        res.status(400).json({message: error.errors?.[0]?.message || "Validation failed"});
+        res.status(400).json({message: error.issues.map((issue: any) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })) || "Validation failed"});
     }
 }
