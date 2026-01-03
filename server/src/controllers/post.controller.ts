@@ -1,5 +1,6 @@
 import { uploadBase64Image } from "#config/uploadPic.js";
 import { uploadVideo } from "#config/uploadVideo.js";
+import { commentPostSchema } from "#config/validators/post.validator.js";
 import Comment from "#models/comment.model.js";
 import Post from "#models/post.model.js";
 import User from "#models/user.model.js";
@@ -89,7 +90,7 @@ export const createPost = async(req: Request, res: Response) => {
   }
 }
 
-export const likePost = async(req: Request, res: Response) => {
+export const toggleLikePost = async(req: Request, res: Response) => {
   try {
     const {userId: clerkId} = req.auth!(); 
     const {id} = req.params; //post id
@@ -100,15 +101,30 @@ export const likePost = async(req: Request, res: Response) => {
       success: false,
       message: "Auth user not found",
     });
-    const post = await Post.findByIdAndUpdate(id, {$addToSet: {likes: authUser._id}}, {new: true});
+    const post = await Post.findById(id);
     if(!post)  return res.status(400).json({
       success: false,
       message: "No post found",
     });
     
    
+    const isLiked = post.likes.some(
+      (id) => id.toString() === authUser._id.toString()
+    );
 
-    //implement realtime notification
+    if (isLiked) {
+     post.likes = post.likes.filter(
+        (id) => id.toString() !== authUser._id.toString()
+      );
+    } else {
+      post.likes.push(authUser._id);
+
+      // 🔔 realtime notification (optional)
+      // notifyPostOwner(post.author, authUser._id, "like")
+    }
+
+
+   
 
 
    return res.status(200).json({
@@ -118,52 +134,16 @@ export const likePost = async(req: Request, res: Response) => {
     });
 
   } catch (error: any) {
-    console.log("Error in likePost:", error.message)
+    console.log("Error in toggleLikePost:", error.message)
 
     return res.status(500).json({
       success: false,
-      message: "Error in likePost",
+      message: "Error in toggleLikePost",
     });
   }
 }
 
-export const unlikePost = async(req: Request, res: Response) => {
-  try {
-    const {userId: clerkId} = req.auth!(); 
-    const {id} = req.params; //post id
-   
 
-    const authUser = await User.findOne({clerkId});
-    if(!authUser) return res.status(401).json({
-      success: false,
-      message: "Auth user not found",
-    });
-    const post = await Post.findByIdAndUpdate(id, {$pull: {likes: authUser._id}}, {new: true});
-    if(!post)  return res.status(400).json({
-      success: false,
-      message: "No post found",
-    });
-    
-   
-
-    //implement realtime notification
-
-
-   return res.status(200).json({
-      success: true,
-      message: "Post unliked successfully",
-      post
-    });
-
-  } catch (error: any) {
-    console.log("Error in unlikePost:", error.message)
-
-    return res.status(500).json({
-      success: false,
-      message: "Error in unlikePost",
-    });
-  }
-}
 
 
 export const commentPost = async(req: Request, res: Response) => {
@@ -212,3 +192,104 @@ export const commentPost = async(req: Request, res: Response) => {
     });
   }
 }
+
+//get post + top 3 comments
+export const getAllPosts = async(req: Request, res: Response) => {
+  try {
+      const posts = await Post.find()
+  .sort({ createdAt: -1 }) // latest posts first
+  .populate({ path: "author", select: "userName profilePic" })
+  .populate({
+    path: "comments",
+    options: {sort: { createdAt: -1 }, limit: 3}, // latest comments first
+    populate: {
+      path: "author",
+      select: "userName profilePic",
+    },
+  });
+
+  if(!posts)  return res.status(400).json({
+      success: false,
+      message: "No posts found",
+    });
+   
+    return res.status(200).json({
+      success: true,
+      posts
+    });
+
+  } catch (error: any) {
+    console.log("Error in getAllPosts:", error.message)
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getAllPosts",
+    });
+  }
+}
+
+//get post + top 3 comments
+export const getUserPosts = async(req: Request, res: Response) => {
+  try {
+    const {id} = req.params; //author id
+      const posts = await Post.find({author: id })
+  .sort({ createdAt: -1 }) // latest posts first
+  .populate({ path: "author", select: "userName profilePic" })
+  .populate({
+    path: "comments",
+    options: {sort: { createdAt: -1 }, limit:3}, // latest comments first
+    populate: {
+      path: "author",
+      select: "userName profilePic",
+    },
+  });
+
+  if(!posts)  return res.status(400).json({
+      success: false,
+      message: "No posts found",
+    });
+   
+    return res.status(200).json({
+      success: true,
+      posts
+    });
+
+  } catch (error: any) {
+    console.log("Error in getUserPosts:", error.message)
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getUserPosts",
+    });
+  }
+}
+
+//get all comments when user clicks show more...
+export const getAllComments = async(req: Request, res: Response) => {
+  try {
+      const {id} = req.params; //post id
+
+      const comments = await Comment.find({post: id})
+      .populate("author", "userName profilePic");
+      if(!comments)  
+     return res.status(400).json({
+      success: false,
+      message: "No comments found"
+    });
+
+      
+     return res.status(200).json({
+      success: true,
+      comments
+    });
+
+  } catch (error: any) {
+    console.log("Error in getAllComments:", error.message)
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getAllComments",
+    });
+  }
+}
+

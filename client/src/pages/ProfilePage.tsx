@@ -44,6 +44,7 @@ const ProfilePage = () => {
         if (getProfile.rejected.match(res)) return navigate("/");
 
         dispatch(getAuthUser(token));
+        console.log("user",user);
       }
     };
 
