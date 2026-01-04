@@ -5,7 +5,7 @@ import { Router } from "express";
 const router = Router();
 router.put("/edit-profile",requireAuth(), editProfile)
 router.post("/sync-user", requireAuth(), syncUser)
-router.get('/auth-user', requireAuth(), getAuthUser);
+router.get('/get-auth-user', requireAuth(), getAuthUser);
 router.get("/profile/:name", requireAuth(), getProfile) //fullname or username
 router.get("/search",requireAuth(), searchUsers);
 router.get("/fetch-suggested-users", requireAuth(), getSuggestedUsers);

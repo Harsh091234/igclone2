@@ -7,33 +7,46 @@ import {
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
-import ProfilePage from "./pages/ProfilePage";
-import UserSetupPage from "./pages/UserSetupPage";
-import { useInitUser } from "./utils/syncUser";
-import { useSelector } from "react-redux";
-import { selectUser } from "./features/user/userSlice";
-import ProtectedRoutes from "./utils/ProtectedRoutes";
-import SettingsPage from "./pages/SettingsPage";
-import EditProfilePage from "./pages/SettingPages/EditProfilePage";
-import LeftSideBar from "./components/LeftSideBar";
+// import ProfilePage from "./pages/ProfilePage";
+// import UserSetupPage from "./pages/UserSetupPage";
+
+
+
+// import ProtectedRoutes from "./utils/ProtectedRoutes";
+// import SettingsPage from "./pages/SettingsPage";
+// import EditProfilePage from "./pages/SettingPages/EditProfilePage";
+// import LeftSideBar from "./components/LeftSideBar";
 import { useTheme } from "./utils/ThemeProvider";
 import { Sun } from "lucide-react";
+import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
+import CenterLoading from "./components/CenterLoading";
 
 const App = () => {
   const { user, isSignedIn, isLoaded } = useUser();
-  const initUser = useInitUser();
-  const authUser = useSelector(selectUser);
+ const [syncUser] = useSyncUserMutation();
+ const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {
+  skip: !isLoaded || !isSignedIn,
+ });
   const {theme, setTheme} = useTheme();
-  //for auth user
+const authUser = data?.user;
+  
   useEffect(() => {
     console.log("auth user:", authUser);
-  }, [[authUser]]);
+  }, [authUser]);
 
   useEffect(() => {
-    if (isSignedIn && user && isLoaded) {
-      initUser(user);
+    if (isSignedIn && user && isLoaded && !isLoading && !authUser) {
+      //if not then store user
+         (async () => {
+           await syncUser().unwrap(); // 👈 wait until user is stored
+           refetch(); // 👈 now fetch again
+         })();
+      
+       
+      
+    
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, authUser, isLoading]);
 
   const handleTheme = () => {
     if(theme === "light"){
@@ -43,7 +56,8 @@ const App = () => {
       setTheme("light");
     }
   }
- 
+    if (isLoading) return <CenterLoading />;
+
   return (
     <div className="">
       <SignedOut>
@@ -71,49 +85,49 @@ const App = () => {
           </button>
 
           <div className="w-[7%]">
-            <LeftSideBar />
+            {/* <LeftSideBar /> */}
           </div>
           <div className="w-[93%] overflow-y-auto">
             <Routes>
               <Route
                 path="/"
                 element={
-                  <ProtectedRoutes>
-                    <FeedPage />
-                  </ProtectedRoutes>
+                  
+                   <FeedPage />
+                
                 }
               />
 
-              <Route
+              {/* <Route
                 path="/onboarding"
                 element={
-                  <ProtectedRoutes>
+                  
                     <UserSetupPage />
-                  </ProtectedRoutes>
+                
                 }
-              />
+              /> */}
 
-              <Route
+              {/* <Route
                 path="profile/:name"
                 element={
-                  <ProtectedRoutes>
+              
                     <ProfilePage />
-                  </ProtectedRoutes>
+                 
                 }
               />
 
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoutes>
+                
                     <SettingsPage />
-                  </ProtectedRoutes>
+               
                 }
               >
                 {" "}
                 <Route index element={<Navigate to="edit-profile" replace />} />
                 <Route path="edit-profile" element={<EditProfilePage />} />
-              </Route>
+              </Route> */}
             </Routes>
           </div>
         </div>

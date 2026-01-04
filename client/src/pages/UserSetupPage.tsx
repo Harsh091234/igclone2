@@ -58,8 +58,8 @@ const UserSetupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex justify-center items-start p-4">
-      <div className="w-full bg-neutral-950 max-w-lg shadow-xl rounded-2xl p-6">
+    <div className="min-h-screen flex justify-center bg-green-700 items-start p-4">
+      <div className="w-full  max-w-lg shadow-xl rounded-2xl p-6">
         <h1 className="text-3xl font-semibold mb-6 text-gray-200  text-center">
           Set Profile
         </h1>
@@ -105,20 +105,20 @@ const UserSetupPage = () => {
               placeholder="Full Name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="bg-neutral-800 py-2 px-4 rounded-md text-white border border-neutral-700 outline-0 focus:ring-(--primary) focus:ring-2"
+              className="bg-neutral-800 py-2 px-4 rounded-md text-white border border-neutral-700 outline-0 focus:ring-2"
             />
 
             <input
               placeholder="Username"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="bg-neutral-800 py-2 px-4  rounded-md text-white border border-neutral-700  outline-0 focus:ring-(--primary) focus:ring-2"
+              className="bg-neutral-800 py-2 px-4  rounded-md text-white border border-neutral-700  outline-0  focus:ring-2"
             />
 
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-3 outline-none focus:ring-2 focus:ring-(--primary)  cursor-pointer"
+              className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-3 outline-none focus:ring-2  cursor-pointer"
             >
               <option value="" disabled>
                 Select Gender
@@ -134,14 +134,14 @@ const UserSetupPage = () => {
               placeholder="Bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-4  min-h-24 resize-none  outline-0 focus:ring-(--primary) focus:ring-2"
+              className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-4  min-h-24 resize-none  outline-0  focus:ring-2"
             />
 
             <button
               type="submit"
               disabled={loading}
               className={`
-    bg-(--primary) text-gray-100 font-medium py-2.5 px-3 rounded-lg 
+     text-gray-100 font-medium py-2.5 px-3 rounded-lg 
     transition-all duration-200 flex items-center justify-center gap-2
     ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-(--primary-hover)"}
   `}

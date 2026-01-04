@@ -4,7 +4,7 @@ import User, { IUser } from "#models/user.model.js";
 import { log, profile } from "console";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-
+import {clerkClient} from "@clerk/express"
 
 export const syncUser = async(req: Request, res: Response) => {
   try {
@@ -13,18 +13,22 @@ export const syncUser = async(req: Request, res: Response) => {
 
     if(!clerkId)  return res.status(401).json({ message: "Not authenticated" });
     
-    const {email} = req.body;
+    const clerkUser = await clerkClient.users.getUser(clerkId);
+
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
     
-    if(!email) return res.status(400).json({message: "Email is required"});
+    if(!email) return res.status(400).json({message: "Email not found in clerk db"});
     const user = await User.findOne({clerkId})
+    console.log("id", clerkId)
+    console.log("user", user)
     if (user) {
-    return res.status(400).json({message: "User already exists"}); // or update if needed
+    return res.status(405).json({message: "User already exists"}); // or update if needed
 }
     const newUser = await User.create({
       clerkId,
       email,
     });
-  
+    
     return res.status(201).json({ success: true, user: newUser });
 
     
@@ -48,13 +52,12 @@ export const getAuthUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ clerkId })
       .populate("following", "userName fullName profilePic")
       .populate("followers", "userName fullName profilePic")
-      // .populate("posts"); for later
+      
 
     if (!user) {
     
       return res.status(200).json({
-        success: true,
-        user: null,
+        message: "Auth user not found",
       });
     }
     return res.status(200).json({
@@ -63,8 +66,8 @@ export const getAuthUser = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error("Error fetching auth user:", error);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error in getAuthUser", error);
+    return res.status(500).json({ message: "Error in getAuthUser" });
   }
 };
 
