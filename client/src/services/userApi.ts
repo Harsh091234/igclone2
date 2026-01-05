@@ -17,8 +17,17 @@ export const userApi = api.injectEndpoints({
             query: () => ({
                 url: "/user/get-auth-user"
             })
-        })
+        }),
+
+        editProfile: builder.mutation({
+            query: (body) => ({
+                url: "/user/edit-profile",
+                method: "PUT",
+                body
+            })
+        })  
+
     })
 })
 
-export const {useSyncUserMutation, useGetAuthUserQuery} = userApi;
+export const {useSyncUserMutation, useGetAuthUserQuery, useEditProfileMutation} = userApi;

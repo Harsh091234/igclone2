@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
 // import ProfilePage from "./pages/ProfilePage";
-// import UserSetupPage from "./pages/UserSetupPage";
+import UserSetupPage from "./pages/UserSetupPage";
 
 
 
@@ -98,14 +98,14 @@ const authUser = data?.user;
                 }
               />
 
-              {/* <Route
+              <Route
                 path="/onboarding"
                 element={
                   
                     <UserSetupPage />
                 
                 }
-              /> */}
+              />
 
               {/* <Route
                 path="profile/:name"

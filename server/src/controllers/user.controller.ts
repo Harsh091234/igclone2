@@ -5,6 +5,8 @@ import { log, profile } from "console";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import {clerkClient} from "@clerk/express"
+import { convertToBase64 } from "#config/convertToBase64.js";
+import { CLOUDINARY_FOLDERS } from "#paths/cloudinary.js";
 
 export const syncUser = async(req: Request, res: Response) => {
   try {
@@ -117,23 +119,16 @@ export const editProfile = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const profileComplete = user.isProfileComplete;
-    const { fullName, bio, userName, gender, profilePic } = req.body as {
-      fullName: string;
-      bio: string;
-      userName: string;
-      gender: "male" | "female" | "other";
-      profilePic: string;
-
-    };
-      
-        if (!userName) {
-      return res.status(400).json({ message: "Username is required" });
-    }
-
+    const { fullName, bio, userName, gender} = req.body;
     
-    if (!gender) {
-      return res.status(400).json({ message: "Gender is required" });
-    }
+   let base64Image;
+   if(req.file){
+    base64Image = await convertToBase64(req.file.buffer);
+   }
+
+
+   
+        
 
     user.fullName = fullName.trim();
     user.bio = bio.trim();
@@ -141,12 +136,12 @@ export const editProfile = async (req: Request, res: Response) => {
     user.userName = userName.toLowerCase().trim();
     user.gender = gender;
 
-if (profilePic && profilePic.startsWith("data:image")) {
+if (base64Image) {
   if (user.profilePicPublicId) {
     await cloudinary.uploader.destroy(user.profilePicPublicId);
   }
 
-  const uploaded = await uploadBase64Image(profilePic, "profile_pics");
+  const uploaded = await uploadBase64Image(base64Image, CLOUDINARY_FOLDERS.PROFILE_PICS);
   user.profilePic = uploaded.secure_url;
   user.profilePicPublicId = uploaded.public_id;
 }
