@@ -5,12 +5,10 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import {  Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
-// import ProfilePage from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import UserSetupPage from "./pages/UserSetupPage";
-
-
 
 // import ProtectedRoutes from "./utils/ProtectedRoutes";
 // import SettingsPage from "./pages/SettingsPage";
@@ -23,40 +21,34 @@ import CenterLoading from "./components/CenterLoading";
 
 const App = () => {
   const { user, isSignedIn, isLoaded } = useUser();
- const [syncUser] = useSyncUserMutation();
- const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {
-  skip: !isLoaded || !isSignedIn,
- });
-  const {theme, setTheme} = useTheme();
-const authUser = data?.user;
-  
+  const [syncUser] = useSyncUserMutation();
+  const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
+    skip: !isLoaded || !isSignedIn,
+  });
+  const { theme, setTheme } = useTheme();
+  const authUser = data?.user;
+
   useEffect(() => {
     console.log("auth user:", authUser);
   }, [authUser]);
 
   useEffect(() => {
     if (isSignedIn && user && isLoaded && !isLoading && !authUser) {
-      //if not then store user
-         (async () => {
-           await syncUser().unwrap(); // 👈 wait until user is stored
-           refetch(); // 👈 now fetch again
-         })();
-      
-       
-      
-    
+      (async () => {
+        await syncUser().unwrap();
+        refetch();
+      })();
     }
   }, [isLoaded, isSignedIn, user, authUser, isLoading]);
 
   const handleTheme = () => {
-    if(theme === "light"){
+    if (theme === "light") {
       setTheme("dark");
-    }
-    else{
+    } else {
       setTheme("light");
     }
-  }
-    if (isLoading) return <CenterLoading />;
+  };
+  if (isLoading) return;
 
   return (
     <div className="">
@@ -81,33 +73,16 @@ const authUser = data?.user;
       "
           >
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
-          
           </button>
 
-          <div className="w-[7%]">
-            {/* <LeftSideBar /> */}
-          </div>
+          <div className="w-[7%]">{/* <LeftSideBar /> */}</div>
           <div className="w-[93%] overflow-y-auto">
             <Routes>
-              <Route
-                path="/"
-                element={
-                  
-                   <FeedPage />
-                
-                }
-              />
+              <Route path="/" element={<FeedPage />} />
 
-              <Route
-                path="/onboarding"
-                element={
-                  
-                    <UserSetupPage />
-                
-                }
-              />
+              <Route path="/onboarding" element={<UserSetupPage />} />
 
-              {/* <Route
+               <Route
                 path="profile/:name"
                 element={
               
@@ -116,7 +91,7 @@ const authUser = data?.user;
                 }
               />
 
-              <Route
+              {/* <Route
                 path="/settings"
                 element={
                 
@@ -127,7 +102,7 @@ const authUser = data?.user;
                 {" "}
                 <Route index element={<Navigate to="edit-profile" replace />} />
                 <Route path="edit-profile" element={<EditProfilePage />} />
-              </Route> */}
+              </Route> */} 
             </Routes>
           </div>
         </div>

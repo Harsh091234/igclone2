@@ -1,7 +1,7 @@
 export interface User {
   clerkId: string;
   email: string;
-
+  _id: string,
   fullName?: string;
   userName?: string;
   gender: string;
@@ -37,7 +37,3 @@ export interface SearchUser {
 }
 
 //api responses
-export interface SyncUserResponse {
-  success: boolean;
-  user: User;
-}

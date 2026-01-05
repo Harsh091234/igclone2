@@ -1,8 +1,11 @@
 
-import type { SyncUserResponse} from "../types/user.types";
+import type { User } from "../types/user.types";
 import { api } from "./api";
 
-
+export interface SyncUserResponse {
+  success: boolean;
+  user: User;
+}
 
 export const userApi = api.injectEndpoints({
     endpoints: (builder) => ({
@@ -19,15 +22,21 @@ export const userApi = api.injectEndpoints({
             })
         }),
 
+        getProfileUser: builder.query<SyncUserResponse, string>({
+            query: (name) => ({
+                url: `/user/profile/${name}`
+            })
+        }),
+
         editProfile: builder.mutation({
             query: (body) => ({
                 url: "/user/edit-profile",
                 method: "PUT",
                 body
             })
-        })  
+        }),
 
     })
 })
 
-export const {useSyncUserMutation, useGetAuthUserQuery, useEditProfileMutation} = userApi;
+export const {useSyncUserMutation, useGetAuthUserQuery, useEditProfileMutation, useGetProfileUserQuery} = userApi;

@@ -1,55 +1,39 @@
-import { useEffect } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  selectProfileUser,
-  getProfile,
-  selectUserLoading,
-} from "../features/user/userSlice";
-import { selectUser, getAuthUser } from "../features/user/userSlice";
-import { useAuth } from "@clerk/clerk-react";
-import type { AppDispatch } from "../store/store";
 import CenterLoading from "../components/CenterLoading";
-import useDragScroll from "../utils/useDragScroll";
+import { useGetAuthUserQuery, useGetProfileUserQuery } from "../services/userApi";
+
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Separator } from "@radix-ui/react-separator";
+import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
+import NoUserFoundPage from "./NoUserFoundPage";
 
 
 const ProfilePage = () => {
-  const { name } = useParams();
+  const { name } = useParams<{name: string}>();
+  if(!name) return;
+
   const navigate = useNavigate();
+  const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
+  const { data: profileData, isLoading: isProfileLoading } =
+    useGetProfileUserQuery(name);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const authUser = authData?.user;
+  const user = profileData?.user;
  
-  
-  const { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove } =
-    useDragScroll();
-  const dispatch = useDispatch<AppDispatch>();
-  const { getToken } = useAuth();
-  const user = useSelector(selectProfileUser);
-  const authUser = useSelector(selectUser);
-  const loading = useSelector(selectUserLoading);
+  const isLoading = isAuthLoading || isProfileLoading;
+
 
   const handleClick = () => {
     
     navigate('/settings/edit-profile');
   }
 
-  useEffect(() => {
-    const getDetails = async () => {
-      const token: string | null = await getToken();
-      if (!token) return;
-
-      if (name) {
-        const res = await dispatch(getProfile({ token, name }));
-        if (getProfile.rejected.match(res)) return navigate("/");
-
-        dispatch(getAuthUser(token));
-        console.log("user",user);
-      }
-    };
-
-    getDetails();
-  }, [name, dispatch]);
+  
   const isAuthUser = authUser?._id === user?._id;
 
   const highlightsData = [
@@ -88,9 +72,7 @@ const ProfilePage = () => {
     },
   ];
 
-  // Mock user data – replace with your fetched data
 
-  // Mock posts
 
   const posts = [
     { id: 1, img: "https://picsum.photos/600?10" },
@@ -101,7 +83,21 @@ const ProfilePage = () => {
     { id: 6, img: "https://picsum.photos/600?15" },
   ];
 
-  if (loading || !user) return <CenterLoading />;
+  
+  const scroll = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+
+    const scrollAmount = 200;
+
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+
+  if (isLoading) return <ProfilePageSkeleton />;
+  if(!user) return <NoUserFoundPage />
 
   return (
     <div
@@ -177,21 +173,42 @@ const ProfilePage = () => {
 
         {/* HIGHLIGHTS */}
 
-        <div
-          ref={ref}
-          className="flex gap-4 overflow-x-auto mb-6 my-scroll"
-          onMouseDown={onMouseDown}
-          onMouseLeave={onMouseLeave}
-          onMouseUp={onMouseUp}
-          onMouseMove={onMouseMove}
-        >
-          {highlightsData.map((h, i) => (
-            <Highlights key={i} title={h.title} img={h.img} />
-          ))}
+        <div className="relative">
+          {/* Left Button (hidden on mobile) */}
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => scroll("left")}
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {/* Scroll container */}
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto scroll-smooth my-scroll px-10 "
+          >
+            {highlightsData.map((h, i) => (
+              <Highlights key={i} title={h.title} img={h.img} />
+            ))}
+          </div>
+
+          {/* Right Button (hidden on mobile) */}
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => scroll("right")}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
 
+        <Separator className="my-4 bg-muted-foreground/20 h-0.5 rounded-full" />
+
         {/* TABS */}
-        <div className="flex justify-around border-t border-zinc-800 mb-2">
+        <div className="flex justify-around mb-2">
           <button className="flex items-center gap-1 px-4 py-2 text-sm border-t border-white">
             <Grid size={16} /> Posts
           </button>

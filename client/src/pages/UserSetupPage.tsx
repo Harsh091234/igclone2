@@ -70,18 +70,16 @@ const UserSetupPage = () => {
 
 
   return (
-    <div className="min-h-screen flex justify-cente items-start p-4">
-      <div className="w-full  max-w-lg shadow-xl rounded-2xl p-6">
-        <h1 className="text-3xl font-semibold mb-6 text-gray-200  text-center">
-          Set Profile
-        </h1>
+    <div className="min-h-screen flex justify-center items-center p-3">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-4 shadow-lg">
+        <h1 className="text-2xl font-semibold mb-4 text-center">Set Profile</h1>
 
         <form onSubmit={handleSubmit(handleSave)}>
           {" "}
           {/* Profile Picture */}
-          <div className="flex justify-center mb-8 ">
+          <div className="flex justify-center mb-5 ">
             <div className="relative ">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-neutral-700">
+              <div className="relative w-24 h-24 rounded-full overflow-hidden border border-border">
                 <img
                   src={
                     file
@@ -94,7 +92,9 @@ const UserSetupPage = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-1 right-1 bg-(--primary) text-gray-100 rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold hover:bg-(--primary-hover)"
+                className="absolute  bottom-0.5 right-0.5 bg-secondary text-secondary-foreground 
+             hover:bg-[var(--secondary-hover)] rounded-full w-7 h-7 flex items-center 
+             justify-center text-lg font-bold "
               >
                 +
               </button>
@@ -112,23 +112,27 @@ const UserSetupPage = () => {
             }}
           />
           {/* Form Fields */}
-          <div className="flex flex-col gap-5 text-sm">
-            <div className="flex flex-col">
+          <div className="flex flex-col gap-4 text-sm">
+            <div className="flex flex-col gap-1.5">
               <input
                 placeholder="Full Name"
                 {...register("fullName")}
-                className="bg-neutral-800 py-2 px-4 rounded-md text-white border border-neutral-700 outline-0 focus:ring-2"
+                className="bg-background  text-foreground border border-border 
+             py-1.5 px-3 rounded-md outline-none
+             focus:ring-2 focus:ring-ring"
               />
               {errors.fullName && (
                 <ErrorMessage text={errors.fullName.message} />
               )}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col  gap-1.5">
               <input
                 placeholder="Username"
                 {...register("userName")}
-                className="bg-neutral-800 py-2 px-4 rounded-md text-white border border-neutral-700 outline-0 focus:ring-2"
+                className="bg-background text-foreground border border-border 
+             py-1.5 px-3 rounded-md outline-none
+             focus:ring-2 focus:ring-ring"
               />
               {errors.userName && (
                 <ErrorMessage text={errors.userName.message} />
@@ -138,7 +142,9 @@ const UserSetupPage = () => {
             <div className="flex flex-col">
               <select
                 {...register("gender")}
-                className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-3 outline-none focus:ring-2 cursor-pointer"
+                className="bg-background text-foreground border border-border 
+             rounded-md py-1.5 px-3 outline-none
+             focus:ring-2 focus:ring-ring cursor-pointer"
               >
                 <option value="" disabled>
                   Select Gender
@@ -148,14 +154,15 @@ const UserSetupPage = () => {
                 <option value="other">Other</option>
                 <option value="prefer not to say">Prefer not to say</option>
               </select>
-              {errors.gender && <ErrorMessage text={errors.gender.message} />}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col  gap-1.5">
               <textarea
                 placeholder="Bio"
                 {...register("bio")}
-                className="bg-neutral-800 text-white border border-neutral-700 rounded-md py-2 px-4 min-h-24 resize-none outline-0 focus:ring-2"
+                className="bg-background text-foreground border border-border 
+             rounded-md py-1.5 px-3 min-h-24 resize-none outline-none
+             focus:ring-2 focus:ring-ring"
               />
               {errors.bio && <ErrorMessage text={errors.bio.message} />}
             </div>
@@ -163,13 +170,10 @@ const UserSetupPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`text-gray-100 font-medium py-2.5 px-3 rounded-lg 
-      transition-all duration-200 flex items-center justify-center gap-2
-      ${
-        isLoading
-          ? "opacity-70 cursor-not-allowed"
-          : "hover:bg-(--primary-hover)"
-      }`}
+              className={`w-full bg-primary text-primary-foreground 
+    font-medium py-2 rounded-lg transition-all
+    flex items-center justify-center gap-2
+    ${isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-primary/90"}`}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
