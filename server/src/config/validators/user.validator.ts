@@ -17,7 +17,11 @@ export const editProfileSchema = z.object({
       "Username can only contain letters, numbers, dots, or underscores"
     ),
   bio: z.string().max(200, "Bio must be at most 200 characters").optional(),
-  gender: z.enum(["male", "female", "other", "prefer not to say"]),
+  gender: z
+    .string()
+    .min(1, "Gender is required")
+    .max(30, "Gender too long")
+    .optional(),
 
   profilePic: z.string().optional(),
 });

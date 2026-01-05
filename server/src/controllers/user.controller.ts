@@ -106,7 +106,7 @@ export const editProfile = async (req: Request, res: Response) => {
 
     const profileComplete = user.isProfileComplete;
     const { fullName, bio, userName, gender} = req.body;
-    
+  
    let base64Image;
    if(req.file){
     base64Image = await convertToBase64(req.file.buffer);

@@ -27,6 +27,7 @@ export interface EditProfileData {
   bio?: string;
   profilePic?: string;
   gender: string;
+  customGender?: string;
 }
 
 export interface SearchUser {

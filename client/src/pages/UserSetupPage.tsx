@@ -21,8 +21,7 @@ const UserSetupPage = () => {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+  
     formState: { errors },
   } = useForm<EditProfileInput>({
     resolver: zodResolver(editProfileSchema),
@@ -154,6 +153,7 @@ const UserSetupPage = () => {
                 <option value="other">Other</option>
                 <option value="prefer not to say">Prefer not to say</option>
               </select>
+              
             </div>
 
             <div className="flex flex-col  gap-1.5">

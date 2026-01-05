@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 
 import { AlertCircle } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Button } from "./ui/button";
 
-const NoUserFoundPage = () => {
+const NoUserFound = () => {
   const navigate = useNavigate();
 
   return (
@@ -12,7 +12,7 @@ const NoUserFoundPage = () => {
       <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
 
       {/* Heading */}
-      <h1 className="text-2xl font-bold mb-2 text-foreground">
+      <h1 className="text-3xl font-bold mb-2 text-foreground">
         User Not Found
       </h1>
 
@@ -24,8 +24,8 @@ const NoUserFoundPage = () => {
       {/* Back Home Button */}
       <Button
         onClick={() => navigate("/")}
-        variant="secondary"
-        className="px-6 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+        variant="default"
+        size={"lg"}
       >
         Back to Home
       </Button>
@@ -33,4 +33,4 @@ const NoUserFoundPage = () => {
   );
 };
 
-export default NoUserFoundPage;
+export default NoUserFound;

@@ -5,19 +5,20 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import { useEffect } from "react";
-import {  Route, Routes } from "react-router-dom";
+import {  Navigate, Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import UserSetupPage from "./pages/UserSetupPage";
 
 // import ProtectedRoutes from "./utils/ProtectedRoutes";
-// import SettingsPage from "./pages/SettingsPage";
-// import EditProfilePage from "./pages/SettingPages/EditProfilePage";
+import SettingsPage from "./pages/SettingsPage";
+import EditProfilePage from "./pages/SettingPages/EditProfilePage";
 // import LeftSideBar from "./components/LeftSideBar";
 import { useTheme } from "./utils/ThemeProvider";
 import { Sun } from "lucide-react";
 import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
 import CenterLoading from "./components/CenterLoading";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const App = () => {
   const { user, isSignedIn, isLoaded } = useUser();
@@ -82,16 +83,9 @@ const App = () => {
 
               <Route path="/onboarding" element={<UserSetupPage />} />
 
-               <Route
-                path="profile/:name"
-                element={
-              
-                    <ProfilePage />
-                 
-                }
-              />
+              <Route path="profile/:name" element={<ProfilePage />} />
 
-              {/* <Route
+              <Route
                 path="/settings"
                 element={
                 
@@ -102,7 +96,8 @@ const App = () => {
                 {" "}
                 <Route index element={<Navigate to="edit-profile" replace />} />
                 <Route path="edit-profile" element={<EditProfilePage />} />
-              </Route> */} 
+              </Route>
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </div>
         </div>

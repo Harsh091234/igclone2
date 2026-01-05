@@ -1,75 +1,83 @@
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import CustomButton from "../../components/CustomButton";
-import { useDispatch, useSelector } from "react-redux";
-import { editProfile, selectUser, selectUserLoading } from "../../features/user/userSlice";
-import { useAuth } from "@clerk/clerk-react";
-import type { AppDispatch } from "../../store/store";
+
+
 import { useNavigate } from "react-router-dom";
-import CustomGenderModal from "../../components/modals/CustomGenderModal";
+import { useEditProfileMutation, useGetAuthUserQuery } from "../../services/userApi";
+import { useForm } from "react-hook-form";
+import { editProfileSchema, type EditProfileInput } from "../../schemas/user.validator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { EditProfileData } from "../../types/user.types";
+import ErrorMessage from "../../components/ErrorMessage";
 
 
 const EditProfilePage = () => {
-  const [openModal, setOpenModal] = useState(false);
-  const authUser = useSelector(selectUser);
-  const loading = useSelector(selectUserLoading);
-  const [profilePic, setProfilePic] = useState<File | string>(authUser.profilePic); // 
+ 
+  const {data} = useGetAuthUserQuery();
+  const [editProfile, {isLoading}] = useEditProfileMutation();
+   const [preview, setPreview] = useState<string>("");
+   const [file, setFile] = useState<File | null>(null);
+  const authUser = data?.user;
+ 
+  if(!authUser) return;
 
-  const [fullName, setFullName] = useState(authUser.fullName || "");
-  const [userName, setUserName] = useState(authUser.userName || "");
-  const [bio, setBio] = useState(authUser.bio || "");
-  const [gender, setGender] = useState(authUser.gender || "");
-  const dispatch = useDispatch<AppDispatch>();
-  const {getToken} = useAuth()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<EditProfileInput>({
+    resolver: zodResolver(editProfileSchema),
+    defaultValues: {
+      fullName: authUser.fullName,
+      userName: authUser.userName,
+      gender: authUser.gender as
+        | "male"
+        | "female"
+        | "other"
+        | "prefer not to say",
+      bio: authUser.bio,
+    },
+  });
+ 
+
   const navigate = useNavigate();
 
-  const handlePicUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setProfilePic(reader.result);
-      }
-    };
-  }
-
-   const handleCustomGender = (value: string) => {
-    
-
-     if (value === "custom") {
-       setOpenModal(true);
-     } else {
-       setGender(value);
+  useEffect(() => {
+     if (file) {
+       const url = URL.createObjectURL(file); // ✅ File
+       setPreview(url);
+  
+       return () => URL.revokeObjectURL(url);
      }
-   };
+   }, [file]);
 
-  const handleSubmit = async () => {
-    const token: string | null = await getToken();
-    if (!token) return;
+   const handleSave = async(data: EditProfileData) => {
+     try {
+       const formData = new FormData();
+       formData.append("fullName", data.fullName || "");
+       formData.append("userName", data.userName);
 
-    // Only include profilePic if it's a new file (Base64)
-    const data: any = {
-      fullName,
-      userName,
-      bio,
-      gender,
-    };
+       const finalGender =
+         data.gender === "other" ? data.customGender : data.gender;
+       if (finalGender) {
+         formData.append("gender", finalGender);
+       }
 
-    if (
-      profilePic &&
-      typeof profilePic === "string" &&
-      profilePic.startsWith("data:image")
-    ) {
-      data.profilePic = profilePic;
-    }
+       formData.append("bio", data.bio || "");
 
-    const res = await dispatch(editProfile({ token, data }));
-    if (editProfile.fulfilled.match(res)) {
-      navigate(`/profile/${authUser.userName}`);
-    }
-  };
+       if (file) {
+         formData.append("profilePic", file); // Always a File
+       }
+
+       await editProfile(formData).unwrap(); // send FormData
+       navigate("/");
+     } catch (error: any) {
+       console.log("error", error);
+     }
+   }
 
 
   return (
@@ -83,14 +91,14 @@ const EditProfilePage = () => {
         <div className="w-full bg-card px-4 py-3 rounded-xl flex items-center justify-between border border-border">
           <div className="flex items-center gap-3">
             <img
-              src={profilePic || authUser.profilePic}
+              src={authUser.profilePic}
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover border border-border"
             />
 
             <div className="flex flex-col">
               <span className="font-semibold text-foreground">
-                {userName || authUser.userName}
+                {authUser.userName}
               </span>
             </div>
           </div>
@@ -112,15 +120,14 @@ const EditProfilePage = () => {
             accept="image/*"
             className="hidden"
             onChange={(e) => {
-              if (e.target.files?.[0]) {
-                handlePicUpload(e.target.files[0]);
-              }
+              const selectedFile = e.target.files?.[0];
+              if (selectedFile) setFile(selectedFile);
             }}
           />
         </div>
 
         {/* FORM */}
-        <div className="flex-1 space-y-6">
+        <form onSubmit={handleSubmit(handleSave)} className="flex-1 space-y-6">
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium mb-1 text-foreground">
@@ -134,9 +141,9 @@ const EditProfilePage = () => {
                 border border-input
               "
               placeholder="Your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              {...register("fullName")}
             />
+            {/* {errors.fullName && <ErrorMessage text={errors.fullName.message} />} */}
           </div>
 
           {/* Username */}
@@ -152,9 +159,9 @@ const EditProfilePage = () => {
                 border border-input
               "
               placeholder="your_username"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              {...register("userName")}
             />
+            {/* {errors.userName && <ErrorMessage text={errors.userName.message} />} */}
           </div>
 
           {/* Bio */}
@@ -170,9 +177,9 @@ const EditProfilePage = () => {
               "
               rows={3}
               placeholder="Tell us about yourself"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              {...register("bio")}
             />
+            {/* {errors.bio && <ErrorMessage text={errors.bio.message} />} */}
           </div>
 
           {/* Gender */}
@@ -189,8 +196,7 @@ const EditProfilePage = () => {
                   border border-input
                   appearance-none
                 "
-                value={gender}
-                onChange={(e) => handleCustomGender(e.target.value)}
+                {...register("gender")}
               >
                 <option value="" disabled>
                   Select gender
@@ -199,17 +205,27 @@ const EditProfilePage = () => {
                 <option value="male">Male</option>
                 <option value="female">Female</option>
 
-                <option value="custom">Custom</option>
+                <option value="other">Other</option>
 
-                {gender !== "male" &&
-                  gender !== "female" &&
-                  gender !== "prefer_not_say" &&
-                  gender !== "custom" && (
-                    <option value={gender}>{gender}</option>
-                  )}
-
-                <option value="prefer_not_say">Prefer not to say</option>
+                <option value="prefer not to say">Prefer not to say</option>
               </select>
+
+              {watch("gender") === "other" && (
+                <input
+                  type="text"
+                  placeholder="Enter your gender"
+                  className="
+      mt-3 w-full p-2 text-sm rounded-lg
+      bg-background text-foreground
+      border border-input
+      outline-none
+    "
+                  {...register("customGender")}
+                />
+              )}
+              {/* {errors.gender && (
+                <ErrorMessage text={errors.gender.message} />
+              )} */}
 
               <div className="pointer-events-none text-xs absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 ▼
@@ -223,22 +239,11 @@ const EditProfilePage = () => {
               text="Submit"
               className="text-sm font-medium py-2 px-3 w-30"
               type="submit"
-              onClick={handleSubmit}
-              loading={loading}
+              loading={isLoading}
             />
           </div>
-        </div>
+        </form>
       </div>
-
-      {openModal && (
-        <CustomGenderModal
-          onClose={() => setOpenModal(false)}
-          onSave={(value: string) => {
-            setGender(value);
-            setOpenModal(false);
-          }}
-        />
-      )}
     </div>
   );
 };

@@ -13,7 +13,7 @@ import {
   User,
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useGetAuthUserQuery } from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
 
@@ -38,7 +38,7 @@ interface Post {
 export default function FeedPage() {
   const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
   const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({});
-
+  const navigate = useNavigate();
   const stories: Story[] = [
     { id: 1, user: "Your Story", avatar: "😜", isOwn: true },
     { id: 2, user: "alice_wonder", avatar: "🐱‍👤" },
@@ -223,7 +223,9 @@ export default function FeedPage() {
           <div className="">
             {/* Current User */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-2xl overflow-hidden">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center pointer justify-center text-2xl overflow-hidden"
+              onClick={() => navigate(`/profile/${authUser.userName}`)}
+              >
                 <img
                   src={authUser.profilePic}
                   alt="Current User"

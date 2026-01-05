@@ -3,19 +3,21 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
-import CenterLoading from "../components/CenterLoading";
-import { useGetAuthUserQuery, useGetProfileUserQuery } from "../services/userApi";
+
+import {
+  useGetAuthUserQuery,
+  useGetProfileUserQuery,
+} from "../services/userApi";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
-import NoUserFoundPage from "./NoUserFoundPage";
-
+import NoUserFound from "../components/NoUserFound";
 
 const ProfilePage = () => {
-  const { name } = useParams<{name: string}>();
-  if(!name) return;
+  const { name } = useParams<{ name: string }>();
+  if (!name) return;
 
   const navigate = useNavigate();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
@@ -24,16 +26,13 @@ const ProfilePage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const authUser = authData?.user;
   const user = profileData?.user;
- 
+
   const isLoading = isAuthLoading || isProfileLoading;
 
-
   const handleClick = () => {
-    
-    navigate('/settings/edit-profile');
-  }
+    navigate("/settings/edit-profile");
+  };
 
-  
   const isAuthUser = authUser?._id === user?._id;
 
   const highlightsData = [
@@ -72,8 +71,6 @@ const ProfilePage = () => {
     },
   ];
 
-
-
   const posts = [
     { id: 1, img: "https://picsum.photos/600?10" },
     { id: 2, img: "https://picsum.photos/600?11" },
@@ -83,7 +80,6 @@ const ProfilePage = () => {
     { id: 6, img: "https://picsum.photos/600?15" },
   ];
 
-  
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
 
@@ -95,9 +91,8 @@ const ProfilePage = () => {
     });
   };
 
-
   if (isLoading) return <ProfilePageSkeleton />;
-  if(!user) return <NoUserFoundPage />
+  if (!user) return <NoUserFound />;
 
   return (
     <div

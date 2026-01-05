@@ -8,6 +8,10 @@ button {
   @apply cursor-pointer;
 }
 
+.pointer{
+  @apply cursor-pointer;
+}
+
 :root {
 
   --primary: oklch(0.205 0 0);
