@@ -2,6 +2,7 @@ import {
   RedirectToSignIn,
   SignedIn,
   SignedOut,
+  SignIn,
   useUser,
 } from "@clerk/clerk-react";
 import { useEffect } from "react";
@@ -10,37 +11,40 @@ import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import UserSetupPage from "./pages/UserSetupPage";
 
-// import ProtectedRoutes from "./utils/ProtectedRoutes";
 import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
 import LeftSideBar from "./components/LeftSideBar";
 import { useTheme } from "./utils/ThemeProvider";
 import { Sun } from "lucide-react";
 import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
-import CenterLoading from "./components/CenterLoading";
+// import CenterLoading from "./components/CenterLoading";
 import NotFoundPage from "./pages/NotFoundPage";
+import CenterLoading from "./components/CenterLoading";
+import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 
 const App = () => {
   const { user, isSignedIn, isLoaded } = useUser();
-  const [syncUser] = useSyncUserMutation();
-  const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
+  const [syncUser, {isLoading: syncUserLoading}] = useSyncUserMutation();
+ 
+  const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   });
   const { theme, setTheme } = useTheme();
   const authUser = data?.user;
 
-  useEffect(() => {
-    console.log("auth user:", authUser);
-  }, [authUser]);
+  
+   useEffect(() => {
+     if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
+       syncUser()
+         .unwrap()
+         .then(() => {
+           refetch(); // refetch after syncing
+         })
+         .catch(console.error);
+     }
+   }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
+  
 
-  useEffect(() => {
-    if (isSignedIn && user && isLoaded && !isLoading && !authUser) {
-      (async () => {
-        await syncUser().unwrap();
-        refetch();
-      })();
-    }
-  }, [isLoaded, isSignedIn, user, authUser, isLoading]);
 
   const handleTheme = () => {
     if (theme === "light") {
@@ -49,8 +53,8 @@ const App = () => {
       setTheme("light");
     }
   };
-  if (isLoading) return;
-
+  
+  if (!isLoaded || isLoading || syncUserLoading) return <CenterLoading />;
   return (
     <div className="">
       <SignedOut>
@@ -76,26 +80,60 @@ const App = () => {
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
           </button>
 
-          <div className="w-[7%]"><LeftSideBar /></div>
+          <div className="w-[7%]">
+            <LeftSideBar />
+          </div>
           <div className="w-[93%] overflow-y-auto">
             <Routes>
-              <Route path="/" element={<FeedPage />} />
+              <Route
+                path="/sign-in/*"
+                element={<SignIn path="/sign-in" routing="path" />}
+              />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoutes>
+                    <FeedPage />
+                  </ProtectedRoutes>
+                }
+              />
 
-              <Route path="/onboarding" element={<UserSetupPage />} />
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoutes>
+                    <UserSetupPage />
+                  </ProtectedRoutes>
+                }
+              />
 
-              <Route path="profile/:name" element={<ProfilePage />} />
+              <Route
+                path="profile/:name"
+                element={
+                  <ProtectedRoutes>
+                    <ProfilePage />
+                  </ProtectedRoutes>
+                }
+              />
 
               <Route
                 path="/settings"
                 element={
-                
+                  <ProtectedRoutes>
                     <SettingsPage />
-               
+                  </ProtectedRoutes>
                 }
               >
                 {" "}
                 <Route index element={<Navigate to="edit-profile" replace />} />
-                <Route path="edit-profile" element={<EditProfilePage />} />
+                <Route
+                  path="edit-profile"
+                  element={
+                    <ProtectedRoutes>
+                      <EditProfilePage />
+                    </ProtectedRoutes>
+                  }
+                />
               </Route>
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

@@ -36,7 +36,6 @@ const userSchema = new Schema<IUser>(
 
     fullName: {
       type: String,
-      default: "",
       trim: true,
       minlength: 2,
       maxlength: 50,
@@ -48,7 +47,6 @@ const userSchema = new Schema<IUser>(
       trim: true,
       lowercase: true,
       unique: true,
-      default: "",
       match: [
         /^[a-zA-Z0-9._]+$/,
         "Username can only contain letters, numbers, dots, or underscores",

@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import {clerkClient} from "@clerk/express"
 import { convertToBase64 } from "#config/convertToBase64.js";
 import { CLOUDINARY_FOLDERS } from "#paths/cloudinary.js";
+import { success } from "zod";
 
 export const syncUser = async(req: Request, res: Response) => {
   try {
@@ -15,23 +16,38 @@ export const syncUser = async(req: Request, res: Response) => {
 
     if(!clerkId)  return res.status(401).json({ message: "Not authenticated" });
     
-    const clerkUser = await clerkClient.users.getUser(clerkId);
+     let clerkUser;
+     try {
+       clerkUser = await clerkClient.users.getUser(clerkId);
+     } catch (err: any) {
+       // 🔥 Clerk user deleted / not found
+       if (err?.status === 404) {
+         // Optional: cleanup DB user
+         return res.status(401).json({
+           success: false,
+           user: null,
+           message: "Clerk user not found",
+         });
+       }
+
+       throw err; // other Clerk errors
+     }
 
     const email = clerkUser.primaryEmailAddress?.emailAddress;
     
     if(!email) return res.status(400).json({message: "Email not found in clerk db"});
-    const user = await User.findOne({clerkId})
+    let user = await User.findOne({clerkId})
     console.log("id", clerkId)
     console.log("user", user)
-    if (user) {
-    return res.status(405).json({message: "User already exists"}); // or update if needed
-}
-    const newUser = await User.create({
-      clerkId,
-      email,
-    });
+    if(!user){
+         user = await User.create({
+           clerkId,
+           email,
+         });
+    }
+ 
     
-    return res.status(201).json({ success: true, user: newUser });
+    return res.status(201).json({ success: true, user});
 
     
   } catch (error) {
@@ -57,9 +73,9 @@ export const getAuthUser = async (req: Request, res: Response) => {
       
 
     if (!user) {
-    
       return res.status(200).json({
-        message: "Auth user not found",
+        success: true,
+        user: null,
       });
     }
     return res.status(200).json({

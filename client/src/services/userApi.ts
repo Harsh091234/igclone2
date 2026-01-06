@@ -4,7 +4,7 @@ import { api } from "./api";
 
 export interface SyncUserResponse {
   success: boolean;
-  user: User;
+  user: User | null;
 }
 
 export interface SearchUserResponse {
