@@ -9,18 +9,19 @@ import {
   Plus,
   Menu,
 } from "lucide-react";
-import { useSelector } from "react-redux";
-import { selectUser } from "../features/user/userSlice";
 import { Link } from "react-router-dom";
 import MoreMenu from "./panels/MoreMenu";
 import SearchPanel from "./panels/SearchPanel";
+import { useGetAuthUserQuery } from "../services/userApi";
 
 const LeftSideBar = () => {
-  const authUser = useSelector(selectUser);
   const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   
+  const {data} = useGetAuthUserQuery();
+  const authUser = data?.user;
   if(!authUser) return;
+
   return (
     <aside
       className="

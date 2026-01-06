@@ -13,7 +13,7 @@ import UserSetupPage from "./pages/UserSetupPage";
 // import ProtectedRoutes from "./utils/ProtectedRoutes";
 import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
-// import LeftSideBar from "./components/LeftSideBar";
+import LeftSideBar from "./components/LeftSideBar";
 import { useTheme } from "./utils/ThemeProvider";
 import { Sun } from "lucide-react";
 import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
@@ -76,7 +76,7 @@ const App = () => {
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
           </button>
 
-          <div className="w-[7%]">{/* <LeftSideBar /> */}</div>
+          <div className="w-[7%]"><LeftSideBar /></div>
           <div className="w-[93%] overflow-y-auto">
             <Routes>
               <Route path="/" element={<FeedPage />} />

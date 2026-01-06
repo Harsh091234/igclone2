@@ -9,7 +9,7 @@ import { useEditProfileMutation, useGetAuthUserQuery } from "../../services/user
 import { useForm } from "react-hook-form";
 import { editProfileSchema, type EditProfileInput } from "../../schemas/user.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EditProfileData } from "../../types/user.types";
+import type { EditProfileData, User } from "../../types/user.types";
 import ErrorMessage from "../../components/ErrorMessage";
 
 
@@ -19,8 +19,10 @@ const EditProfilePage = () => {
   const [editProfile, {isLoading}] = useEditProfileMutation();
    const [preview, setPreview] = useState<string>("");
    const [file, setFile] = useState<File | null>(null);
-  const authUser = data?.user;
  
+  
+    const authUser = data?.user;
+  
   if(!authUser) return;
 
   const {
@@ -237,9 +239,10 @@ const EditProfilePage = () => {
           <div className="flex justify-end mb-6">
             <CustomButton
               text="Submit"
-              className="text-sm font-medium py-2 px-3 w-30"
+              className="text-sm font-medium py-2 px-2 w-30"
               type="submit"
               loading={isLoading}
+              loaderClasses="h-5 w-5"
             />
           </div>
         </form>

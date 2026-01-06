@@ -137,6 +137,7 @@ const ProfilePage = () => {
       hover:bg-secondary/80
       transition-all duration-200
     "
+                      onClick={handleClick}
                     >
                       Settings
                     </button>

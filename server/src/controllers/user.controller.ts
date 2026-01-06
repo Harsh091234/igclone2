@@ -156,14 +156,14 @@ export const searchUsers = async(req: Request, res: Response) => {
 
     const users = await User.find({
       $or: [
-        {username: regex},
+        {userName: regex},
         {
           fullName: regex, 
         }
       ]
     }).select("userName profilePic fullName");
 
-    if(!users) return res.status(200).json({message:"No users found"});
+  
 
         res.json({ success: true, users });
 

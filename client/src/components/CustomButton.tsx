@@ -7,14 +7,16 @@ interface PrimaryButtonProps {
   className?: string;
   onClick?: () => void;
   type?: "button" | "submit";
+  loaderClasses?: string;
 }
 
 const CustomButton: React.FC<PrimaryButtonProps> = ({
-  loading=false,
+  loading = false,
   text,
   className = "text-sm px-3 py-2",
   onClick,
   type = "button",
+  loaderClasses = "h-4 w-4 ",
 }) => {
   return (
     <button
@@ -29,7 +31,7 @@ const CustomButton: React.FC<PrimaryButtonProps> = ({
     ${className}
   `}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : text}
+      {loading ? <Loader2 className={`${loaderClasses} animate-spin`} /> : text}
     </button>
   );
 };
