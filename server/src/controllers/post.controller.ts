@@ -14,7 +14,7 @@ export const createPost = async (req: Request, res: Response) => {
   try {
     const {userId: clerkId} = req.auth!();
     const { caption} = req.body;
-
+    console.log("ji")
     const authUser = await User.findOne({ clerkId });
     if (!authUser)
       return res.status(401).json({ message: "No auth user found" });

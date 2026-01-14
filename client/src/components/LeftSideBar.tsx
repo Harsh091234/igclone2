@@ -13,11 +13,12 @@ import { Link } from "react-router-dom";
 import MoreMenu from "./panels/MoreMenu";
 import SearchPanel from "./panels/SearchPanel";
 import { useGetAuthUserQuery } from "../services/userApi";
+import CreatePostModal from "./modals/CreatePostModal";
 
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
-  
+    const [isCreatePostModelOpen, setIsCreatePostModelOpen] = useState<boolean>(false);
   const {data} = useGetAuthUserQuery();
   const authUser = data?.user;
   if(!authUser) return;
@@ -89,9 +90,9 @@ const LeftSideBar = () => {
       <Link to="/notifications" className="">
         <Heart className="w-6 h-6" />
       </Link>
-      <Link to="/create" className="">
+      <button onClick={() => setIsCreatePostModelOpen(true)} className="">
         <Plus className="w-6 h-6" />
-      </Link>
+      </button>
 
       {/* Profile Pic */}
       <Link to={`/profile/${authUser?.userName}`}>
@@ -110,6 +111,12 @@ const LeftSideBar = () => {
         <Menu className="w-6 h-6" />
         <MoreMenu isOpen={isOpen} onClose={() => setIsOpen(false)} />
       </button>
+
+      {
+        isCreatePostModelOpen && (
+          <CreatePostModal isOpen={isCreatePostModelOpen} onClose={() => setIsCreatePostModelOpen(false)}/>
+        )
+      }
     </aside>
   );
 };
