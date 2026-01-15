@@ -19,7 +19,7 @@ router.post(
 router.get("/get-all-posts", requireAuth(), getAllPosts);
 router.get("/get-user-posts/:id", requireAuth(), getUserPosts);
 router.get("/:id/get-all-comments",  requireAuth(),getAllComments);
-router.post("/:id/delete-post", requireAuth(), deletePost);
+router.delete("/delete-post/:id", requireAuth(), deletePost);
 router.post("/:id/bookmark", requireAuth(), toggleBookmarkPost);
 
 

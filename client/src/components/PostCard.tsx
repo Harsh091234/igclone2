@@ -1,16 +1,32 @@
 
 interface PostCardProps{
-    img: string;
+   
+    url: string;
+    type: "image" | "video";
 }
 
-export const PostCard = ({img}: PostCardProps) => {
+export const PostCard = ({ url, type}: PostCardProps) => {
   return (
-   
-<div className="w-full aspect-square overflow-hidden rounded-xl shadow">
-<img src={img} alt="post" className="w-full h-full object-cover" />
-</div>
-   
-  )
+    <div className="w-full aspect-square overflow-hidden rounded-xl shadow hover:cursor-pointer">
+      {type === "image" ? (
+        <img src={url} alt="post" className="w-full h-full object-cover" />
+      ) : (
+        <video
+          className="w-full h-full object-cover"
+          muted
+          playsInline
+          loop
+         
+          onMouseEnter={(e) => e.currentTarget.play()}
+          onMouseLeave={(e) => {
+            e.currentTarget.pause();
+            e.currentTarget.currentTime = 0;
+          }}
+          src={url}
+        />
+      )}
+    </div>
+  );
 }
 
 export default PostCard

@@ -16,6 +16,10 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useGetAuthUserQuery } from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
+import { useGetAllPostsQuery } from "../services/postApi";
+import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
+import UserPostCard from "../components/UserPostCard";
+import type { Post } from "../types/post.types";
 
 interface Story {
   id: number;
@@ -24,20 +28,13 @@ interface Story {
   isOwn?: boolean;
 }
 
-interface Post {
-  id: number;
-  user: string;
-  avatar: string;
-  location: string;
-  image: string;
-  likes: number;
-  caption: string;
-  timeAgo: string;
-}
+
 
 export default function FeedPage() {
-  const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
-  const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({});
+ 
+  const {isLoading: isPostLoading, data: postData} = useGetAllPostsQuery();
+
+ 
   const navigate = useNavigate();
   const stories: Story[] = [
     { id: 1, user: "Your Story", avatar: "😜", isOwn: true },
@@ -49,49 +46,15 @@ export default function FeedPage() {
     { id: 7, user: "art_daily", avatar: "I" },
   ];
 
-  const posts: Post[] = [
-    {
-      id: 1,
-      user: "travel_diaries",
-      avatar: "✈️",
-      location: "Paris, France",
-      image:
-        "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&h=600&fit=crop",
-      likes: 1234,
-      caption: "Sunset views from the Eiffel Tower 🌅",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 2,
-      user: "foodie_life",
-      avatar: "🍕",
-      location: "New York, NY",
-      image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=600&fit=crop",
-      likes: 892,
-      caption: "Homemade pizza night! Recipe in bio 🍕",
-      timeAgo: "5 hours ago",
-    },
-    {
-      id: 3,
-      user: "art_daily",
-      avatar: "🎨",
-      location: "Brooklyn, NY",
-      image:
-        "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&h=600&fit=crop",
-      likes: 2156,
-      caption: "New abstract piece finished today 🎨✨",
-      timeAgo: "8 hours ago",
-    },
-  ];
+  const posts = postData?.posts;
 
-  const toggleLike = (postId: number) => {
-    setLikedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  };
+  // const toggleLike = (postId: number) => {
+  //   setLikedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  // };
 
-  const toggleSave = (postId: number) => {
-    setSavedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  };
+  // const toggleSave = (postId: number) => {
+  //   setSavedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  // };
 
   const {data} = useGetAuthUserQuery();
 
@@ -147,75 +110,17 @@ export default function FeedPage() {
           </div>
 
           {/* Posts */}
-          {posts.map((post) => (
-            <article
-              key={post.id}
-              className="bg-card border border-border rounded-lg mb-3 max-w-[500px] mx-auto"
-            >
-              <div className="flex items-center justify-between px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full p-[1px] bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600">
-                    <div className="w-full h-full bg-card rounded-full flex items-center justify-center text-base">
-                      {post.avatar}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-foreground">
-                      {post.user}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {post.location}
-                    </p>
-                  </div>
-                </div>
-                <MoreHorizontal className="w-4 h-4 cursor-pointer text-muted-foreground" />
-              </div>
-
-              <img
-                src={post.image}
-                alt={post.caption}
-                className="w-full h-90 object-cover rounded-none"
-              />
-
-              <div className="px-3 py-2">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-3">
-                    <Heart
-                      className={`w-5 h-5 cursor-pointer ${
-                        likedPosts[post.id]
-                          ? "fill-destructive text-destructive"
-                          : "text-foreground"
-                      }`}
-                      onClick={() => toggleLike(post.id)}
-                    />
-                    <MessageCircle className="w-5 h-5 cursor-pointer text-foreground" />
-                    <Send className="w-5 h-5 cursor-pointer text-foreground" />
-                  </div>
-                  <Bookmark
-                    className={`w-5 h-5 cursor-pointer ${
-                      savedPosts[post.id]
-                        ? "fill-accent text-accent"
-                        : "text-foreground"
-                    }`}
-                    onClick={() => toggleSave(post.id)}
-                  />
-                </div>
-
-                <p className="font-semibold text-sm mb-1 text-foreground">
-                  {post.likes + (likedPosts[post.id] ? 1 : 0)} likes
-                </p>
-
-                <p className="text-sm mb-1 text-foreground">
-                  <span className="font-semibold mr-1">{post.user}</span>
-                  {post.caption}
-                </p>
-
-                <p className="text-xs text-muted-foreground uppercase">
-                  {post.timeAgo}
-                </p>
-              </div>
-            </article>
-          ))}
+          {isPostLoading ? (
+            <FullPostSkeleton />
+          ) : posts && posts.length > 0 ? (
+            posts.map((post: Post) => (
+              <UserPostCard key={post._id} post={post} />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+              <p className="text-sm">No posts present on feed</p>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -223,8 +128,9 @@ export default function FeedPage() {
           <div className="">
             {/* Current User */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-14 h-14 rounded-full bg-muted flex items-center pointer justify-center text-2xl overflow-hidden"
-              onClick={() => navigate(`/profile/${authUser.userName}`)}
+              <div
+                className="w-14 h-14 rounded-full bg-muted flex items-center pointer justify-center text-2xl overflow-hidden"
+                onClick={() => navigate(`/profile/${authUser.userName}`)}
               >
                 <img
                   src={authUser.profilePic}

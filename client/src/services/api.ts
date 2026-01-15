@@ -10,6 +10,6 @@ export const api = createApi({
         : "/",
     credentials: "include",
   }),
-  tagTypes: ["User"],
+  tagTypes: ["User", "UserPosts"],
   endpoints: () => ({}),
 });

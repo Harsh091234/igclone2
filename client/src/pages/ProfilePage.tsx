@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
@@ -14,6 +14,10 @@ import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
 import NoUserFound from "../components/NoUserFound";
+import { useGetUserPostsQuery } from "../services/postApi";
+import { id } from "zod/v4/locales";
+import UserPostsSkeleton from "../components/Skeletons/UserPostsSkeleton";
+import type { Post } from "../types/post.types";
 
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
@@ -26,9 +30,21 @@ const ProfilePage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const authUser = authData?.user;
   const user = profileData?.user;
+  const {isLoading: isPostsLoading, data: postData} = useGetUserPostsQuery(authUser?._id);
+  const userPosts = postData?.posts;
+  const [demo, setDemo] = useState<boolean>(true)
+ 
 
+const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts");
+ const filteredPosts =
+   activeTab === "reels"
+     ? userPosts?.filter((p: Post) => p.media.some((m) => m.type === "video"))
+     : userPosts;
   const isLoading = isAuthLoading || isProfileLoading;
+  useEffect(() => {
 
+    console.log("post",postData)
+  })
   const handleClick = () => {
     navigate("/settings/edit-profile");
   };
@@ -204,23 +220,75 @@ const ProfilePage = () => {
         <Separator className="my-4 bg-muted-foreground/20 h-0.5 rounded-full" />
 
         {/* TABS */}
-        <div className="flex justify-around mb-2">
-          <button className="flex items-center gap-1 px-4 py-2 text-sm border-t border-white">
+        <div className="relative flex justify-around mb-4 border-b">
+          {/* Sliding underline */}
+          <span
+            className={`absolute bottom-0 h-[2px] w-1/3 bg-foreground transition-transform duration-300 ease-out
+      ${
+        activeTab === "posts"
+          ? "translate-x-[-100%]"
+          : activeTab === "reels"
+          ? "translate-x-0"
+          : "translate-x-[100%]"
+      }`}
+          />
+
+          <button
+            onClick={() => setActiveTab("posts")}
+            className={`flex items-center gap-1 px-4 py-2 text-sm ${
+              activeTab === "posts"
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground"
+            }`}
+          >
             <Grid size={16} /> Posts
           </button>
-          <button className="flex items-center gap-1 px-4 py-2 text-sm text-zinc-400">
+
+          <button
+            onClick={() => setActiveTab("reels")}
+            className={`flex items-center gap-1 px-4 py-2 text-sm ${
+              activeTab === "reels"
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground"
+            }`}
+          >
             <PlaySquare size={16} /> Reels
           </button>
-          <button className="flex items-center gap-1 px-4 py-2 text-sm text-zinc-400">
+
+          <button
+            onClick={() => setActiveTab("tagged")}
+            className={`flex items-center gap-1 px-4 py-2 text-sm ${
+              activeTab === "tagged"
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground"
+            }`}
+          >
             <Tag size={16} /> Tagged
           </button>
         </div>
 
         {/* POSTS GRID */}
-        <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 mt-2">
-          {posts.map((post) => (
-            <PostCard key={post.id} img={post.img} />
-          ))}
+        <div className="grid grid-cols-3 gap-1 mt-2">
+          {isPostsLoading ? (
+            <UserPostsSkeleton />
+          ) : filteredPosts?.length ? (
+            filteredPosts.map((post: Post) => {
+              const media =
+                activeTab === "reels"
+                  ? post.media.find((m) => m.type === "video")
+                  : post.media[0];
+
+              if (!media) return null;
+
+              return (
+                <PostCard key={post._id} url={media.url} type={media.type} />
+              );
+            })
+          ) : (
+            <p className="col-span-full text-center text-sm text-muted-foreground py-10">
+              {activeTab === "reels" ? "No reels yet" : "No posts found"}
+            </p>
+          )}
         </div>
       </div>
     </div>
