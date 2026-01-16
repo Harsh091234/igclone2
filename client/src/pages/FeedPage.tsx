@@ -1,5 +1,5 @@
 import { UserButton } from "@clerk/clerk-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Heart,
   MessageCircle,
@@ -55,12 +55,18 @@ export default function FeedPage() {
   // const toggleSave = (postId: number) => {
   //   setSavedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
   // };
-
+ useEffect(() => { const fn = () => {
+  if(!isPostLoading) {
+ console.log("postin feed:", posts);
+  }
+ } 
+fn()
+}, [posts])
   const {data} = useGetAuthUserQuery();
 
   const authUser = data?.user;
   if(!authUser) return <CenterLoading />
-  
+ 
 
   return (
     // <div>

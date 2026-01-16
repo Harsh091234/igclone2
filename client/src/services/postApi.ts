@@ -1,5 +1,6 @@
 import type { Post } from "../types/post.types";
 import { api } from "./api";
+import { userApi } from "./userApi";
 
 export const postApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -68,8 +69,57 @@ export const postApi = api.injectEndpoints({
           patchResult.undo();
         }
       },
-
     }),
+
+    toggleBookmarkPost: builder.mutation({
+      query: (id) => ({
+        url: `/post/bookmark/${id}`,
+        method: "POST",
+      }),
+
+      //Optimistic
+      async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          userApi.util.updateQueryData("getAuthUser", undefined, (draft) => {
+            if (!draft.user) return;
+
+            const bookmarks = draft.user.bookmarks ?? [];
+
+            const index = bookmarks?.findIndex(
+              (id: any) => id.toString() === postId.toString()
+            );
+            if (index !== -1) {
+              // remove bookmark
+              bookmarks.splice(index, 1);
+            } else {
+              // add bookmark
+              bookmarks.push(postId);
+            }
+          })
+        );
+
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          patchResult.undo();
+        }
+      },
+    }),
+
+    commentPost: builder.mutation({
+      query: ({text, id}) => ({
+        url: `/post/${id}/comment`,
+        method: "POST",
+        body: {text}
+      }),
+      invalidatesTags: ["UserComments"]
+    }),
+
+    getAllComments: builder.query({
+      query: (id) => 
+        `/post/${id}/get-all-comments`,
+      providesTags: ["UserComments"]
+    })
   }),
 });
 
@@ -78,5 +128,8 @@ export const {
   useGetUserPostsQuery,
   useGetAllPostsQuery,
   useDeletePostMutation,
-  useToggleLikePostMutation
+  useToggleLikePostMutation,
+  useToggleBookmarkPostMutation,
+  useCommentPostMutation,
+  useGetAllCommentsQuery
 } = postApi;

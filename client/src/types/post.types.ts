@@ -12,8 +12,19 @@ export interface Post {
     publicId: string;
   }[];
   likes: string[];
-  comments: string[];
+  comments: CommentT[];
 
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CommentT {
+  text: string;
+  author: {
+    userName: string;
+    profilePic: string;
+  };
+  _id: string;
+  likes: string[];
+  createdAt: string;
 }

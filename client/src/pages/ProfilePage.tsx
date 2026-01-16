@@ -22,7 +22,7 @@ import type { Post } from "../types/post.types";
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
   if (!name) return;
-
+const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
   const { data: profileData, isLoading: isProfileLoading } =

@@ -9,6 +9,6 @@ export const commentPostSchema = z.object({
     .string()
     .min(1, "Comment cannot be empty")
     .max(300, "Comment cannot exceed 300 characters"),
-   clerkId: z.string()
+   
 });
 

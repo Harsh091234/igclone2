@@ -39,19 +39,23 @@ interface PostMenuModalProps {
   isOpen: boolean;
   onClose: () => void;
   postId: string;
-  postOwnerName: string;
+  postOwnerName: string | undefined;
 }
 
-export const PostMenuModal = ({ isOpen, onClose, postOwnerName, postId }: PostMenuModalProps) => {
-    const [deletePost, {isLoading}] = useDeletePostMutation();
-    const {data: userData} = useGetAuthUserQuery();
-    const authUser = userData?.user;
-  const isOwner = postOwnerName === authUser?.userName ;
-   
+export const PostMenuModal = ({
+  isOpen,
+  onClose,
+  postOwnerName,
+  postId,
+}: PostMenuModalProps) => {
+  const [deletePost, { isLoading }] = useDeletePostMutation();
+  const { data: userData } = useGetAuthUserQuery();
+  const authUser = userData?.user;
+  const isOwner = postOwnerName === authUser?.userName;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="p-0 gap-0 max-w-[400px] rounded-2xl overflow-hidden">
-       
         {isOwner ? (
           <>
             <PostActionButton
@@ -84,6 +88,17 @@ export const PostMenuModal = ({ isOpen, onClose, postOwnerName, postId }: PostMe
           }}
         />
         <PostActionDivider />
+        {isOwner && (
+          <>
+            <PostActionButton
+              label="Edit Post"
+              onClick={() => {
+                onClose();
+              }}
+            />
+            <PostActionDivider />
+          </>
+        )}
 
         <PostActionButton
           label="Share to..."

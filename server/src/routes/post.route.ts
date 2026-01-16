@@ -38,6 +38,6 @@ router.get("/get-all-posts", requireAuth(), getAllPosts);
 router.get("/get-user-posts/:id", requireAuth(), getUserPosts);
 router.get("/:id/get-all-comments", requireAuth(), getAllComments);
 router.delete("/delete-post/:id", requireAuth(), deletePost);
-router.post("/:id/bookmark", requireAuth(), toggleBookmarkPost);
+router.post("/bookmark/:id", requireAuth(), toggleBookmarkPost);
 
 export default router;

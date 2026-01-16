@@ -177,7 +177,7 @@ export const commentPost = async (req: Request, res: Response) => {
     }
 
     await post.comments.push(comment._id);
-
+   await post.save();
     return res.status(200).json({
       success: true,
       message: "Commented  successfully",
