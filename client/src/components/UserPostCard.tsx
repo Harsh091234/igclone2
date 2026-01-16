@@ -9,6 +9,9 @@ import {
 import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
+import { useToggleLikePostMutation } from "../services/postApi";
+import { useGetAuthUserQuery } from "../services/userApi";
+import { data } from "react-router-dom";
 
 
 interface PostCardProps {
@@ -18,9 +21,22 @@ interface PostCardProps {
 const UserPostCard: React.FC<PostCardProps> = ({
   post,
 }) => {
-     const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
-      const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({});
+  const {data: authData} = useGetAuthUserQuery();
+  const authUser = authData?.user;
+  
       const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
+      const [toggleLikePost, {isLoading: isLikeLoading}] = useToggleLikePostMutation();
+      let isLiked = post.likes.includes(authUser?._id || "" );
+
+      
+      const handleLike = async() => {
+      
+        console.log("hi", isLiked)
+        const data = await toggleLikePost({postId: post._id, userId: authUser?._id }).unwrap();
+        console.log("data", data)
+      }
+
+
   return (
     <article className="bg-card border border-border rounded-lg mb-5 max-w-[500px] mx-auto">
       <div className="flex items-center justify-between px-3 py-2">
@@ -41,14 +57,19 @@ const UserPostCard: React.FC<PostCardProps> = ({
             )} */}
           </div>
         </div>
-        <MoreHorizontal onClick={() => setIsPostMenuOpen(true)} 
-        className="w-4 h-4 cursor-pointer text-muted-foreground" />
+        <MoreHorizontal
+          onClick={() => setIsPostMenuOpen(true)}
+          className="w-4 h-4 cursor-pointer text-muted-foreground"
+        />
       </div>
-    
-     
-          <PostMenuModal postId={post._id} postOwnerName={post.author.userName} isOpen={isPostMenuOpen} onClose={() => setIsPostMenuOpen(false)}/>
-      
-    
+
+      <PostMenuModal
+        postId={post._id}
+        postOwnerName={post.author.userName}
+        isOpen={isPostMenuOpen}
+        onClose={() => setIsPostMenuOpen(false)}
+      />
+
       <div className="w-full h-90 overflow-hidden">
         {post.media[0].type === "image" ? (
           <img
@@ -74,31 +95,34 @@ const UserPostCard: React.FC<PostCardProps> = ({
       </div>
 
       <div className="px-3 py-2">
-        {/* <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-3">
-                    <Heart
-                    className={`w-5 h-5 cursor-pointer ${
-                        likedPosts[post._id]
-                        ? "fill-destructive text-destructive"
-                        : "text-foreground"
-                    }`}
-              onClick={() => toggleLike(post.id)}
-            />
-            <MessageCircle className="w-5 h-5 cursor-pointer text-foreground" />
-            <Send className="w-5 h-5 cursor-pointer text-foreground" />
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-3">
+            <button disabled={isLikeLoading} onClick={handleLike}>
+              <Heart
+                className={`h-5 w-5 cursor-pointer transition-colors
+   ${
+     isLiked
+       ? "fill-primary text-primary" // filled when liked
+       : ""
+   }     
+  `}
+              />
+            </button>
+
+            <button>
+              <MessageCircle className="w-5 h-5 cursor-pointer text-foreground" />
+            </button>
+
+            {/* <Send className="w-5 h-5 cursor-pointer text-foreground" /> */}
           </div>
           <Bookmark
-            className={`w-5 h-5 cursor-pointer ${
-              savedPosts[post.id]
-                ? "fill-accent text-accent"
-                : "text-foreground"
-            }`}
-            onClick={() => toggleSave(post.id)}
+            className={`w-5 h-5 cursor-pointer 
+            `}
           />
-        </div> */}
+        </div>
 
         <p className="font-semibold text-sm mb-1 text-foreground">
-          {0 + post.likes} likes
+          {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
         </p>
 
         {post.caption && (

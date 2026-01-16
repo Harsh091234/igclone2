@@ -110,7 +110,6 @@ export const toggleLikePost = async (req: Request, res: Response) => {
         success: false,
         message: "No post found",
       });
-
     const isLiked = post.likes.some(
       (id) => id.toString() === authUser._id.toString()
     );
@@ -119,18 +118,25 @@ export const toggleLikePost = async (req: Request, res: Response) => {
       post.likes = post.likes.filter(
         (id) => id.toString() !== authUser._id.toString()
       );
+          await post.save();
+       return res.status(200).json({
+         success: true,
+         message: "Post unliked successfully",
+         post,
+       });
     } else {
       post.likes.push(authUser._id);
-
-      // 🔔 realtime notification (optional)
+          await post.save();
+      // 🔔 realtime notification (optional)  
       // notifyPostOwner(post.author, authUser._id, "like")
-    }
-
-    return res.status(200).json({
+       return res.status(200).json({
       success: true,
       message: "Post liked successfully",
       post,
     });
+    }
+
+   
   } catch (error: any) {
     console.log("Error in toggleLikePost:", error.message);
 
