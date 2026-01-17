@@ -1,4 +1,5 @@
 import type { Post } from "../types/post.types";
+import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
 import { userApi } from "./userApi";
 
@@ -35,38 +36,50 @@ export const postApi = api.injectEndpoints({
     }),
 
     toggleLikePost: builder.mutation({
-      query: ({ postId }) => ({
+      query: ({ postId, userId, profileUserId }) => ({
         url: `/post/like/${postId}`,
         method: "POST",
       }),
 
       //  OPTIMISTIC UPDATE
-      async onQueryStarted({ postId, userId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ postId, userId, profileUserId }, { dispatch, queryFulfilled }) {
         //  update UserPosts cache
-        const patchResult = dispatch(
-          postApi.util.updateQueryData(
-            "getAllPosts", // MUST MATCH QUERY NAME
-            undefined,
-            (draft) => {
-              const post = draft.posts.find((p: Post) => p._id === postId);
-              if (!post) return;
+        const patchResults = [];
 
-              const isLiked = post.likes.includes(userId);
-
-              if (isLiked) {
-                post.likes = post.likes.filter((id: string) => id !== userId);
-              } else {
-                post.likes.push(userId);
-              }
-            }
-          )
+        // 🔹 update ALL POSTS (feed)
+        patchResults.push(
+          dispatch(
+           postApi.util.updateQueryData(
+  "getAllPosts",
+  undefined, // ✅ CORRECT CACHE KEY
+  (draft) => {
+    const post = draft.posts.find((p) => p._id === postId);
+    if (!post) return;
+    toggleLike(post, userId);
+  }
+)
+          ),
         );
+
+       if (profileUserId) {
+         patchResults.push(
+           dispatch(
+             postApi.util.updateQueryData(
+               "getUserPosts",
+               profileUserId,
+               (draft) => {
+                 const post = draft.posts.find((p) => p._id === postId);
+                 if (post) toggleLike(post, userId);
+               },
+             ),
+           ),
+         );
+       }
 
         try {
           await queryFulfilled;
         } catch {
-          //  rollback if API fails
-          patchResult.undo();
+          patchResults.forEach((p) => p.undo());
         }
       },
     }),
@@ -79,47 +92,60 @@ export const postApi = api.injectEndpoints({
 
       //Optimistic
       async onQueryStarted(postId, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          userApi.util.updateQueryData("getAuthUser", undefined, (draft) => {
-            if (!draft.user) return;
+        
+        const patches = [];
 
-            const bookmarks = draft.user.bookmarks ?? [];
+        // AUTH USER
+        patches.push(
+          dispatch(
+            userApi.util.updateQueryData("getAuthUser", undefined, (draft) => {
+              if (!draft.user) return;
 
-            const index = bookmarks?.findIndex(
-              (id: any) => id.toString() === postId.toString()
-            );
-            if (index !== -1) {
-              // remove bookmark
-              bookmarks.splice(index, 1);
-            } else {
-              // add bookmark
-              bookmarks.push(postId);
-            }
-          })
+              const bookmarks = draft.user.bookmarks ?? [];
+              const index = bookmarks.findIndex(
+                (id) => id.toString() === postId.toString(),
+              );
+
+              if (index !== -1) bookmarks.splice(index, 1);
+              else bookmarks.push(postId);
+            }),
+          ),
         );
+
+        // PROFILE POSTS
+        patches.push(
+          dispatch(
+            postApi.util.updateQueryData("getUserPosts", undefined, (draft) => {
+              const post = draft.posts?.find((p) => p._id === postId);
+              if (post) post.isBookmarked = !post.isBookmarked;
+            }),
+          ),
+        );
+
 
         try {
           await queryFulfilled;
         } catch (error) {
-          patchResult.undo();
+           patches.forEach((p) => p.undo());
         }
       },
     }),
 
     commentPost: builder.mutation({
-      query: ({text, id}) => ({
+      query: ({ text, id }) => ({
         url: `/post/${id}/comment`,
         method: "POST",
-        body: {text}
+        body: { text },
       }),
-      invalidatesTags: ["UserComments"]
+      invalidatesTags: ["UserComments"],
     }),
 
     getAllComments: builder.query({
-      query: (id) => 
-        `/post/${id}/get-all-comments`,
-      providesTags: ["UserComments"]
-    })
+      query: (id) => `/post/${id}/get-all-comments`,
+       providesTags: (result, error, id) => [
+    { type: "UserComments", id }
+  ],
+    }),
   }),
 });
 

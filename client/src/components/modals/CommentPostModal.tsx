@@ -81,26 +81,18 @@ const CommentPostModal = ({
      });
    }, [api]);
   // Close modal when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onClose]);
-
+  
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 ">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 "
+      onClick={onClose}
+    >
       {/* Modal */}
       <div
         ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
         className="bg-card w-[55rem] h-[60vh] flex overflow-hidden rounded-lg shadow-lg"
       >
         {/* LEFT: Carousel */}

@@ -3,11 +3,12 @@ interface PostCardProps{
    
     url: string;
     type: "image" | "video";
+    onClick?: () => void;
 }
 
-export const PostCard = ({ url, type}: PostCardProps) => {
+export const PostCard = ({ url, type, onClick}: PostCardProps) => {
   return (
-    <div className="w-full aspect-square overflow-hidden rounded-xl shadow hover:cursor-pointer">
+    <div onClick={onClick} className="w-full aspect-square overflow-hidden rounded-xl shadow hover:cursor-pointer">
       {type === "image" ? (
         <img src={url} alt="post" className="w-full h-full object-cover" />
       ) : (

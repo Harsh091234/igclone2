@@ -14,42 +14,62 @@ import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
 import NoUserFound from "../components/NoUserFound";
-import { useGetUserPostsQuery } from "../services/postApi";
+import { useGetUserPostsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
 import { id } from "zod/v4/locales";
 import UserPostsSkeleton from "../components/Skeletons/UserPostsSkeleton";
 import type { Post } from "../types/post.types";
+import CommentPostModal from "../components/modals/CommentPostModal";
+import toast from "react-hot-toast";
 
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
   if (!name) return;
-const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+ const [activePostId, setActivePostId] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
   const { data: profileData, isLoading: isProfileLoading } =
     useGetProfileUserQuery(name);
   const scrollRef = useRef<HTMLDivElement>(null);
   const authUser = authData?.user;
+
   const user = profileData?.user;
-  const {isLoading: isPostsLoading, data: postData} = useGetUserPostsQuery(authUser?._id);
+  const [toggleLikePost, { isLoading: isLikeLoading }] =
+      useToggleLikePostMutation();
+   
+   
+  const { isLoading: isPostsLoading, data: postData } = useGetUserPostsQuery(
+   user?._id,
+  );
   const userPosts = postData?.posts;
-  const [demo, setDemo] = useState<boolean>(true)
- 
+  const activePost = userPosts?.find((p: Post) => p._id === activePostId);
+  const [demo, setDemo] = useState<boolean>(true);
 
-const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts");
- const filteredPosts =
-   activeTab === "reels"
-     ? userPosts?.filter((p: Post) => p.media.some((m) => m.type === "video"))
-     : userPosts;
+  const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
+    "posts",
+  );
+  const filteredPosts =
+    activeTab === "reels"
+      ? userPosts?.filter((p: Post) => p.media.some((m) => m.type === "video"))
+      : userPosts;
   const isLoading = isAuthLoading || isProfileLoading;
+  const isAuthUser = authUser?._id === user?._id;
+   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+      useToggleBookmarkPostMutation();
+const profileUserId = user?._id;
   useEffect(() => {
+    console.log("post", postData);
+  });
 
-    console.log("post",postData)
-  })
+    const handleRouteToProfile = () => {
+      navigate(`/profile/${user?.userName}`);
+    };
+
   const handleClick = () => {
     navigate("/settings/edit-profile");
   };
 
-  const isAuthUser = authUser?._id === user?._id;
+
 
   const highlightsData = [
     {
@@ -87,15 +107,25 @@ const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts"
     },
   ];
 
-  const posts = [
-    { id: 1, img: "https://picsum.photos/600?10" },
-    { id: 2, img: "https://picsum.photos/600?11" },
-    { id: 3, img: "https://picsum.photos/600?12" },
-    { id: 4, img: "https://picsum.photos/600?13" },
-    { id: 5, img: "https://picsum.photos/600?14" },
-    { id: 6, img: "https://picsum.photos/600?15" },
-  ];
+  const handleLike = async (post: Post) => {
+    await toggleLikePost({postId: post._id, userId: authUser?._id,
+      profileUserId: post.author._id
+    }).unwrap();
+  };
 
+   const handleBookmark = async (postId: string) => {
+     const isBookmarked = authUser?.bookmarks?.some(
+       (id) => id.toString() === postId.toString(),
+     );
+
+     await toggleBookmarkPost(postId).unwrap();
+
+     toast.success(
+       isBookmarked ? "Post is unbookmarked" : "Post is bookmarked",
+     );
+   };
+
+   
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
 
@@ -171,7 +201,7 @@ const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts"
 
             <div className="flex justify-center sm:justify-start gap-6  mb-2">
               <button>
-                <strong>{posts.length}</strong> posts
+                <strong>{user.posts?.length}</strong> posts
               </button>
               <button>
                 <strong>{user.followers?.length || 0}</strong> followers
@@ -228,8 +258,8 @@ const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts"
         activeTab === "posts"
           ? "translate-x-[-100%]"
           : activeTab === "reels"
-          ? "translate-x-0"
-          : "translate-x-[100%]"
+            ? "translate-x-0"
+            : "translate-x-[100%]"
       }`}
           />
 
@@ -281,7 +311,12 @@ const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts"
               if (!media) return null;
 
               return (
-                <PostCard key={post._id} url={media.url} type={media.type} />
+                <PostCard
+                  key={post._id}
+                  onClick={() => setActivePostId(post._id)}
+                  url={media.url}
+                  type={media.type}
+                />
               );
             })
           ) : (
@@ -290,6 +325,28 @@ const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">("posts"
             </p>
           )}
         </div>
+        {activePost && (
+          <CommentPostModal
+            isOpen={true}
+            onClose={() => setActivePostId(null)}
+            post={activePost}
+            isLikeLoading={isLikeLoading}
+            handleLike={() =>
+              toggleLikePost({
+                postId: activePost._id,
+                userId: authUser?._id,
+                profileUserId: user._id,
+              })
+            }
+            handleBookmark={() => handleBookmark(activePost._id)}
+            isBookmarkLoading={isBookmarkLoading}
+            isLiked={activePost.likes.includes(authUser?._id)}
+            isBookmarked={authUser?.bookmarks?.some(
+              (id) => id.toString() === activePost._id.toString(),
+            )}
+            handleRouteToProfile={handleRouteToProfile}
+          />
+        )}
       </div>
     </div>
   );
