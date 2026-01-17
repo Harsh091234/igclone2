@@ -1,3 +1,5 @@
+import type { follower } from "../components/modals/FollowersFollowingModal";
+
 export interface User {
   clerkId: string;
   email: string;
@@ -10,7 +12,7 @@ export interface User {
   profilePic?: string;
   profilePicPublicId?: string;
 
-  followers?: string[];
+  followers?: follower[];
   following?: string[];
 
   bookmarks?: string[];

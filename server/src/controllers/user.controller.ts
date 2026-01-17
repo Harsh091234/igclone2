@@ -1,13 +1,13 @@
 import cloudinary from "#config/cloudinary.js";
 import { uploadBase64Image } from "#config/uploadPic.js";
-import User, { IUser } from "#models/user.model.js";
-import { log, profile } from "console";
+import User from "#models/user.model.js";
+
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import {clerkClient} from "@clerk/express"
 import { convertToBase64 } from "#config/convertToBase64.js";
 import { CLOUDINARY_FOLDERS } from "#paths/cloudinary.js";
-import { success } from "zod";
+
 
 export const syncUser = async(req: Request, res: Response) => {
   try {
@@ -95,7 +95,10 @@ export const getProfile = async (req: Request, res: Response) => {
     const { name } = req.params;
     console.log(name)
 
-  const user = await User.findOne({userName: name});
+  const user = await User.findOne({userName: name})
+  .populate("followers", "userName profilePic fullName")
+  .populate("following", "userName fullName profilePic")
+  ;
    if(!user) return res.status(400).json({success:false, message:"User not found"});
     console.log(user)
  

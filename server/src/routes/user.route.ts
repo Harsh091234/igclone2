@@ -12,7 +12,7 @@ router.get('/get-auth-user', requireAuth(), getAuthUser);
 router.get("/profile/:name", requireAuth(), getProfile) 
 router.get("/search",requireAuth(), searchUsers);
 router.get("/fetch-suggested-users", requireAuth(), getSuggestedUsers);
-router.post("/followOrUnfollow/:id", requireAuth(), followOrUnfollowUser);
+router.post("/follow-unfollow/:id", requireAuth(), followOrUnfollowUser);
 
 export default router;
 

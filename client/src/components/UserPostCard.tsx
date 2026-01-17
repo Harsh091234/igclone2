@@ -13,7 +13,7 @@ import {
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
-import { useGetAuthUserQuery } from "../services/userApi";
+import { useGetAuthUserQuery, useGetProfileUserQuery } from "../services/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
@@ -25,6 +25,7 @@ interface PostCardProps {
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetAuthUserQuery();
+
   const authUser = authData?.user;
   const navigate = useNavigate();
   
@@ -59,7 +60,7 @@ console.log("post", post)
   };
 
   const handleRouteToProfile = () => {
-    navigate(`/profile/${authUser?.userName}`);
+    navigate(`/profile/${post.author.userName}`);
   };
 
   return (

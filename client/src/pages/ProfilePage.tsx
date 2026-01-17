@@ -5,6 +5,7 @@ import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
 
 import {
+  useFollowOrUnfollowUsersMutation,
   useGetAuthUserQuery,
   useGetProfileUserQuery,
 } from "../services/userApi";
@@ -14,8 +15,12 @@ import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
 import NoUserFound from "../components/NoUserFound";
-import { useGetUserPostsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
-import { id } from "zod/v4/locales";
+import {
+  useGetUserPostsQuery,
+  useToggleBookmarkPostMutation,
+  useToggleLikePostMutation,
+} from "../services/postApi";
+
 import UserPostsSkeleton from "../components/Skeletons/UserPostsSkeleton";
 import type { Post } from "../types/post.types";
 import CommentPostModal from "../components/modals/CommentPostModal";
@@ -24,7 +29,7 @@ import toast from "react-hot-toast";
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
   if (!name) return;
- const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [activePostId, setActivePostId] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
@@ -35,11 +40,10 @@ const ProfilePage = () => {
 
   const user = profileData?.user;
   const [toggleLikePost, { isLoading: isLikeLoading }] =
-      useToggleLikePostMutation();
-   
-   
+    useToggleLikePostMutation();
+
   const { isLoading: isPostsLoading, data: postData } = useGetUserPostsQuery(
-   user?._id,
+    user?._id,
   );
   const userPosts = postData?.posts;
   const activePost = userPosts?.find((p: Post) => p._id === activePostId);
@@ -48,28 +52,33 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
     "posts",
   );
+  const [toggleFollow, { isLoading: followLoading }] =
+    useFollowOrUnfollowUsersMutation();
+  const isFollowing = user?.followers?.some(
+    (follower) => follower._id.toString() === authUser?._id,
+  );
+  console.log("isfollowing", isFollowing, user);
   const filteredPosts =
     activeTab === "reels"
       ? userPosts?.filter((p: Post) => p.media.some((m) => m.type === "video"))
       : userPosts;
   const isLoading = isAuthLoading || isProfileLoading;
   const isAuthUser = authUser?._id === user?._id;
-   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
-      useToggleBookmarkPostMutation();
-const profileUserId = user?._id;
-  useEffect(() => {
-    console.log("post", postData);
-  });
+  const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+    useToggleBookmarkPostMutation();
 
-    const handleRouteToProfile = () => {
-      navigate(`/profile/${user?.userName}`);
-    };
+  const handleRouteToProfile = () => {
+    navigate(`/profile/${user?.userName}`);
+  };
+
+  const handleFollow = async () => {
+    if (!user) return;
+    await toggleFollow(user._id).unwrap();
+  };
 
   const handleClick = () => {
     navigate("/settings/edit-profile");
   };
-
-
 
   const highlightsData = [
     {
@@ -108,24 +117,23 @@ const profileUserId = user?._id;
   ];
 
   const handleLike = async (post: Post) => {
-    await toggleLikePost({postId: post._id, userId: authUser?._id,
-      profileUserId: post.author._id
+    await toggleLikePost({
+      postId: post._id,
+      userId: authUser?._id,
+      profileUserId: post.author._id,
     }).unwrap();
   };
 
-   const handleBookmark = async (postId: string) => {
-     const isBookmarked = authUser?.bookmarks?.some(
-       (id) => id.toString() === postId.toString(),
-     );
+  const handleBookmark = async (postId: string) => {
+    const isBookmarked = authUser?.bookmarks?.some(
+      (id) => id.toString() === postId.toString(),
+    );
 
-     await toggleBookmarkPost(postId).unwrap();
+    await toggleBookmarkPost(postId).unwrap();
 
-     toast.success(
-       isBookmarked ? "Post is unbookmarked" : "Post is bookmarked",
-     );
-   };
+    toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
+  };
 
-   
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
 
@@ -199,7 +207,7 @@ const profileUserId = user?._id;
               </p>
             </div>
 
-            <div className="flex justify-center sm:justify-start gap-6  mb-2">
+            <div className="flex justify-center sm:justify-start gap-6  mb-5">
               <button>
                 <strong>{user.posts?.length}</strong> posts
               </button>
@@ -210,6 +218,29 @@ const profileUserId = user?._id;
                 <strong>{user.following?.length || 0}</strong> following
               </button>
             </div>
+            {!isAuthUser && (
+              <div className="flex items-center gap-3">
+                <Button
+                  disabled={followLoading}
+                  onClick={handleFollow}
+                
+                  className={`w-28 border text-sm justify-center transition-colors ${
+                    isFollowing
+                      ? "bg-muted text-foreground hover:bg-muted/80"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  {isFollowing ? "Unfollow" : "Follow"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="text-sm w-28 justify-center"
+                >
+                  Message
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

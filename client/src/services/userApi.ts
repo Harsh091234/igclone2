@@ -1,4 +1,3 @@
-
 import type { EditProfileData, SearchUser, User } from "../types/user.types";
 import { api } from "./api";
 
@@ -47,10 +46,25 @@ export const userApi = api.injectEndpoints({
     searchUsers: builder.query<SearchUserResponse, string>({
       query: (name) => ({
         url: `/user/search`,
-        params: {q: name}
+        params: { q: name },
       }),
+    }),
+
+    followOrUnfollowUsers: builder.mutation({
+      query: (id: string) => ({
+        url: `/user/follow-unfollow/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["User"]
     }),
   }),
 });
 
-export const {useSyncUserMutation, useGetAuthUserQuery, useEditProfileMutation, useGetProfileUserQuery, useLazySearchUsersQuery} = userApi;
+export const {
+  useSyncUserMutation,
+  useGetAuthUserQuery,
+  useEditProfileMutation,
+  useGetProfileUserQuery,
+  useLazySearchUsersQuery,
+  useFollowOrUnfollowUsersMutation,
+} = userApi;
