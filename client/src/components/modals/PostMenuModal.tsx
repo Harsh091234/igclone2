@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { useGetAuthUserQuery } from "../../services/userApi";
@@ -48,7 +48,7 @@ export const PostMenuModal = ({
   postOwnerName,
   postId,
 }: PostMenuModalProps) => {
-  const [deletePost, { isLoading }] = useDeletePostMutation();
+  const [deletePost] = useDeletePostMutation();
   const { data: userData } = useGetAuthUserQuery();
   const authUser = userData?.user;
   const isOwner = postOwnerName === authUser?.userName;

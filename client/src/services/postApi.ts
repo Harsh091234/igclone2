@@ -1,3 +1,4 @@
+
 import type { Post } from "../types/post.types";
 import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
@@ -36,7 +37,7 @@ export const postApi = api.injectEndpoints({
     }),
 
     toggleLikePost: builder.mutation({
-      query: ({ postId, userId, profileUserId }) => ({
+      query: ({ postId}) => ({
         url: `/post/like/${postId}`,
         method: "POST",
       }),
@@ -53,7 +54,7 @@ export const postApi = api.injectEndpoints({
   "getAllPosts",
   undefined, // ✅ CORRECT CACHE KEY
   (draft) => {
-    const post = draft.posts.find((p) => p._id === postId);
+    const post = draft.posts.find((p: Post) => p._id === postId);
     if (!post) return;
     toggleLike(post, userId);
   }
@@ -68,7 +69,7 @@ export const postApi = api.injectEndpoints({
                "getUserPosts",
                profileUserId,
                (draft) => {
-                 const post = draft.posts.find((p) => p._id === postId);
+                 const post = draft.posts.find((p: Post) => p._id === postId);
                  if (post) toggleLike(post, userId);
                },
              ),
@@ -116,7 +117,7 @@ export const postApi = api.injectEndpoints({
         patches.push(
           dispatch(
             postApi.util.updateQueryData("getUserPosts", undefined, (draft) => {
-              const post = draft.posts?.find((p) => p._id === postId);
+              const post = draft.posts?.find((p: Post) => p._id === postId);
               if (post) post.isBookmarked = !post.isBookmarked;
             }),
           ),
@@ -142,7 +143,7 @@ export const postApi = api.injectEndpoints({
 
     getAllComments: builder.query({
       query: (id) => `/post/${id}/get-all-comments`,
-       providesTags: (result, error, id) => [
+       providesTags: ( id) => [
     { type: "UserComments", id }
   ],
     }),

@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect,  useState } from "react";
 
 import CustomButton from "../../components/CustomButton";
 
@@ -9,8 +9,7 @@ import { useEditProfileMutation, useGetAuthUserQuery } from "../../services/user
 import { useForm } from "react-hook-form";
 import { editProfileSchema, type EditProfileInput } from "../../schemas/user.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EditProfileData, User } from "../../types/user.types";
-import ErrorMessage from "../../components/ErrorMessage";
+import type { EditProfileData} from "../../types/user.types";
 
 
 const EditProfilePage = () => {
@@ -29,7 +28,7 @@ const EditProfilePage = () => {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    
   } = useForm<EditProfileInput>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
@@ -93,7 +92,7 @@ const EditProfilePage = () => {
         <div className="w-full bg-card px-4 py-3 rounded-xl flex items-center justify-between border border-border">
           <div className="flex items-center gap-3">
             <img
-              src={authUser.profilePic}
+              src={preview || authUser.profilePic}
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover border border-border"
             />

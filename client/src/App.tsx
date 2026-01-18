@@ -23,7 +23,7 @@ import CenterLoading from "./components/CenterLoading";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 
 const App = () => {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const {  isSignedIn, isLoaded } = useUser();
   const [syncUser, {isLoading: syncUserLoading}] = useSyncUserMutation();
  
   const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { Search, X } from "lucide-react";
 
@@ -161,7 +161,7 @@ const SearchPanel = ({ isSearchPanelOpen, onClose }: SearchPanelProps) => {
             {users.map((user: SearchUser) => (
               <div
                 key={user._id}
-                onClick={(e) => handleNavigate(user.userName)}
+                onClick={() => handleNavigate(user.userName)}
                 className="
               flex items-center gap-4 p-2 rounded-lg cursor-pointer
               hover:bg-accent

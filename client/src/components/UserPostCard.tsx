@@ -2,18 +2,18 @@ import React, { useEffect, useState } from "react";
 import {
   Heart,
   MessageCircle,
-  Send,
+ 
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
-import type { CommentT, Post } from "../types/post.types";
+import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
 import {
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
-import { useGetAuthUserQuery, useGetProfileUserQuery } from "../services/userApi";
+import { useGetAuthUserQuery} from "../services/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
@@ -53,7 +53,7 @@ console.log("post", post)
   };
 
   const handleLike = async () => {
-    const data = await toggleLikePost({
+   await toggleLikePost({
       postId: post._id,
       userId: authUser?._id,
     }).unwrap();

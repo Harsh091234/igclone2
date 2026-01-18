@@ -1,4 +1,4 @@
-import type { EditProfileData, SearchUser, User } from "../types/user.types";
+import type { SearchUser, User } from "../types/user.types";
 import { api } from "./api";
 
 export interface SyncUserResponse {
@@ -34,7 +34,7 @@ export const userApi = api.injectEndpoints({
       providesTags: ["User"],
     }),
 
-    editProfile: builder.mutation<SyncUserResponse, EditProfileData>({
+    editProfile: builder.mutation<SyncUserResponse, FormData>({
       query: (body) => ({
         url: "/user/edit-profile",
         method: "PUT",

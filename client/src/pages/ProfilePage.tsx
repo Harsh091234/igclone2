@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
@@ -53,7 +53,7 @@ const ProfilePage = () => {
       useState<boolean>(false);
   const userPosts = postData?.posts;
   const activePost = userPosts?.find((p: Post) => p._id === activePostId);
-  const [demo, setDemo] = useState<boolean>(true);
+
 
   const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
     "posts",
@@ -121,13 +121,6 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     },
   ];
 
-  const handleLike = async (post: Post) => {
-    await toggleLikePost({
-      postId: post._id,
-      userId: authUser?._id,
-      profileUserId: post.author._id,
-    }).unwrap();
-  };
 
   const handleBookmark = async (postId: string) => {
     const isBookmarked = authUser?.bookmarks?.some(

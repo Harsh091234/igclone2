@@ -1,17 +1,6 @@
-import { UserButton } from "@clerk/clerk-react";
-import React, { useEffect, useState } from "react";
-import {
-  Heart,
-  MessageCircle,
-  Send,
-  Bookmark,
-  MoreHorizontal,
-  Home,
-  Search,
-  PlusSquare,
-  Film,
-  User,
-} from "lucide-react";
+
+import { useEffect} from "react";
+
 
 import { Link, useNavigate } from "react-router-dom";
 import { useGetAuthUserQuery } from "../services/userApi";
@@ -32,7 +21,7 @@ interface Story {
 
 export default function FeedPage() {
  
-  const {isLoading: isPostLoading, data: postData} = useGetAllPostsQuery();
+  const {isLoading: isPostLoading, data: postData} = useGetAllPostsQuery(undefined);
 
  
   const navigate = useNavigate();

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,9 +81,8 @@ const UserSetupPage = () => {
               <div className="relative w-24 h-24 rounded-full overflow-hidden border border-border">
                 <img
                   src={
-                    file
-                      ? URL.createObjectURL(file)
-                      : "https://res.cloudinary.com/djt8dpogs/image/upload/v1764092240/instagram_clone_uploads/uwoxn6lq0lyrrlkw2tlo.png"
+                     preview || 
+                       "https://res.cloudinary.com/djt8dpogs/image/upload/v1764092240/instagram_clone_uploads/uwoxn6lq0lyrrlkw2tlo.png"
                   }
                   className="w-full h-full object-cover"
                 />

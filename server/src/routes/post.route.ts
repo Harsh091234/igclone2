@@ -1,8 +1,8 @@
-import { upload } from "#config/multer.js";
+import { upload } from "../config/multer.js";
 import {
   commentPostSchema,
   createPostSchema,
-} from "#config/validators/post.validator.js";
+} from "../config/validators/post.validator.js";
 import {
   commentPost,
   createPost,
@@ -12,8 +12,8 @@ import {
   getUserPosts,
   toggleBookmarkPost,
   toggleLikePost,
-} from "#controllers/post.controller.js";
-import { validate } from "#middlewares/validate.middleware.js";
+} from "../controllers/post.controller.js";
+import { validate } from "../middlewares/validate.middleware.js";
 import { requireAuth } from "@clerk/express";
 import { Router } from "express";
 

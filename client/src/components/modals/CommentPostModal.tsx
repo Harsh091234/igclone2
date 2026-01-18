@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 // components/PostDialog.tsx
 
 import { Bookmark, Heart, X } from "lucide-react";
@@ -15,7 +15,7 @@ import type { CommentT, Post } from "../../types/post.types";
 
 import { useCommentPostMutation, useGetAllCommentsQuery } from "../../services/postApi";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+
 
 interface PostDialogProps {
   isOpen: boolean;

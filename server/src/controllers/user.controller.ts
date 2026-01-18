@@ -1,12 +1,12 @@
-import cloudinary from "#config/cloudinary.js";
-import { uploadBase64Image } from "#config/uploadPic.js";
-import User from "#models/user.model.js";
+import cloudinary from "../config/cloudinary.js";
+import { uploadBase64Image } from "../config/uploadPic.js";
+import User from "../models/user.model.js";
 
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import {clerkClient} from "@clerk/express"
-import { convertToBase64 } from "#config/convertToBase64.js";
-import { CLOUDINARY_FOLDERS } from "#paths/cloudinary.js";
+import { convertToBase64 } from "../config/convertToBase64.js";
+import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 
 
 export const syncUser = async(req: Request, res: Response) => {

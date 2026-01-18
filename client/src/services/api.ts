@@ -7,7 +7,7 @@ export const api = createApi({
     baseUrl:
       import.meta.env.MODE === "development"
         ? "http://localhost:3000/api"
-        : "/",
+        : "/api",
     credentials: "include",
   }),
   tagTypes: ["User", "UserPosts", "UserComments"],

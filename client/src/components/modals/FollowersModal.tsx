@@ -25,7 +25,7 @@ interface FollowersModalProps {
 }
 const FollowersModal = ({
   onClose,
-  isFollowing,
+
   handleFollow,
   userName,
   authUserId,

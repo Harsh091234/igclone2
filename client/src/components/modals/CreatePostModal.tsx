@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { X, ArrowLeft } from "lucide-react";
+import {  ArrowLeft } from "lucide-react";
 import { useGetAuthUserQuery } from "../../services/userApi";
 import UserAvatar from "../UserAvatar";
 import { ImagePlus } from "lucide-react";

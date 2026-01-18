@@ -1,10 +1,10 @@
-import { uploadBase64Image } from "#config/uploadPic.js";
-import { uploadVideo } from "#config/uploadVideo.js";
-import { commentPostSchema } from "#config/validators/post.validator.js";
-import Comment from "#models/comment.model.js";
-import Post from "#models/post.model.js";
-import User from "#models/user.model.js";
-import { CLOUDINARY_FOLDERS } from "#paths/cloudinary.js";
+import { uploadBase64Image } from "../config/uploadPic.js";
+import { uploadVideo } from "../config/uploadVideo.js";
+
+import Comment from "../models/comment.model.js";
+import Post from "../models/post.model.js";
+import User from "../models/user.model.js";
+import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 import { Request, Response } from "express";
 
 import sharp from "sharp";

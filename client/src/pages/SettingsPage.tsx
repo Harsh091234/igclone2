@@ -1,4 +1,4 @@
-import React from "react";
+
 import SettingsMenu from "../components/SettingsMenu";
 import { Outlet } from "react-router-dom";
 
