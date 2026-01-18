@@ -25,6 +25,8 @@ import UserPostsSkeleton from "../components/Skeletons/UserPostsSkeleton";
 import type { Post } from "../types/post.types";
 import CommentPostModal from "../components/modals/CommentPostModal";
 import toast from "react-hot-toast";
+import FollowingModal from "../components/modals/FollowingModal";
+import FollowersModal from "../components/modals/FollowersModal";
 
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
@@ -45,6 +47,10 @@ const ProfilePage = () => {
   const { isLoading: isPostsLoading, data: postData } = useGetUserPostsQuery(
     user?._id,
   );
+  const [isFollowingModalOpen, setIsFollowingModalOpen] =
+    useState<boolean>(false);
+    const [isFollowerModalOpen, setIsFollowerModalOpen] =
+      useState<boolean>(false);
   const userPosts = postData?.posts;
   const activePost = userPosts?.find((p: Post) => p._id === activePostId);
   const [demo, setDemo] = useState<boolean>(true);
@@ -66,14 +72,13 @@ const ProfilePage = () => {
   const isAuthUser = authUser?._id === user?._id;
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-
+const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
   const handleRouteToProfile = () => {
     navigate(`/profile/${user?.userName}`);
   };
 
-  const handleFollow = async () => {
-    if (!user) return;
-    await toggleFollow(user._id).unwrap();
+  const handleFollow = async (targetUserId: string) => {
+    await toggleFollow(targetUserId).unwrap();
   };
 
   const handleClick = () => {
@@ -211,19 +216,49 @@ const ProfilePage = () => {
               <button>
                 <strong>{user.posts?.length}</strong> posts
               </button>
-              <button>
+              <button
+                onClick={() => {
+                  if ((user.followers?.length ?? 0) > 0) {
+                    setIsFollowerModalOpen(true);
+                  }
+                }}
+              >
                 <strong>{user.followers?.length || 0}</strong> followers
               </button>
-              <button>
+              <button
+                onClick={() => {
+                  if ((user.following?.length ?? 0) > 0) {
+                    setIsFollowingModalOpen(true);
+                  }
+                }}
+              >
                 <strong>{user.following?.length || 0}</strong> following
               </button>
             </div>
+            {isFollowerModalOpen && (
+              <FollowersModal
+                onClose={() => setIsFollowerModalOpen(false)}
+                isFollowing={isFollowing}
+                handleFollow={handleFollow}
+                userName={user.userName}
+                authUserId={authUser?._id}
+                authFollowing={authFollowingIds}
+              />
+            )}
+            {isFollowingModalOpen && (
+              <FollowingModal
+                onClose={() => setIsFollowingModalOpen(false)}
+                userName={user.userName}
+                authUserId={authUser?._id}
+                authFollowing={authFollowingIds}
+                handleFollow={handleFollow}
+              />
+            )}
             {!isAuthUser && (
               <div className="flex items-center gap-3">
                 <Button
                   disabled={followLoading}
-                  onClick={handleFollow}
-                
+                  onClick={() => handleFollow(user._id)}
                   className={`w-28 border text-sm justify-center transition-colors ${
                     isFollowing
                       ? "bg-muted text-foreground hover:bg-muted/80"
