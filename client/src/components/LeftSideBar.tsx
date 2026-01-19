@@ -26,97 +26,148 @@ const LeftSideBar = () => {
   return (
     <aside
       className="
-  w-full h-screen flex flex-col items-center py-6 gap-6 select-none
-  bg-white dark:bg-background
-  border-r border-primary/20
-  text-foreground dark:text-foreground
+ w-full bg-primary-foreground
 "
     >
-      {/* Instagram Logo */}
-      <Link to="/" className="cursor-pointer">
-        <svg
-          aria-label="Instagram"
-          fill="none"
-          height="24"
-          viewBox="0 0 24 24"
-          width="24"
-        >
-          <rect
-            width="20"
-            height="20"
-            x="2"
-            y="2"
-            rx="5"
-            stroke="currentColor"
-            strokeWidth="2"
-          ></rect>
-          <circle
-            cx="12"
-            cy="12"
-            r="4"
-            stroke="currentColor"
-            strokeWidth="2"
-          ></circle>
-          <circle cx="17" cy="7" r="1.2" fill="currentColor"></circle>
-        </svg>
-      </Link>
-
-      {/* Nav Icons */}
-      <Link to="/" className="">
-        <Home className="w-6 h-6" />
-      </Link>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsSearchPanelOpen(!isSearchPanelOpen);
-        }}
-        className=""
+      {/* desktop navbar */}
+      <div
+        className="hidden  sm:flex flex-col items-center py-6 gap-6 select-none
+ 
+  border-r border-primary/20
+  "
       >
-        <Search className="w-6 h-6" />
-      </button>
-      <SearchPanel
-        isSearchPanelOpen={isSearchPanelOpen}
-        onClose={() => setIsSearchPanelOpen(false)}
-      />
-      <Link to="/explore" className="">
-        <Compass className="w-6 h-6" />
-      </Link>
-      <Link to="/reels" className="r">
-        <Film className="w-6 h-6" />
-      </Link>
-      <Link to="/messages" className="">
-        <Send className="w-6 h-6" />
-      </Link>
-      <Link to="/notifications" className="">
-        <Heart className="w-6 h-6" />
-      </Link>
-      <button onClick={() => setIsCreatePostModelOpen(true)} className="">
-        <Plus className="w-6 h-6" />
-      </button>
+        {/* Instagram Logo */}
+        <Link to="/" className="cursor-pointer">
+          <svg
+            aria-label="Instagram"
+            fill="none"
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <rect
+              width="20"
+              height="20"
+              x="2"
+              y="2"
+              rx="5"
+              stroke="currentColor"
+              strokeWidth="2"
+            ></rect>
+            <circle
+              cx="12"
+              cy="12"
+              r="4"
+              stroke="currentColor"
+              strokeWidth="2"
+            ></circle>
+            <circle cx="17" cy="7" r="1.2" fill="currentColor"></circle>
+          </svg>
+        </Link>
 
-      {/* Profile Pic */}
-      <Link to={`/profile/${authUser?.userName}`}>
-        <img
-          src={
-            authUser?.profilePic ||
-            "https://res.cloudinary.com/djt8dpogs/image/upload/v1764859306/profile_pics/qx9p7qgrdtrwugkrae9e.png"
-          }
-          className="w-7 h-7 rounded-full object-cover "
-          alt="profile"
+        {/* Nav Icons */}
+        <Link to="/" className="">
+          <Home className="w-6 h-6" />
+        </Link>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsSearchPanelOpen(!isSearchPanelOpen);
+          }}
+          className=""
+        >
+          <Search className="w-6 h-6" />
+        </button>
+        <SearchPanel
+          isSearchPanelOpen={isSearchPanelOpen}
+          onClose={() => setIsSearchPanelOpen(false)}
         />
-      </Link>
+        <Link to="/explore" className="">
+          <Compass className="w-6 h-6" />
+        </Link>
+        <Link to="/reels" className="r">
+          <Film className="w-6 h-6" />
+        </Link>
+        <Link to="/messages" className="">
+          <Send className="w-6 h-6" />
+        </Link>
+        <Link to="/notifications" className="">
+          <Heart className="w-6 h-6" />
+        </Link>
+        <button onClick={() => setIsCreatePostModelOpen(true)} className="">
+          <Plus className="w-6 h-6" />
+        </button>
 
-      {/* Menu / Settings */}
-      <button className="mt-auto" onClick={() => setIsOpen(!isOpen)}>
-        <Menu className="w-6 h-6" />
-        <MoreMenu isOpen={isOpen} onClose={() => setIsOpen(false)} />
-      </button>
+        {/* Profile Pic */}
+        <Link to={`/profile/${authUser?.userName}`}>
+          <img
+            src={
+              authUser?.profilePic ||
+              "https://res.cloudinary.com/djt8dpogs/image/upload/v1764859306/profile_pics/qx9p7qgrdtrwugkrae9e.png"
+            }
+            className="w-7 h-7 rounded-full object-cover "
+            alt="profile"
+          />
+        </Link>
 
-      {
-        isCreatePostModelOpen && (
-          <CreatePostModal isOpen={isCreatePostModelOpen} onClose={() => setIsCreatePostModelOpen(false)}/>
-        )
-      }
+        {/* Menu / Settings */}
+        <button className="mt-auto" onClick={() => setIsOpen(!isOpen)}>
+          <Menu className="w-6 h-6" />
+          <MoreMenu isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        </button>
+      </div>
+
+      {/* mobile navbar */}
+      <div
+        className="sm:hidden   flex items-center justify-between
+  px-6 py-2 
+  border-t border-border
+"
+      >
+        <Link to="/" className="flex items-center justify-center p-2">
+          <Home className="w-6 h-6" />
+        </Link>
+
+        <Link to="/explore" className="flex items-center justify-center p-2">
+          <Compass className="w-6 h-6" />
+        </Link>
+
+        <Link to="/reels" className="flex items-center justify-center p-2">
+          <Film className="w-6 h-6" />
+        </Link>
+
+        <button
+          onClick={() => setIsCreatePostModelOpen(true)}
+          className="flex items-center justify-center p-2"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+
+        <Link to="/messages" className="flex items-center justify-center p-2">
+          <Send className="w-6 h-6" />
+        </Link>
+
+        <Link
+          to={`/profile/${authUser?.userName}`}
+          className="flex items-center justify-center p-1"
+        >
+          <img
+            src={
+              authUser?.profilePic ||
+              "https://res.cloudinary.com/djt8dpogs/image/upload/v1764859306/profile_pics/qx9p7qgrdtrwugkrae9e.png"
+            }
+            className="w-7 h-7 rounded-full object-cover"
+            alt="profile"
+          />
+        </Link>
+      </div>
+
+      {isCreatePostModelOpen && (
+        <CreatePostModal
+          isOpen={isCreatePostModelOpen}
+          onClose={() => setIsCreatePostModelOpen(false)}
+        />
+      )}
     </aside>
   );
 };

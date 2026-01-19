@@ -64,12 +64,12 @@ console.log("post", post)
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5 max-w-[500px] mx-auto">
+    <article className="bg-card border border-border rounded-lg mb-5  w-sm sm:w-full  mx-auto">
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <div
             onClick={handleRouteToProfile}
-            className="cursor-pointer w-8 h-8 rounded-full overflow-hidden "
+            className="cursor-pointer w-6.5 h-6.5 sm:w-8 sm:h-8 rounded-full overflow-hidden "
           >
             <img
               src={post.author.profilePic}
@@ -80,7 +80,7 @@ console.log("post", post)
           <div>
             <p
               onClick={handleRouteToProfile}
-              className=" cursor-pointer font-semibold text-sm text-foreground"
+              className=" cursor-pointer font-semibold text-xs sm:text-sm text-foreground"
             >
               {post.author.userName}
             </p>
@@ -102,7 +102,7 @@ console.log("post", post)
         onClose={() => setIsPostMenuOpen(false)}
       />
 
-      <div className="w-full h-90 overflow-hidden">
+      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden">
         {post.media[0].type === "image" ? (
           <img
             src={post.media[0].url}
@@ -127,11 +127,11 @@ console.log("post", post)
       </div>
 
       <div className="px-3 py-2">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
           <div className="flex items-center gap-3">
             <button disabled={isLikeLoading} onClick={handleLike}>
               <Heart
-                className={`h-5 w-5 transition-colors text-primary
+                className={`h-4.5 w-4.5 sm:h-5 sm:w-5 transition-colors text-primary
    ${
      isLiked
        ? "fill-primary " // filled when liked
@@ -142,14 +142,16 @@ console.log("post", post)
             </button>
 
             <button onClick={() => setIsCommentModalOpen(true)}>
-              <MessageCircle className={`w-5 h-5 text-primary `} />
+              <MessageCircle
+                className={`h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary `}
+              />
             </button>
 
             {/* <Send className="w-5 h-5 cursor-pointer text-foreground" /> */}
           </div>
           <button onClick={handleBookmark} disabled={isBookmarkLoading}>
             <Bookmark
-              className={`w-5 h-5 text-primary transition-colors ${
+              className={`h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary transition-colors ${
                 isBookmarked ? "fill-primary" : ""
               }`}
             />
@@ -169,24 +171,24 @@ console.log("post", post)
             handleBookmark={handleBookmark}
           />
         )}
-        <p className="font-semibold text-sm mb-1 text-foreground">
+        <p className="font-semibold text-xs sm:text-sm mb-1 text-foreground">
           {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
         </p>
 
         {post.caption && (
-          <p className="text-sm mb-1 text-foreground">
+          <p className="text-xs sm:text-sm mb-0 sm:mb-1 text-foreground">
             <span className="font-semibold mr-1">{post.author.userName}</span>
             {post.caption}
           </p>
         )}
 
-        <p className="text-xs text-muted-foreground ">
+        <p className="text-[0.68rem] sm:text-xs text-muted-foreground ">
           {formatTimeAgo(post.createdAt)} ago
         </p>
       </div>
 
       {post.comments.length > 0 && (
-        <div className="px-4 pb-3 space-y-1.5">
+        <div className="px-4 pb-1.5 sm:pb-3 space-y-0.5 sm:space-y-1.5">
           {post.comments.map((comment) => (
             <Comment
               key={comment._id}

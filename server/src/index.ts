@@ -10,7 +10,7 @@ import path from "node:path";
 dotenv.config();
 const __dirname = path.resolve();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const app: Application = express();
 
 connectDB(process.env.MONGO_URI || "");

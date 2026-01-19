@@ -20,11 +20,11 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
          onClick={handleRouteToProfile}
          src={author.profilePic}
          alt={author.userName}
-         className="h-8 w-8 cursor-pointer   rounded-full object-cover"
+         className="h-6 w-6 sm:h-7 sm:w-7 cursor-pointer   rounded-full object-cover"
        />
 
        <div className="flex-1">
-         <p className="text-sm text-foreground">
+         <p className="text-xs sm:text-sm text-foreground">
            <span
              onClick={handleRouteToProfile}
              className="
@@ -40,7 +40,7 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
            {text}
          </p>
 
-         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+         <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground">
            <span>{formatTimeAgo(createdAt)}</span>
            {/* <span>{likes.length} likes</span> */}
            <button className="font-semibold hover:text-foreground">

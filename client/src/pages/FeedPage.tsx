@@ -34,7 +34,7 @@ export default function FeedPage() {
     { id: 6, user: "fitness_pro", avatar: "J" },
     { id: 7, user: "art_daily", avatar: "I" },
   ];
-
+  
   const posts = postData?.posts;
 
   // const toggleLike = (postId: number) => {
@@ -52,7 +52,7 @@ export default function FeedPage() {
 fn()
 }, [posts])
   const {data} = useGetAuthUserQuery();
-
+  
   const authUser = data?.user;
   if(!authUser) return <CenterLoading />
  
@@ -61,11 +61,11 @@ fn()
     // <div>
     //   <UserButton />
     // </div>
-    <div className="min-h-screen bg-background text-foreground flex justify-center">
+    <div className="w-full sm:h-full bg-background text-foreground flex justify-center">
       {/* Main wrapper */}
-      <div className="max-w-5xl w-full flex gap-8 pt-10  px-4">
+      <div className="max-w-5xl w-full flex gap-10   pt-3  px-4">
         {/* Feed */}
-        <div className="w-[65%] max-h-[calc(100vh-2.5rem)] my-scroll overflow-y-auto">
+        <div className="w-full  sm:w-[70%] md:w-[55%] max-h-[calc(100vh-2.5rem)] my-scroll overflow-y-auto">
           {/* Stories */}
           <div className="bg-card border border-border rounded-lg px-4 pt-6 mb-6 overflow-hidden">
             <div className="flex gap-4 overflow-x-auto pb-3">
@@ -119,7 +119,7 @@ fn()
         </div>
 
         {/* Sidebar */}
-        <aside className="hidden h-full overflow-y-hidden  lg:block w-[35%]">
+        <aside className="hidden h-full overflow-y-hidden px-6 pt-5 lg:block w-[45%]">
           <div className="">
             {/* Current User */}
             <div className="flex items-center gap-3 mb-6">

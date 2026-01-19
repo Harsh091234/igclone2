@@ -62,11 +62,11 @@ const App = () => {
       </SignedOut>
 
       <SignedIn>
-        <div className="flex max-h-screen overflow-hidden ">
+        <div className="flex max-h-screen flex-col sm:flex-row overflow-hidden ">
           <button
             onClick={handleTheme}
             className="
-        flex absolute bottom-10 z-50 right-10 items-center justify-center
+        flex  absolute bottom-10 z-50 right-10 items-center justify-center
         px-3 py-3
         rounded-full
         bg-muted
@@ -80,10 +80,10 @@ const App = () => {
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
           </button>
 
-          <div className="w-[7%]">
+          <div className="sm:w-[7%] order-2 sm:order-1 h-fit sm:min-h-screen w-full">
             <LeftSideBar />
           </div>
-          <div className="w-[93%] overflow-y-auto">
+          <div className="w-full order-1 sm:order-2 sm:w-[93%] overflow-y-auto">
             <Routes>
               <Route
                 path="/sign-in/*"
