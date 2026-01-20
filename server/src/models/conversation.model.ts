@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, model } from "mongoose";
 export interface IConversation extends Document {
   participants: mongoose.Types.ObjectId[];   
   messages: mongoose.Types.ObjectId[];       
-//   lastMessage?: mongoose.Types.ObjectId | null;
+  lastMessage?: mongoose.Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +14,6 @@ const conversationSchema = new Schema<IConversation>(
       {
         type: Schema.Types.ObjectId,
         ref: "User",
-        
       },
     ],
 
@@ -25,14 +24,13 @@ const conversationSchema = new Schema<IConversation>(
       },
     ],
 
-    // lastMessage: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: "Message",
-    //   default: null,
-    // },
+    lastMessage: {
+      type: Schema.Types.ObjectId,
+      ref: "Message",
+    },
   },
 
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Conversation = model<IConversation>(

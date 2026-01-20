@@ -1,12 +1,14 @@
 import express, { urlencoded } from "express";
-import { Application, Request, Response } from "express";
+import { Application} from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/user.route.js";
 import postRoutes from "./routes/post.route.js";
+import conversationRoutes from "./routes/conversation.route.js"
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 import path from "node:path";
+
 dotenv.config();
 const __dirname = path.resolve();
 
@@ -32,7 +34,7 @@ app.use(urlencoded({limit: "10mb", extended: true}))
 
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
-
+app.use("/api/conversation", conversationRoutes)
 
 if (process.env.NODE_ENV === "production") {
   const a = app.use(express.static(path.join(__dirname, "../client/dist")));
@@ -49,7 +51,6 @@ if (process.env.NODE_ENV === "production") {
 
 
 app.listen(PORT, () => {
-  
   console.log(`Example app listening on port ${PORT}`);
 });
 
