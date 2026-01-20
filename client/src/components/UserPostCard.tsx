@@ -65,7 +65,7 @@ console.log("post", post)
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5  w-sm sm:w-full  mx-auto">
+    <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full  mx-auto">
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <div
@@ -103,7 +103,7 @@ console.log("post", post)
         onClose={() => setIsPostMenuOpen(false)}
       />
 
-      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden relative">
+      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden">
         {post.media[0].type === "image" ? (
           <img
             src={post.media[0].url}

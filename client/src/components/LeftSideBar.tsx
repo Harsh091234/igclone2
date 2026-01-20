@@ -26,12 +26,12 @@ const LeftSideBar = () => {
   return (
     <aside
       className="
- w-full bg-primary-foreground
+ w-full bg-primary-foreground h-full
 "
     >
       {/* desktop navbar */}
       <div
-        className="hidden  sm:flex flex-col items-center py-6 gap-6 select-none
+        className="hidden h-full  sm:flex flex-col items-center py-6 gap-6 select-none
  
   border-r border-primary/20
   "
@@ -120,31 +120,31 @@ const LeftSideBar = () => {
       {/* mobile navbar */}
       <div
         className="sm:hidden   flex items-center justify-between
-  px-6 py-2 
+  px-4 py-2 
   border-t border-border
 "
       >
         <Link to="/" className="flex items-center justify-center p-2">
-          <Home className="w-6 h-6" />
+          <Home className="w-5 h-5" />
         </Link>
 
         <Link to="/explore" className="flex items-center justify-center p-2">
-          <Compass className="w-6 h-6" />
+          <Compass className="w-5 h-5" />
         </Link>
 
         <Link to="/reels" className="flex items-center justify-center p-2">
-          <Film className="w-6 h-6" />
+          <Film className="w-5 h-5" />
         </Link>
 
         <button
           onClick={() => setIsCreatePostModelOpen(true)}
           className="flex items-center justify-center p-2"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
         </button>
 
         <Link to="/messages" className="flex items-center justify-center p-2">
-          <Send className="w-6 h-6" />
+          <Send className="w-5 h-5" />
         </Link>
 
         <Link
@@ -156,7 +156,7 @@ const LeftSideBar = () => {
               authUser?.profilePic ||
               "https://res.cloudinary.com/djt8dpogs/image/upload/v1764859306/profile_pics/qx9p7qgrdtrwugkrae9e.png"
             }
-            className="w-7 h-7 rounded-full object-cover"
+            className="w-6 h-6 rounded-full object-cover"
             alt="profile"
           />
         </Link>

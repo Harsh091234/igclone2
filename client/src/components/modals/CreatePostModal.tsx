@@ -205,13 +205,13 @@ const CreatePostModal  = ({
 
           {/* CAPTION */}
           {step === "CAPTION" && media.length > 0 && (
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative w-[60%] max-w-md mx-auto rounded-lg overflow-hidden">
+            <div className="flex flex-col sm:flex-row  gap-6 sm:gap-4">
+              <div className="relative w-full px-3 sm:px-0 sm:w-[60%] max-w-md mx-auto rounded-lg overflow-hidden">
                 <Carousel className="w-full">
                   <CarouselContent>
                     {media.map((item, index) => (
                       <CarouselItem key={index}>
-                        <div className="flex justify-center items-center w-full h-[350px] sm:h-[400px]">
+                        <div className="flex justify-center items-center w-full h-[200px] sm:h-[400px]">
                           {item.type === "image" ? (
                             <img
                               src={item.previewUrl}
@@ -240,10 +240,10 @@ const CreatePostModal  = ({
                 </Carousel>
               </div>
 
-              <div className="flex sm:mt-5 flex-col gap-4 w-full sm:w-[40%]">
-                <div className="flex items-center gap-3">
-                  <UserAvatar classes="h-10 w-10" user={authUser} />
-                  <p className="text-sm font-medium truncate">
+              <div className="flex sm:mt-5 flex-col gap-3 sm:gap-4 w-full sm:w-[40%]">
+                <div className="flex items-center  gap-2 sm:gap-3">
+                  <UserAvatar classes="h-7.5 sm:h-10 w-7.5 sm:w-10" user={authUser} />
+                  <p className="text-xs sm:text-sm font-medium truncate">
                     {authUser.userName}
                   </p>
                 </div>
@@ -251,7 +251,7 @@ const CreatePostModal  = ({
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder="Write a caption..."
-                  className="w-full resize-none border rounded-lg p-2 text-sm min-h-[120px]"
+                  className="w-full resize-none border rounded-lg p-2 text-xs sm:text-sm min-h-[100px] sm:min-h-[120px]"
                 />
               </div>
             </div>

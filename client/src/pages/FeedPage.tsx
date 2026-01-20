@@ -64,15 +64,15 @@ fn()
       {/* Main wrapper */}
       <div className="max-w-5xl w-full flex gap-10   pt-3 p-0 sm:px-4">
         {/* Feed */}
-        <div className="w-full  sm:w-[70%] md:w-[55%] max-h-[calc(100vh-2.5rem)] my-scroll overflow-y-auto">
+        <div className="w-full  sm:w-[70%] md:w-[55%] max-h-[calc(100vh-2.5rem)] my-scroll overflow-y-auto px-4 sm:px-0">
           {/* Stories */}
-          <div className="bg-card border border-border rounded-lg px-4 pt-6 mb-6">
-            <Carousel opts={{ align: "start" }} className="w-full relative">
-              <CarouselContent className="-ml-4">
+          <div className="bg-card border border-border rounded-lg  py-5 sm:py-7 mb-6">
+            <Carousel opts={{ align: "start" }} className="w-full  relative">
+              <CarouselContent className="ml-0 ">
                 {/* ───── Your Story ───── */}
-                <CarouselItem className="pl-4 basis-[72px]">
+                <CarouselItem className="pl-4 basis-[70px] sm:basis-[80px]">
                   <div className="flex flex-col items-center gap-1">
-                    <div className="w-14 h-14 relative rounded-full bg-muted p-[2px]">
+                    <div className="w-11 sm:w-14 h-11 sm:h-14 relative rounded-full bg-muted p-[2px]">
                       {/* + Icon */}
                       <button  className="absolute z-3 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center">
                         <Plus className="w-2.5 h-2.5" strokeWidth={2.5} />
@@ -93,9 +93,9 @@ fn()
 
                 {/* ───── Other Stories ───── */}
                 {stories.map((story) => (
-                  <CarouselItem key={story.id} className="pl-4 basis-[72px]">
+                  <CarouselItem key={story.id} className="basis-[70px] sm:basis-[80px]">
                     <div className="flex flex-col items-center gap-1">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
+                      <div className="w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
                         <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
                           <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
                             {story.avatar}

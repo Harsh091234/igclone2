@@ -38,7 +38,7 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-65 sm:h-75 md:h-80 group">
       {/* Video */}
       <video
         ref={videoRef}
@@ -58,15 +58,15 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
           absolute inset-x-0 bottom-0
           bg-gradient-to-t from-black/80 via-black/40 to-transparent
           px-3 pb-2 pt-6
-          opacity-0 group-hover:opacity-100
-          transition-opacity
+         
+        
         "
       >
         {/* Progress */}
         <Slider
           value={[progress]}
           onValueChange={handleSeek}
-          className="mb-3"
+          className="mb-1.5"
           trackClassName="h-[2px] bg-white/30 rounded-full"
           rangeClassName="bg-white rounded-full"
           thumbClassName="
@@ -108,8 +108,6 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
               )}
             </Button>
           </div>
-
-         
         </div>
       </div>
     </div>

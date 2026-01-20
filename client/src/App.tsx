@@ -80,7 +80,7 @@ const App = () => {
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
           </button>
 
-          <div className="sm:w-[7%] order-2 sm:order-1 h-fit sm:min-h-screen w-full">
+          <div className="sm:w-[7%] order-2 sm:order-1 h-fit sm:h-screen w-full">
             <LeftSideBar />
           </div>
           <div className="w-full order-1 sm:order-2 sm:w-[93%] overflow-y-auto">
