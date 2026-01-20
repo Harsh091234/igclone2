@@ -1,6 +1,12 @@
 
 import { useEffect} from "react";
-
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../components/ui/carousel"
 
 import { Link, useNavigate } from "react-router-dom";
 import { useGetAuthUserQuery } from "../services/userApi";
@@ -9,6 +15,7 @@ import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
+import { Plus } from "lucide-react";
 
 interface Story {
   id: number;
@@ -36,14 +43,6 @@ export default function FeedPage() {
   ];
   
   const posts = postData?.posts;
-
-  // const toggleLike = (postId: number) => {
-  //   setLikedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  // };
-
-  // const toggleSave = (postId: number) => {
-  //   setSavedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  // };
  useEffect(() => { const fn = () => {
   if(!isPostLoading) {
  console.log("postin feed:", posts);
@@ -63,45 +62,59 @@ fn()
     // </div>
     <div className="w-full sm:h-full bg-background text-foreground flex justify-center">
       {/* Main wrapper */}
-      <div className="max-w-5xl w-full flex gap-10   pt-3  px-4">
+      <div className="max-w-5xl w-full flex gap-10   pt-3 p-0 sm:px-4">
         {/* Feed */}
         <div className="w-full  sm:w-[70%] md:w-[55%] max-h-[calc(100vh-2.5rem)] my-scroll overflow-y-auto">
           {/* Stories */}
-          <div className="bg-card border border-border rounded-lg px-4 pt-6 mb-6 overflow-hidden">
-            <div className="flex gap-4 overflow-x-auto pb-3">
-              {/* Own story */}
-              <div className="flex flex-col justify-center items-center gap-1 flex-shrink-0">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-muted">
-                  <div className="w-full h-full bg-card overflow-hidden rounded-full flex items-center justify-center">
-                    <img
-                      src={authUser.profilePic || "/user avatar.png"}
-                      alt="user image"
-                      className="object-cover h-full w-full"
-                    />
-                  </div>
-                </div>
-                <span className="text-xs text-foreground truncate">
-                  Your Story
-                </span>
-              </div>
-
-              {/* Other stories */}
-              {stories.map((story) => (
-                <div
-                  key={story.id}
-                  className="flex flex-col items-center gap-1 flex-shrink-0"
-                >
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-0.5">
-                    <div className="w-full h-full bg-card rounded-full flex items-center justify-center">
-                      {story.avatar}
+          <div className="bg-card border border-border rounded-lg px-4 pt-6 mb-6">
+            <Carousel opts={{ align: "start" }} className="w-full relative">
+              <CarouselContent className="-ml-4">
+                {/* ───── Your Story ───── */}
+                <CarouselItem className="pl-4 basis-[72px]">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="w-14 h-14 relative rounded-full bg-muted p-[2px]">
+                      {/* + Icon */}
+                      <button  className="absolute z-3 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center">
+                        <Plus className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      </button>
+                      <div className="relative w-full h-full rounded-full bg-card overflow-hidden">
+                        <img
+                          src={authUser.profilePic || "/user avatar.png"}
+                          alt="user image"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     </div>
+                    <span className="text-xs text-foreground truncate max-w-[64px]">
+                      Your Story
+                    </span>
                   </div>
-                  <span className="text-xs text-foreground truncate">
-                    {story.user}
-                  </span>
-                </div>
-              ))}
-            </div>
+                </CarouselItem>
+
+                {/* ───── Other Stories ───── */}
+                {stories.map((story) => (
+                  <CarouselItem key={story.id} className="pl-4 basis-[72px]">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
+                        <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                            {story.avatar}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="text-xs text-foreground truncate max-w-[64px]">
+                        {story.user}
+                      </span>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* ───── Controls ───── */}
+              <CarouselPrevious className="hidden sm:flex -left-3 top-7 bg-background/80 border-border shadow-sm" />
+              <CarouselNext className="hidden sm:flex -right-3 top-7 bg-background/80 border-border shadow-sm" />
+            </Carousel>
           </div>
 
           {/* Posts */}

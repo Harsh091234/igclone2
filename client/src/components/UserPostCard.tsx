@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
 import Comment from "./Comment";
+import VideoPlayer from "./VideoPlayer";
 
 interface PostCardProps {
   post: Post;
@@ -102,27 +103,16 @@ console.log("post", post)
         onClose={() => setIsPostMenuOpen(false)}
       />
 
-      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden">
+      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden relative">
         {post.media[0].type === "image" ? (
           <img
             src={post.media[0].url}
             alt={post.caption}
             className="w-full h-full object-cover"
+            
           />
         ) : (
-          <video
-            src={post.media[0].url}
-            muted
-            playsInline
-            loop
-            controls
-            onMouseEnter={(e) => e.currentTarget.play()}
-            onMouseLeave={(e) => {
-              e.currentTarget.pause();
-              e.currentTarget.currentTime = 0;
-            }}
-            className="w-full h-full object-cover"
-          />
+          <VideoPlayer src={post.media[0].url}/>
         )}
       </div>
 
