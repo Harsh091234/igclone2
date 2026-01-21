@@ -65,10 +65,10 @@ useEffect(() => {
           onClick={(e) => e.stopPropagation()}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          <div className="flex h-[520px] w-full max-w-md flex-col overflow-hidden rounded-xl border bg-background shadow-lg">
+          <div className="flex h-[76vh] sm:h-xl w-full max-w-md flex-col overflow-hidden rounded-xl border bg-background shadow-lg">
             {/* Header */}
             <div className="relative border-b px-4 py-3">
-              <h2 className="text-sm font-semibold text-center">Following</h2>
+              <h2 className="text-sm sm:text-base font-semibold text-center">Following</h2>
               <Button
                 size="icon"
                 variant="ghost"
@@ -85,7 +85,7 @@ useEffect(() => {
                 placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-9 bg-muted"
+                className="h-9 text-sm sm:text-base bg-muted"
               />
             </div>
 
@@ -114,7 +114,7 @@ useEffect(() => {
                         <div className="flex items-center gap-3">
                           <Avatar
                             onClick={() => handleRouteToProfile(user.userName)}
-                            className="h-10 w-10 cursor-pointer"
+                            className="h-8 sm:h-10 w-8 sm:w-10 cursor-pointer"
                           >
                             <AvatarImage src={user.profilePic} />
                             <AvatarFallback>
@@ -122,16 +122,16 @@ useEffect(() => {
                             </AvatarFallback>
                           </Avatar>
 
-                          <div className="flex flex-col">
+                          <div className="flex flex-col text-xs  sm:text-sm">
                             <span
                               onClick={() =>
                                 handleRouteToProfile(user.userName)
                               }
-                              className="text-sm font-medium cursor-pointer"
+                              className="font-medium cursor-pointer"
                             >
                               {user.userName}
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className=" text-muted-foreground">
                               {user.fullName ?? ""}
                             </span>
                           </div>
@@ -141,7 +141,7 @@ useEffect(() => {
                           <Button
                             size="sm"
                             onClick={() => handleFollow(user._id)}
-                            className={`w-[7rem] text-sm justify-center transition-colors ${
+                            className={`w-[6rem] sm:w-[7rem] text-xs sm:text-sm justify-center transition-colors ${
                               isAuthFollowingUser
                                 ? "bg-muted text-foreground hover:bg-muted/80"
                                 : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -151,6 +151,7 @@ useEffect(() => {
                           </Button>
                         )}
                       </div>
+                      
                     );
                   })
                 )}

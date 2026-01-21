@@ -166,9 +166,9 @@ console.log("post", post)
         </p>
 
         {post.caption && (
-          <p className="text-xs sm:text-sm mb-0 sm:mb-1 text-foreground">
+          <p className="text-xs wrap-break-word sm:text-sm mb-0 sm:mb-1 text-foreground">
             <span className="font-semibold mr-1">{post.author.userName}</span>
-            {post.caption}
+              {post.caption}
           </p>
         )}
 

@@ -24,7 +24,7 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
        />
 
        <div className="flex-1">
-         <p className="text-xs sm:text-sm text-foreground">
+         <p className="text-xs sm:text-sm text-foreground wrap-break-word">
            <span
              onClick={handleRouteToProfile}
              className="
@@ -32,15 +32,15 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
     after:absolute after:left-0 after:-bottom-[1px]
     after:h-[1px] after:w-0 after:bg-current
     after:transition-all after:duration-200
-    hover:after:w-full
+    hover:after:w-full 
   "
            >
              {author.userName}
            </span>
-           {text}
+           <span className='wrap-anywhere'>{text}</span>
          </p>
 
-         <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground">
+         <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground ">
            <span>{formatTimeAgo(createdAt)}</span>
            {/* <span>{likes.length} likes</span> */}
            <button className="font-semibold hover:text-foreground">
