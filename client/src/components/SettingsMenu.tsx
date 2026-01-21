@@ -122,43 +122,45 @@ export default function SettingsMenu() {
   const location = useLocation();
 
   return (
-    <div className="w-full max-h-screen overflow-y-auto p-4 space-y-6">
+    <div className="w-full h-full overflow-y-auto  p-4 flex flex-col gap-5 sm:gap-8">
       {/* PAGE HEADER */}
-      <h1 className="pl-8 font-bold text-2xl">Settings</h1>
+      <h1 className=" pl-3 sm:pl-6 font-bold text-2xl ">Settings</h1>
 
-      {/* MENU SECTIONS */}
-      {sections.map((section, index) => (
-        <div key={index}>
-          <h3 className="text-xs font-semibold text-muted-foreground mb-2">
-            {section.title}
-          </h3>
+      <div className="flex flex-col gap-2 sm:gap-5">
+        {/* MENU SECTIONS */}
+        {sections.map((section, index) => (
+          <div key={index} className="flex flex-col  ">
+            <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-0 sm:mb-2">
+              {section.title}
+            </h3>
 
-          <div className="space-y-1">
-            {section.items.map((item, i) => {
-              const Icon = item.icon;
-              const active = location.pathname === item.path;
+            <div className="-space-y-1 sm:space-x-2">
+              {section.items.map((item, i) => {
+                const Icon = item.icon;
+                const active = location.pathname === item.path;
 
-              return (
-                <Link
-                  key={i}
-                  to={item.path}
-                  className={`
-    flex items-center gap-2.5 p-2.5 rounded-md transition
+                return (
+                  <Link
+                    key={i}
+                    to={item.path}
+                    className={`
+    flex items-center gap-2.5 p-2.5 rounded-md transition active:bg-accent active:text-accent-foreground
     ${
       active
-        ? "bg-secondary text-foreground font-medium"
-        : "hover:bg-accent hover:text-accent-foreground"
+        ? "sm:bg-secondary sm:text-foreground sm:font-medium "
+        : "sm:hover:bg-accent sm:hover:text-accent-foreground"
     }
   `}
-                >
-                  <Icon size={18} />
-                  <span className="text-sm">{item.label}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <Icon className="w-4 h-4 sm:h-5 sm:w-5" />
+                    <span className=" text-xs sm:text-sm">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

@@ -23,7 +23,6 @@ interface FollowingModalProps {
   authFollowing: string[];
 }
 
-
 const FollowingModal = ({
   onClose,
   handleFollow,
@@ -31,27 +30,22 @@ const FollowingModal = ({
   authUserId,
   authFollowing,
 }: FollowingModalProps) => {
+  const [search, setSearch] = useState("");
+  const { isLoading, data: userData } = useGetProfileUserQuery(userName ?? "");
+  const following = userData?.user?.following ?? [];
+  const navigate = useNavigate();
 
-     const [search, setSearch] = useState("");
-     const { isLoading, data: userData } = useGetProfileUserQuery(
-       userName ?? "",
-     );
-     const following = userData?.user?.following ?? [];
-     const navigate = useNavigate();
-
-     const handleRouteToProfile = (userName?: string) => {
-       if (!userName) return;
-       onClose();
-       navigate(`/profile/${userName}`);
-     };
-
-   
-useEffect(() => {
-  if (!isLoading && following.length === 0) {
+  const handleRouteToProfile = (userName?: string) => {
+    if (!userName) return;
     onClose();
-  }
-}, [following.length, isLoading, onClose]);
+    navigate(`/profile/${userName}`);
+  };
 
+  useEffect(() => {
+    if (!isLoading && following.length === 0) {
+      onClose();
+    }
+  }, [following.length, isLoading, onClose]);
 
   return (
     <>
@@ -68,7 +62,9 @@ useEffect(() => {
           <div className="flex h-[76vh] sm:h-xl w-full max-w-md flex-col overflow-hidden rounded-xl border bg-background shadow-lg">
             {/* Header */}
             <div className="relative border-b px-4 py-3">
-              <h2 className="text-sm sm:text-base font-semibold text-center">Following</h2>
+              <h2 className="text-sm sm:text-base font-semibold text-center">
+                Following
+              </h2>
               <Button
                 size="icon"
                 variant="ghost"
@@ -151,7 +147,6 @@ useEffect(() => {
                           </Button>
                         )}
                       </div>
-                      
                     );
                   })
                 )}

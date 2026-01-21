@@ -21,6 +21,7 @@ import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
 import NotFoundPage from "./pages/NotFoundPage";
 import CenterLoading from "./components/CenterLoading";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes";
+import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 
 const App = () => {
   const {  isSignedIn, isLoaded } = useUser();
@@ -125,7 +126,7 @@ const App = () => {
                 }
               >
                 {" "}
-                <Route index element={<Navigate to="edit-profile" replace />} />
+                <Route index element={<SettingsIndexRedirect />} />
                 <Route
                   path="edit-profile"
                   element={

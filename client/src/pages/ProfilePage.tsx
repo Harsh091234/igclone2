@@ -82,8 +82,8 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     await toggleFollow(targetUserId).unwrap();
   };
 
-  const handleClick = () => {
-    navigate("/settings/edit-profile");
+  const handleClick = (url:string) => {
+    navigate(`/settings/${url}`);
   };
 
   const highlightsData = [
@@ -172,19 +172,30 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
                 {isAuthUser && (
                   <div className="flex gap-2">
                     <button
-                      onClick={handleClick}
+                      onClick={() => handleClick("edit-profile")}
                       className="
       px-2 sm:px-4 py-1.5 rounded-lg text-xs font-medium
       bg-secondary text-secondary-foreground
       border border-border
       hover:bg-secondary/80
-      transition-all duration-200
+      transition-all duration-200 hidden sm:flex
     "
                     >
-                      <p className="hidden sm:flex">Edit Profile</p>
-                      <p className="sm:hidden">
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => handleClick("")}
+                      className="
+      px-2 sm:px-4 py-1.5 rounded-lg text-xs font-medium
+      bg-secondary text-secondary-foreground
+      border border-border
+      hover:bg-secondary/80
+      transition-all duration-200 sm:hidden
+    "
+                    >
+                    
                         <SettingsIcon className="h-4 w-4" />
-                      </p>
+                     
                     </button>
 
                     {/* <button
@@ -288,10 +299,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
           >
             <CarouselContent className="ml-0  sm:px-6">
               {highlightsData.map((h, i) => (
-                <CarouselItem
-                  key={i}
-                  className="basis-[90px] sm:basis-[130px]"
-                >
+                <CarouselItem key={i} className="basis-[90px] sm:basis-[130px]">
                   <Highlights title={h.title} img={h.img} />
                 </CarouselItem>
               ))}

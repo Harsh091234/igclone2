@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { editProfileSchema, type EditProfileInput } from "../../schemas/user.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EditProfileData} from "../../types/user.types";
+import { ChevronLeft } from "lucide-react";
 
 
 const EditProfilePage = () => {
@@ -82,9 +83,16 @@ const EditProfilePage = () => {
 
 
   return (
-    <div className="mx-auto p-6 max-h-screen overflow-y-auto">
-      <h1 className="text-xl font-semibold mb-8 text-foreground">
+    <div className="mx-auto py-6 px-13 h-full overflow-y-auto">
+      <h1 className="text-xl flex justify-between  font-semibold mb-8 text-foreground">
         Edit Profile
+        <button
+          onClick={() => navigate("/settings")}
+          className="sm:hidden flex  gap-1 items-center text-sm font-medium"
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
       </h1>
 
       <div className="flex gap-12 flex-col">
