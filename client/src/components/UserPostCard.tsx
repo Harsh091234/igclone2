@@ -19,6 +19,14 @@ import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
 import Comment from "./Comment";
 import VideoPlayer from "./VideoPlayer";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./ui/carousel";
+
 
 interface PostCardProps {
   post: Post;
@@ -65,7 +73,7 @@ console.log("post", post)
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full  mx-auto">
+    <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full">
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <div
@@ -103,17 +111,37 @@ console.log("post", post)
         onClose={() => setIsPostMenuOpen(false)}
       />
 
-      <div className="w-full h-65 sm:h-75 md:h-80 overflow-hidden">
-        {post.media[0].type === "image" ? (
-          <img
-            src={post.media[0].url}
-            alt={post.caption}
-            className="w-full h-full object-cover"
-            
-          />
-        ) : (
-          <VideoPlayer src={post.media[0].url} className="h-full w-full"/>
-        )}
+      <div className="w-full overflow-hidden">
+        <Carousel className="w-full bg-black">
+          <CarouselContent>
+            {post.media.map((item, index) => (
+              <CarouselItem key={index}>
+                <div className="flex justify-center items-center">
+                  {item.type === "image" ? (
+                    <img
+                      src={item.url}
+                      alt={`post-media-${index}`}
+                      className="w-full h-[250px] sm:h-[280px] md:h-[310px] object-cover "
+                    />
+                  ) : (
+                    <VideoPlayer
+                      src={item.url}
+                      className="w-full h-[250px] sm:h-[280px] md:h-[310px] "
+                    />
+                  )}
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+
+          {/* Show arrows only if more than one media */}
+          {post.media.length > 1 && (
+            <>
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+            </>
+          )}
+        </Carousel>
       </div>
 
       <div className="px-3 py-2">
@@ -168,7 +196,7 @@ console.log("post", post)
         {post.caption && (
           <p className="text-xs wrap-break-word sm:text-sm mb-0 sm:mb-1 text-foreground">
             <span className="font-semibold mr-1">{post.author.userName}</span>
-              {post.caption}
+            {post.caption}
           </p>
         )}
 

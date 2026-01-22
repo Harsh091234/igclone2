@@ -95,18 +95,18 @@ const EditProfilePage = () => {
         </button>
       </h1>
 
-      <div className="flex gap-12 flex-col">
+      <div className="flex gap-7 sm:gap-12 flex-col">
         {/* PROFILE PHOTO */}
-        <div className="w-full bg-card px-4 py-3 rounded-xl flex items-center justify-between border border-border">
+        <div className="w-full bg-card px-4  py-2 sm:py-3 rounded-xl flex items-center justify-between border border-border">
           <div className="flex items-center gap-3">
             <img
               src={preview || authUser.profilePic}
               alt="Profile"
-              className="w-12 h-12 rounded-full object-cover border border-border"
+              className="h-9 sm:w-12 h-9 sm:h-12 rounded-full object-cover border border-border"
             />
 
             <div className="flex flex-col">
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-sm sm:text-base  text-foreground">
                 {authUser.userName}
               </span>
             </div>
@@ -115,7 +115,7 @@ const EditProfilePage = () => {
           <label
             htmlFor="profilePicUpload"
             className="
-              px-4 py-2 text-xs font-medium cursor-pointer rounded-md
+              px-3 sm:px-4 py-1 sm:py-2 text-[0.71rem] sm:text-xs font-medium cursor-pointer rounded-md
               bg-primary text-primary-foreground
               hover:bg-primary/90 transition
             "
@@ -136,16 +136,19 @@ const EditProfilePage = () => {
         </div>
 
         {/* FORM */}
-        <form onSubmit={handleSubmit(handleSave)} className="flex-1 space-y-6">
+        <form
+          onSubmit={handleSubmit(handleSave)}
+          className="flex-1      space-y-4 sm:space-y-6"
+        >
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">
+            <label className="block text-xs sm:text-sm font-medium mb-1 text-foreground">
               Full Name
             </label>
             <input
               type="text"
               className="
-                w-full p-2 text-sm rounded-lg outline-none
+                w-full p-2 text-xs sm:text-sm  rounded-lg outline-none
                 bg-background text-foreground
                 border border-input
               "
@@ -157,13 +160,13 @@ const EditProfilePage = () => {
 
           {/* Username */}
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">
+            <label className="block text-xs sm:text-sm  font-medium mb-1 text-foreground">
               Username
             </label>
             <input
               type="text"
               className="
-                w-full p-2 text-sm rounded-lg outline-none
+                w-full p-2 text-xs sm:text-sm  rounded-lg outline-none
                 bg-background text-foreground
                 border border-input
               "
@@ -175,12 +178,12 @@ const EditProfilePage = () => {
 
           {/* Bio */}
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">
+            <label className="block text-xs sm:text-sm  font-medium mb-1 text-foreground">
               Bio
             </label>
             <textarea
               className="
-                w-full p-2 text-sm rounded-lg outline-none resize-none
+                w-full p-2 text-xs sm:text-sm  rounded-lg outline-none resize-none
                 bg-background text-foreground
                 border border-input
               "
@@ -193,14 +196,14 @@ const EditProfilePage = () => {
 
           {/* Gender */}
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">
+            <label className="block text-xs sm:text-sm  font-medium mb-1 text-foreground">
               Gender
             </label>
 
             <div className="relative">
               <select
                 className="
-                  w-full p-2 text-sm rounded-lg outline-none pr-8
+                  w-full p-2 text-xs sm:text-sm  rounded-lg outline-none pr-8
                   bg-background text-foreground
                   border border-input
                   appearance-none
@@ -236,7 +239,7 @@ const EditProfilePage = () => {
                 <ErrorMessage text={errors.gender.message} />
               )} */}
 
-              <div className="pointer-events-none text-xs absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <div className="pointer-events-none text-[0.5rem] sm:text-[0.67rem] absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 ▼
               </div>
             </div>
@@ -246,10 +249,10 @@ const EditProfilePage = () => {
           <div className="flex justify-end mb-6">
             <CustomButton
               text="Submit"
-              className="text-sm font-medium py-2 px-2 w-30"
+              className="text-xs sm:text-sm font-medium py-1.5 sm:py-2 px-1.5 sm:px-2 w-24"
               type="submit"
               loading={isLoading}
-              loaderClasses="h-5 w-5"
+              loaderClasses="h-4 w-4 sm:h-5 sm:w-5"
             />
           </div>
         </form>

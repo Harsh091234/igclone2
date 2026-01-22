@@ -31,7 +31,7 @@ const CustomButton: React.FC<PrimaryButtonProps> = ({
     ${className}
   `}
     >
-      {loading ? <Loader2 className={`${loaderClasses} animate-spin`} /> : text}
+      {loading ? <Loader2 className={`${loaderClasses}  animate-spin`} /> : text}
     </button>
   );
 };

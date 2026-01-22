@@ -84,16 +84,16 @@ const CreatePostModal  = ({
       <div
         onClick={(e) => e.stopPropagation()}
         className="
-          bg-white dark:bg-background rounded-xl overflow-hidden
-          w-full max-w-[420px] sm:max-w-[680px] 
-          mx-2 sm:mx-0 transition-all
+          bg-primary-foreground  rounded-xl
+         
+          mx-2 sm:mx-0 transition-all overflow-hidden
         "
       >
         {/* HEADER */}
         <header
           className="
           grid grid-cols-3 items-center border-b px-3 py-2
-          sticky top-0 bg-white dark:bg-background z-10
+          sticky top-0 z-10
         "
         >
           {/* LEFT */}
@@ -139,13 +139,13 @@ const CreatePostModal  = ({
         </header>
 
         {/* BODY */}
-        <div className="p-4">
+        <div className="flex  w-full  p-2">
           {/* SELECT */}
           {step === "SELECT" && (
             <div
               className="
-              min-h-[200px] sm:min-h-[330px]
-              flex flex-col gap-7 justify-center items-center
+               h-[50vh] 
+              flex flex-col gap-7 w-full justify-center items-center
             "
             >
               <div className="p-7 rounded-full bg-muted">
@@ -155,7 +155,7 @@ const CreatePostModal  = ({
               <button
                 onClick={() => fileRef.current?.click()}
                 className="
-                  px-5 py-2 rounded-lg bg-blue-500 text-white text-sm
+                  px-5 py-1.5  sm:py-2 rounded-lg bg-blue-500 text-white text-xs sm:text-sm
                   hover:bg-blue-600 active:scale-95 transition
                 "
               >
@@ -166,92 +166,94 @@ const CreatePostModal  = ({
 
           {/* PREVIEW */}
           {step === "PREVIEW" && media.length > 0 && (
-            <div className="relative w-full max-w-md mx-auto">
-              {" "}
-              {/* center & limit width */}
-              <Carousel className="w-full">
-                <CarouselContent>
+            <div className="h-[70vh] mt-1 flex items-center justify-center w-full sm:w-md rounded-lg overflow-hidden">
+              <Carousel className="flex h-full">
+                <CarouselContent className="h-full">
                   {media.map((item, index) => (
-                    <CarouselItem key={index}>
-                      <div className="flex justify-center items-center p-1">
-                        {item.type === "image" ? (
-                          <img
-                            src={item.previewUrl}
-                            alt={`preview-${index}`}
-                            className="w-full h-[300px] sm:h-[350px] rounded-lg object-cover"
-                          />
-                        ) : (
-                          <video
-                            src={item.previewUrl}
-                            controls
-                            className="w-full h-[300px] sm:h-[350px] rounded-lg object-cover"
-                          />
-                        )}
-                      </div>
+                    <CarouselItem
+                      key={index}
+                      className=" flex items-center justify-center"
+                    >
+                      {item.type === "image" ? (
+                        <img
+                          src={item.previewUrl}
+                          alt={`preview-${index}`}
+                          className="h-full w-full  object-cover "
+                        />
+                      ) : (
+                        <video
+                          src={item.previewUrl}
+                          controls
+                          className="h-full w-full object-cover  "
+                        />
+                      )}
                     </CarouselItem>
                   ))}
                 </CarouselContent>
 
-                {/* Navigation Buttons */}
-                <CarouselPrevious className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10">
-                  &#10094;
-                </CarouselPrevious>
-                <CarouselNext className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10">
-                  &#10095;
-                </CarouselNext>
+                {/* Navigation */}
+                {media.length > 1 && (
+                  <>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
+                  </>
+                )}
               </Carousel>
             </div>
           )}
 
           {/* CAPTION */}
           {step === "CAPTION" && media.length > 0 && (
-            <div className="flex flex-col sm:flex-row  gap-6 sm:gap-4">
-              <div className="relative w-full px-3 sm:px-0 sm:w-[60%] max-w-md mx-auto rounded-lg overflow-hidden">
-                <Carousel className="w-full">
-                  <CarouselContent>
+            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-[75vh] gap-0 sm:gap-4">
+              {/* LEFT: MEDIA */}
+              <div className="relative w-full bg-black flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden ">
+                <Carousel className="flex h-full">
+                  <CarouselContent className="h-full">
                     {media.map((item, index) => (
-                      <CarouselItem key={index}>
-                        <div className="flex justify-center items-center w-full h-[200px] sm:h-[400px]">
-                          {item.type === "image" ? (
-                            <img
-                              src={item.previewUrl}
-                              alt={`preview-${index}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <video
-                              src={item.previewUrl}
-                              controls
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
+                      <CarouselItem key={index} className="h-full">
+                        {item.type === "image" ? (
+                          <img
+                            src={item.previewUrl}
+                            alt={`preview-${index}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={item.previewUrl}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </CarouselItem>
                     ))}
                   </CarouselContent>
 
-                  {/* Navigation Buttons */}
-                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10">
-                    &#10094;
-                  </CarouselPrevious>
-                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10">
-                    &#10095;
-                  </CarouselNext>
+                  {media.length > 1 && (
+                    <>
+                      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10" />
+                      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10" />
+                    </>
+                  )}
                 </Carousel>
               </div>
 
-              <div className="flex sm:mt-5 flex-col gap-3 sm:gap-4 w-full sm:w-[40%]">
-                <div className="flex items-center  gap-2 sm:gap-3">
-                  <UserAvatar classes="h-7.5 sm:h-10 w-7.5 sm:w-10" user={authUser} />
-                  <p className="text-xs sm:text-sm font-medium truncate">
+              {/* RIGHT: CAPTION */}
+              <div className="flex flex-col  w-full  sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
+                <div className="flex items-center  gap-2">
+                  <UserAvatar
+                    classes="h-8 w-8 sm:h-10 sm:w-10"
+                    user={authUser}
+                  />
+                  <p className="text-sm font-medium truncate">
                     {authUser.userName}
                   </p>
                 </div>
+
                 <textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder="Write a caption..."
-                  className="w-full resize-none border rounded-lg p-2 text-xs sm:text-sm min-h-[100px] sm:min-h-[120px]"
+                  className="w-full h-[55%] sm:h-[6rem] resize-none border rounded-lg p-2 text-sm overflow-y-auto"
                 />
               </div>
             </div>
