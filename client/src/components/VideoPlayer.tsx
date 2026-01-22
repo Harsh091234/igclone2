@@ -5,9 +5,10 @@ import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 
 interface VideoPlayerProps {
   src: string;
+  className: string
 }
 
-export default function VideoPlayer({ src }: VideoPlayerProps) {
+export default function VideoPlayer({ src, className }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,12 +39,12 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
   };
 
   return (
-    <div className="relative w-full h-65 sm:h-75 md:h-80 group">
+    <div className={`relative ${className} group`}>
       {/* Video */}
       <video
         ref={videoRef}
         src={src}
-        className="h-full h-full object-cover"
+        className="h-full w-full object-cover"
         onClick={togglePlay}
         onTimeUpdate={() => {
           if (!videoRef.current) return;
