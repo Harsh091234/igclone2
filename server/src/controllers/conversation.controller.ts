@@ -2,13 +2,13 @@ import sharp from "sharp";
 import User from "../models/user.model.js";
 import {Request, Response} from "express"
 import { convertToBase64 } from "../config/convertToBase64.js";
-import { uploadBase64Image } from "@/config/uploadPic.js";
+import { uploadBase64Image } from "../config/uploadPic.js";
 import { uploadVideo } from "../config/uploadVideo.js";
 import { uploadRaw } from "../config/uploadRaw.js";
 import Conversation from "../models/conversation.model.js";
 import Message, { MediaType } from "../models/message.model.js";
 import mongoose from "mongoose";
-import { CLOUDINARY_FOLDERS } from "@/paths/cloudinary.js";
+import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 
 const getMediaType = (mimetype: string) => {
   if (mimetype.startsWith("image/")) return "image";
