@@ -112,7 +112,7 @@ console.log("post", post)
             
           />
         ) : (
-          <VideoPlayer src={post.media[0].url}/>
+          <VideoPlayer src={post.media[0].url} className="h-full w-full"/>
         )}
       </div>
 

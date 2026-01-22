@@ -87,7 +87,7 @@ const EditProfilePage = () => {
       <h1 className="text-xl flex justify-between  font-semibold mb-8 text-foreground">
         Edit Profile
         <button
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate(-1)}
           className="sm:hidden flex  gap-1 items-center text-sm font-medium"
         >
           <ChevronLeft size={18} />

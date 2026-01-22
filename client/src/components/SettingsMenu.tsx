@@ -118,7 +118,11 @@ const sections = [
   },
 ];
 
-export default function SettingsMenu() {
+interface SettingsMenuProps{
+  onClose: () => void;
+}
+
+export default function SettingsMenu({onClose}: SettingsMenuProps) {
   const location = useLocation();
 
   return (
@@ -141,6 +145,7 @@ export default function SettingsMenu() {
 
                 return (
                   <Link
+                  onClick={onClose}
                     key={i}
                     to={item.path}
                     className={`

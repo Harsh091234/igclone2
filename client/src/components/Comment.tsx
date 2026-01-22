@@ -43,9 +43,9 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
          <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground ">
            <span>{formatTimeAgo(createdAt)}</span>
            {/* <span>{likes.length} likes</span> */}
-           <button className="font-semibold hover:text-foreground">
+           {/* <button className="font-semibold hover:text-foreground">
              Reply
-           </button>
+           </button> */}
          </div>
        </div>
 

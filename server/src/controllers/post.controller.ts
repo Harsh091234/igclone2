@@ -9,12 +9,11 @@ import { Request, Response } from "express";
 
 import sharp from "sharp";
 
-
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const {userId: clerkId} = req.auth!();
-    const { caption} = req.body;
-    console.log("ji")
+    const { userId: clerkId } = req.auth!();
+    const { caption } = req.body;
+    console.log("ji");
     const authUser = await User.findOne({ clerkId });
     if (!authUser)
       return res.status(401).json({ message: "No auth user found" });
@@ -31,7 +30,7 @@ export const createPost = async (req: Request, res: Response) => {
       if (isVideo) {
         const cloudResponse = await uploadVideo(
           file.buffer,
-          CLOUDINARY_FOLDERS.POST_VIDEOS
+          CLOUDINARY_FOLDERS.POST_VIDEOS,
         );
 
         media.push({
@@ -49,13 +48,13 @@ export const createPost = async (req: Request, res: Response) => {
 
       // 🔹 convert to base64
       const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString(
-        "base64"
+        "base64",
       )}`;
 
       // 🔹 upload to cloudinary
       const cloudResponse = await uploadBase64Image(
         base64Image,
-        CLOUDINARY_FOLDERS.POST_IMAGES
+        CLOUDINARY_FOLDERS.POST_IMAGES,
       );
 
       media.push({
@@ -111,32 +110,30 @@ export const toggleLikePost = async (req: Request, res: Response) => {
         message: "No post found",
       });
     const isLiked = post.likes.some(
-      (id) => id.toString() === authUser._id.toString()
+      (id) => id.toString() === authUser._id.toString(),
     );
 
     if (isLiked) {
       post.likes = post.likes.filter(
-        (id) => id.toString() !== authUser._id.toString()
+        (id) => id.toString() !== authUser._id.toString(),
       );
-          await post.save();
-       return res.status(200).json({
-         success: true,
-         message: "Post unliked successfully",
-         post,
-       });
+      await post.save();
+      return res.status(200).json({
+        success: true,
+        message: "Post unliked successfully",
+        post,
+      });
     } else {
       post.likes.push(authUser._id);
-          await post.save();
-      // 🔔 realtime notification (optional)  
+      await post.save();
+      // 🔔 realtime notification (optional)
       // notifyPostOwner(post.author, authUser._id, "like")
-       return res.status(200).json({
-      success: true,
-      message: "Post liked successfully",
-      post,
-    });
+      return res.status(200).json({
+        success: true,
+        message: "Post liked successfully",
+        post,
+      });
     }
-
-   
   } catch (error: any) {
     console.log("Error in toggleLikePost:", error.message);
 
@@ -149,7 +146,7 @@ export const toggleLikePost = async (req: Request, res: Response) => {
 
 export const commentPost = async (req: Request, res: Response) => {
   try {
-    const {userId: clerkId} = req.auth!();
+    const { userId: clerkId } = req.auth!();
     const { id } = req.params; //post id
     const { text } = req.body;
 
@@ -177,7 +174,7 @@ export const commentPost = async (req: Request, res: Response) => {
     }
 
     await post.comments.push(comment._id);
-   await post.save();
+    await post.save();
     return res.status(200).json({
       success: true,
       message: "Commented  successfully",
@@ -194,7 +191,7 @@ export const commentPost = async (req: Request, res: Response) => {
   }
 };
 
-//get post + top 3 comments
+//get post + top 2 comments
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
     const posts = await Post.find()
@@ -202,7 +199,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 3 }, // latest comments first
+        options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
         populate: {
           path: "author",
           select: "userName profilePic",
@@ -229,7 +226,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
   }
 };
 
-//get post + top 3 comments
+//get post + top 2 comments
 export const getUserPosts = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; //author id
@@ -238,7 +235,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 3 }, // latest comments first
+        options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
         populate: {
           path: "author",
           select: "userName profilePic",
@@ -272,7 +269,7 @@ export const getAllComments = async (req: Request, res: Response) => {
 
     const comments = await Comment.find({ post: id }).populate(
       "author",
-      "userName profilePic"
+      "userName profilePic",
     );
     if (!comments)
       return res.status(400).json({
@@ -297,8 +294,8 @@ export const getAllComments = async (req: Request, res: Response) => {
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; //post id
-    const {userId: clerkId} = req.auth!();
-    
+    const { userId: clerkId } = req.auth!();
+
     console.log("user id", clerkId);
     const authUser = await User.findOne({ clerkId: clerkId });
     console.log("user", authUser);
@@ -342,9 +339,8 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const toggleBookmarkPost = async (req: Request, res: Response) => {
   try {
-    const {userId: clerkId} = req.auth!();
+    const { userId: clerkId } = req.auth!();
     const { id } = req.params; //post id
-    
 
     const post = await Post.findById(id);
     if (!post)
@@ -359,7 +355,7 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
       });
 
     const isBookmarked = authUser.bookmarks.some(
-      (bookmarkId) => bookmarkId.toString() === id
+      (bookmarkId) => bookmarkId.toString() === id,
     );
 
     if (isBookmarked) {
