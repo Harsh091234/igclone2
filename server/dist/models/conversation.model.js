@@ -12,11 +12,10 @@ const conversationSchema = new Schema({
             ref: "Message",
         },
     ],
-    // lastMessage: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: "Message",
-    //   default: null,
-    // },
+    lastMessage: {
+        type: Schema.Types.ObjectId,
+        ref: "Message",
+    },
 }, { timestamps: true });
 const Conversation = model("Conversation", conversationSchema);
 export default Conversation;

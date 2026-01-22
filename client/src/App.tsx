@@ -6,7 +6,7 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import { useEffect } from "react";
-import {  Navigate, Route, Routes } from "react-router-dom";
+import {  Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import UserSetupPage from "./pages/UserSetupPage";

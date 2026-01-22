@@ -96,7 +96,7 @@ export const toggleLikePost = async (req, res) => {
         else {
             post.likes.push(authUser._id);
             await post.save();
-            // 🔔 realtime notification (optional)  
+            // 🔔 realtime notification (optional)
             // notifyPostOwner(post.author, authUser._id, "like")
             return res.status(200).json({
                 success: true,
@@ -154,7 +154,7 @@ export const commentPost = async (req, res) => {
         });
     }
 };
-//get post + top 3 comments
+//get post + top 2 comments
 export const getAllPosts = async (req, res) => {
     try {
         const posts = await Post.find()
@@ -162,7 +162,7 @@ export const getAllPosts = async (req, res) => {
             .populate({ path: "author", select: "userName profilePic" })
             .populate({
             path: "comments",
-            options: { sort: { createdAt: -1 }, limit: 3 }, // latest comments first
+            options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
             populate: {
                 path: "author",
                 select: "userName profilePic",
@@ -186,7 +186,7 @@ export const getAllPosts = async (req, res) => {
         });
     }
 };
-//get post + top 3 comments
+//get post + top 2 comments
 export const getUserPosts = async (req, res) => {
     try {
         const { id } = req.params; //author id
@@ -195,7 +195,7 @@ export const getUserPosts = async (req, res) => {
             .populate({ path: "author", select: "userName profilePic" })
             .populate({
             path: "comments",
-            options: { sort: { createdAt: -1 }, limit: 3 }, // latest comments first
+            options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
             populate: {
                 path: "author",
                 select: "userName profilePic",

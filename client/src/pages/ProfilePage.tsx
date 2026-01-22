@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Grid, PlaySquare, Settings, SettingsIcon, Tag } from "lucide-react";
+import { Grid, PlaySquare,  SettingsIcon, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
 
@@ -10,7 +10,7 @@ import {
   useGetProfileUserQuery,
 } from "../services/userApi";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
@@ -38,7 +38,7 @@ const ProfilePage = () => {
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
   const { data: profileData, isLoading: isProfileLoading } =
     useGetProfileUserQuery(name);
-  const scrollRef = useRef<HTMLDivElement>(null);
+
   const authUser = authData?.user;
 
   const user = profileData?.user;
@@ -133,16 +133,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-
-    const scrollAmount = 200;
-
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
+ 
 
   if (isLoading) return <ProfilePageSkeleton />;
   if (!user) return <NoUserFound />;

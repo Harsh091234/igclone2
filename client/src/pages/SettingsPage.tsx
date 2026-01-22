@@ -7,6 +7,7 @@ const SettingsPage = () => {
    const isRoot = location.pathname === "/settings" || location.pathname === "/settings/";
   useEffect(() => console.log("is root:", isRoot), []);
   const [isClicked, setIsClicked] = useState(false);
+  console.log(isClicked)
   return (
     <div className="flex w-full h-full">
      

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
-import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 interface VideoPlayerProps {
   src: string;
