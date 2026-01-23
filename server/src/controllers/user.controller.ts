@@ -186,21 +186,33 @@ export const searchUsers = async (req: Request, res: Response) => {
 export const getSuggestedUsers = async (req: Request, res: Response) => {
   try {
     const { userId: clerkId } = req.auth!();
-
+    
+    const {limit} = req.query;
     if (!clerkId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const suggestedUsers = await User.aggregate([]);
+    const count = Number(limit) || 14;
+    const suggestedUsers = await User.aggregate([
+     {$match: {clerkId: {$ne: clerkId}}},
+     {$sample: {size: count}},
+     {
+      $project: {
+        userName: 1,
+        fullName: 1,
+        profilePic: 1
+      }
+     }
+    ]);
 
     if (suggestedUsers.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "No users found",
       });
     }
-
-    return res.status(200).json({ success: true, suggestedUsers });
+   
+    return res.status(200).json({ success: true, users:suggestedUsers });
   } catch (error) {
     return res.status(500).json({
       success: false,

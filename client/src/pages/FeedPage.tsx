@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -8,13 +8,17 @@ import {
 } from "../components/ui/carousel";
 
 import { Link, useNavigate } from "react-router-dom";
-import { useGetAuthUserQuery } from "../services/userApi";
+import { useFetchSuggestedUsersQuery, useGetAuthUserQuery } from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
 import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
 import { Plus } from "lucide-react";
+import type { User } from "../types/user.types";
+import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
+import { ScrollArea } from "../components/ui/scroll-area";
+import UserAvatar from "../components/UserAvatar";
 
 interface Story {
   id: number;
@@ -24,9 +28,15 @@ interface Story {
 }
 
 export default function FeedPage() {
+ const [visibleCount, setVisibleCount] = useState<number>(5);
+  const [seeMoreClicked, setSeeMoreClicked] = useState<boolean>(false);
+ 
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
-
+  const {isLoading: isSuggestedUsersLoading, data: suggestedUsersData} = useFetchSuggestedUsersQuery(14);
+  const suggestedUsers = suggestedUsersData?.users?? [];
+  const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
+ 
   const navigate = useNavigate();
   const stories: Story[] = [
     { id: 1, user: "Your Story", avatar: "😜", isOwn: true },
@@ -50,6 +60,14 @@ export default function FeedPage() {
   const { data } = useGetAuthUserQuery();
 
   const authUser = data?.user;
+
+ const handleVisibleCount = () => {
+   setVisibleCount((prev) =>
+     prev === 5 ? 14 : 5,
+   );
+ };
+
+
   if (!authUser) return <CenterLoading />;
 
   return (
@@ -162,47 +180,53 @@ export default function FeedPage() {
 
             {/* Suggestions */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-muted-foreground font-semibold text-sm">
+              <div className="flex items-center justify-between mb-4 ">
+                <p className="text-muted-foreground  font-semibold text-sm">
                   Suggestions For You
                 </p>
-                <button className="text-xs font-semibold text-muted-foreground  hover:text-foreground hover:underline transition">
-                  See All
-                </button>
+                
+                  <button
+                    onClick={handleVisibleCount}
+                    className="text-xs mr-4 font-semibold text-muted-foreground  hover:text-foreground hover:underline transition"
+                  >
+                   { visibleCount === 14 ? "See Less" : "See More"}
+                  </button>
+              
               </div>
 
-              {[
-                { user: "photo_artist", name: "Photo Artist", avatar: "📷" },
-                { user: "music_beats", name: "Music Beats", avatar: "🎵" },
-                { user: "code_master", name: "Code Master", avatar: "⚡" },
-                { user: "design_hub", name: "Design Hub", avatar: "🎯" },
-                { user: "nature_lover", name: "Nature Lover", avatar: "🌿" },
-              ].map((suggestion, i) => (
-                <Link
-                  to={`/profile/${suggestion.user}`}
-                  key={i}
-                  className="flex items-center gap-3 mb-3 p-2 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg">
-                    {suggestion.avatar}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm text-foreground">
-                      {suggestion.user}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {suggestion.name}
-                    </p>
-                  </div>
-                  <button
-                    className="text-foreground/70 text-xs font-semibold
+              {isSuggestedUsersLoading ? (
+                <FollowersFollowingSkeleton />
+              ) : (
+                <ScrollArea className=" h-[60vh] pr-4">
+                  {visibleSuggestedUsers.map((user: User) => (
+                    <Link
+                      to={`/profile/${user.userName}`}
+                      key={user._id}
+                      className="flex items-center gap-3 mb-3 p-2 rounded-lg hover:bg-accent transition-colors"
+                    >
+                      <UserAvatar 
+                      classes=""
+                      user={user}
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm text-foreground">
+                          {user.userName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.fullName}
+                        </p>
+                      </div>
+                      <button
+                        className="text-foreground/70 text-xs font-semibold
              hover:text-foreground hover:underline
              transition-colors"
-                  >
-                    Follow
-                  </button>
-                </Link>
-              ))}
+                      >
+                        Follow
+                      </button>
+                    </Link>
+                  ))}
+                </ScrollArea>
+              )}
             </div>
 
             {/* Footer */}

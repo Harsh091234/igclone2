@@ -57,6 +57,13 @@ export const userApi = api.injectEndpoints({
       }),
       invalidatesTags: ["User"]
     }),
+
+    fetchSuggestedUsers: builder.query({
+      query: (limit: number) => ({
+        url: `/user/fetch-suggested-users?limit=${limit}`,
+        method: "GET"
+      })
+    })
   }),
 });
 
@@ -67,4 +74,5 @@ export const {
   useGetProfileUserQuery,
   useLazySearchUsersQuery,
   useFollowOrUnfollowUsersMutation,
+  useFetchSuggestedUsersQuery
 } = userApi;
