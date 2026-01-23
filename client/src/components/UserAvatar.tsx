@@ -1,9 +1,10 @@
 
+import type { Author } from "../types/post.types";
 import type { User } from "../types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface UserAvatarProps {
-    user?: User;
+    user?: User | Author;
     classes?: string
 }
 

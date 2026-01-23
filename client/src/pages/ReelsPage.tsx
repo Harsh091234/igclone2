@@ -8,24 +8,46 @@ import {
   CarouselItem,
 } from "../components/ui/carousel";
 
-import UserAvatar from "../components/UserAvatar";
 
-const reels = [
-  {
-    id: 1,
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    likes: "34.7K",
-    comments: 310,
-  },
-  {
-    id: 2,
-    src: "https://www.w3schools.com/html/movie.mp4",
-    likes: "12.1K",
-    comments: 120,
-  },
-];
+import { useGetAllReelsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
+import type { Reel } from "../types/post.types";
+import ReelSkeleton from "../components/Skeletons/ReelSkeleton";
+import { useGetAuthUserQuery } from "../services/userApi";
+import UserAvatar from "../components/UserAvatar";
+import toast from "react-hot-toast";
+
+
 
 const ReelsPage = () => {
+  const {isLoading: isReelLoading, data: reelData } = useGetAllReelsQuery(undefined);
+  const { data: authData } = useGetAuthUserQuery();
+   const authUser = authData?.user;
+  const [toggleLikePost, {isLoading: isLikeLoading}] = useToggleLikePostMutation();
+ const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+    useToggleBookmarkPostMutation();
+  const reels = reelData?.videos;
+  console.log("reel data", reelData)
+  let  isLiked;
+  let isBookmarked:boolean | null;
+
+
+  const handleLike = (postId: string) => {
+    console.log(postId)
+    toggleLikePost({
+      postId: postId,
+      userId: authUser?._id
+
+    }).unwrap();
+  }
+
+  const handleBookmark = (postId: string) => {
+     const isBookmarked = authUser?.bookmarks?.includes(postId) ?? false;
+
+     toggleBookmarkPost(postId).unwrap();
+    toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
+  }
+
+
   return (
     <div className="flex justify-center pb-10 sm:pb-0 items-center text-foreground h-full bg-primary-foreground">
       <Carousel
@@ -33,92 +55,101 @@ const ReelsPage = () => {
         className="w-full min-[350px]:w-[300px] sm:w-[400px] "
       >
         <CarouselContent className="h-[80vh] sm:h-[94vh]">
-          {reels.map((reel) => (
-            <CarouselItem key={reel.id} className="h-full w-full">
-              <Card className="border-0 bg-primary-foreground  min-[350px]:bg-card min-[350px]:border relative flex items-center h-full w-full  rounded-none  min-[350px]:rounded-xl overflow-hidden">
-                {/* Video */}
-                <video
-                  src={reel.src}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className=" h-full w-full object-fill"
-                />
+          {isReelLoading &&
+            Array.from({ length: 6 }).map((_, i) => (
+              <CarouselItem key={i} className="h-full w-full">
+                <ReelSkeleton />
+              </CarouselItem>
+            ))}
+          {!isReelLoading &&
+            reels.map((reel: Reel) => {
+              isLiked = reel.likes?.some(
+                (id) => id === authUser?._id.toString(),
+              );
+              
+    const isBookmarked = authUser?.bookmarks?.includes(reel._id) ?? false;
 
-                {/* Mute Icon */}
-                <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-full">
-                  <VolumeX className="w-3 sm:w-4  sm:h-4 h-3 text-white" />
-                </div>
+              return (
+                <CarouselItem key={reel._id} className="h-full w-full">
+                  <Card className="border-0 bg-primary-foreground min-[350px]:bg-card min-[350px]:border relative flex items-center h-full w-full rounded-none min-[350px]:rounded-xl overflow-hidden">
+                    {/* Video */}
+                    <video
+                      src={reel.video.url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="h-full w-full object-fill"
+                    />
 
-                {/* Right Actions */}
-                <div className="absolute right-3 bottom-24 flex flex-col items-center gap-2 sm:gap-2.5">
-                  <button className="text-white hover:bg-white/10">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                  <span className="text-xs text-white">{reel.likes}</span>
+                    {/* Right Actions */}
+                    <div className="absolute right-3 bottom-24 flex flex-col items-center gap-2 sm:gap-2.5">
+                      <button
+                        onClick={() => handleLike(reel._id)}
+                        disabled={isLikeLoading}
+                        className="text-white hover:bg-white/10"
+                      >
+                        <Heart
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                            isLiked ? "fill-white " : ""
+                          }`}
+                        />
+                      </button>
 
-                  <button className="text-white hover:bg-white/10">
-                    <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                  <span className="text-xs text-white">{reel.comments}</span>
+                      <span className="text-xs text-white">
+                        {reel.likes?.length}
+                      </span>
 
-                  {/* <button className="text-white hover:bg-white/10">
-                    <Send className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button> */}
+                      <button className="text-white hover:bg-white/10">
+                        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                      </button>
 
-                  <button className="text-white hover:bg-white/10">
-                    <Bookmark className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                </div>
+                      <span className="text-xs text-white">
+                        {reel.comments?.length}
+                      </span>
 
-                {/* Bottom Info */}
-                <div className="absolute bottom-6 sm:bottom-5.5  w-full p-4 bg-gradient-to-t from-black/70 to-transparent text-white flex flex-col gap-1 sm:gap-2">
-                  <div className="flex gap-2 sm:gap-5 items-center flex-wrap">
-                    <div className="flex  gap-1 sm:gap-2 items-center">
-                      <UserAvatar classes="h-7 w-7 sm:h-8 sm:w-8" />
-                      <p className="text-xs sm:text-sm font-semibold">
-                        @meme.ig
-                      </p>
+                      <button
+                        onClick={() => handleBookmark(reel._id)}
+                        disabled={isBookmarkLoading}
+                      >
+                        <Bookmark
+                          className={`w-5 h-5 sm:w-6 sm:h-6 text-white transition-colors ${
+                            isBookmarked ? "fill-white" : ""
+                          }`}
+                        />
+                      </button>
                     </div>
 
-                    <button className="border text-[0.55rem] sm:text-xs bg-transparent text-white border-gray-400 py-0.5 sm:py-1 rounded-sm sm:rounded-md px-1.5 sm:px-3">
-                      Follow
-                    </button>
-                  </div>
-
-                  <p className="text-[0.65rem] sm:text-xs opacity-90">
-                    When it's 15 Feb and bro is walking weirdly
-                  </p>
-                </div>
-              </Card>
-            </CarouselItem>
-          ))}
+                    {/* Bottom Info */}
+                    <div className="absolute bottom-6 sm:bottom-5.5 w-full p-4 bg-gradient-to-t from-black/70 to-transparent text-white flex flex-col gap-1 sm:gap-2">
+                      <div className="flex gap-2 sm:gap-5 items-center flex-wrap">
+                        <div className="flex gap-1 sm:gap-2 items-center">
+                          <UserAvatar
+                            user={reel.author}
+                            classes="h-7 w-7 sm:h-8 sm:w-8"
+                          />
+                          <p className="text-xs sm:text-sm font-semibold">
+                            {reel.author.userName}
+                          </p>
+                        </div>
+                        <button className="border text-[0.55rem] sm:text-xs bg-transparent text-white border-gray-400 py-0.5 sm:py-1 rounded-sm sm:rounded-md px-1.5 sm:px-3">
+                          Follow
+                        </button>
+                      </div>
+                      <p className="text-[0.65rem] sm:text-xs opacity-90">
+                        {reel.caption}
+                      </p>
+                    </div>
+                  </Card>
+                </CarouselItem>
+              );
+            })}
         </CarouselContent>
       </Carousel>
     </div>
   );
 };
 
-function Action({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label?: string | number;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <Button
-        size="icon"
-        variant="ghost"
-        className="text-white hover:bg-white/10"
-      >
-        {icon}
-      </Button>
-      {label && <span className="text-xs text-white">{label}</span>}
-    </div>
-  );
-}
+
 
 export default ReelsPage

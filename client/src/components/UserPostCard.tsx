@@ -55,9 +55,9 @@ console.log("post", post)
 
 }, [])
   const handleBookmark = async () => {
-    console.log("hi", isBookmarked);
+   
     const data = await toggleBookmarkPost(post._id).unwrap();
-    console.log("data", data);
+    
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 

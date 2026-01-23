@@ -422,13 +422,9 @@ export const getAllReels = async (req: Request, res: Response) => {
             profilePic: "$author.profilePic",
           },
 
-          likesCount: {
-            $size: { $ifNull: ["$likes", []] },
-          },
+          likes: 1,
 
-          commentsCount: {
-            $size: { $ifNull: ["$comments", []] },
-          },
+          comments: 1,
         },
       },
     ]);

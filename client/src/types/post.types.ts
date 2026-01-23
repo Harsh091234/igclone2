@@ -1,5 +1,5 @@
 export interface Post {
-    _id: string;
+  _id: string;
   author: {
     _id: string;
     userName?: string;
@@ -28,3 +28,23 @@ export interface CommentT {
   likes: string[];
   createdAt: string;
 }
+
+export interface Author {
+  userName: string;
+  profilePic: string;
+  fullName?: string
+}
+
+export interface Reel {
+  _id: string;
+  author: Author;
+  caption?: string;
+  comments?: string[] | [];
+  likes?: string[] | [];
+  createdAt: string; // ISO date string
+  video: {
+    publicId: string;
+    url: string
+  }
+}
+

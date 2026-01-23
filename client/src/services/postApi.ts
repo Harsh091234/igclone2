@@ -1,5 +1,5 @@
 
-import type { Post } from "../types/post.types";
+import type { Post, Reel } from "../types/post.types";
 import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
 import { userApi } from "./userApi";
@@ -36,6 +36,11 @@ export const postApi = api.injectEndpoints({
       invalidatesTags: ["UserPosts"],
     }),
 
+    getAllReels: builder.query({
+      query:  () => "/post/reels",
+      providesTags: ["UserPosts"]
+    }),
+
     toggleLikePost: builder.mutation({
       query: ({ postId}) => ({
         url: `/post/like/${postId}`,
@@ -61,6 +66,19 @@ export const postApi = api.injectEndpoints({
 )
           ),
         );
+
+          patchResults.push(
+            dispatch(
+              postApi.util.updateQueryData(
+                "getAllReels",
+                undefined,
+                (draft) => {
+                  const reel = draft.videos.find((r: Reel) => r._id === postId);
+                  if (reel) toggleLike(reel, userId);
+                },
+              ),
+            ),
+          );
 
        if (profileUserId) {
          patchResults.push(
@@ -158,5 +176,6 @@ export const {
   useToggleLikePostMutation,
   useToggleBookmarkPostMutation,
   useCommentPostMutation,
-  useGetAllCommentsQuery
+  useGetAllCommentsQuery,
+  useGetAllReelsQuery
 } = postApi;
