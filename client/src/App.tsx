@@ -81,10 +81,10 @@ const App = () => {
             <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
           </button>
 
-          <div className="sm:w-[7%] order-2 sm:order-1  h-[10%] sm:h-full w-full">
+          <div className="sm:w-[7%] order-2 sm:order-1  h-0 sm:h-full w-full">
             <LeftSideBar />
           </div>
-          <div className="w-full order-1 sm:order-2 sm:w-[93%] h-[90%] sm:h-full">
+          <div className="w-full order-1 sm:order-2 sm:w-[93%] h-full sm:h-full">
             <Routes>
               <Route
                 path="/sign-in/*"

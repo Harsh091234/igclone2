@@ -119,7 +119,7 @@ const LeftSideBar = () => {
 
       {/* mobile navbar */}
       <div
-        className="sm:hidden   flex items-center justify-between
+        className="sm:hidden bg-primary-foreground fixed w-full bottom-0 right-0 left-0 z-40  flex items-center justify-between
   px-4 py-2 
   border-t border-border
 "
