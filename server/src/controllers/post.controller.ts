@@ -382,3 +382,68 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getAllReels = async (req: Request, res: Response) => {
+  try {
+    const videos = await Post.aggregate([
+      // 1️⃣ Only single-media posts
+      { $match: { media: { $size: 1 } } },
+
+      // 2️⃣ Flatten media
+      { $unwind: "$media" },
+
+      // 3️⃣ Keep only videos
+      { $match: { "media.type": "video" } },
+
+      // 4️⃣ Join author
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+
+      // 5️⃣ Shape response + counts
+      {
+        $project: {
+          caption: 1,
+          createdAt: 1,
+
+          video: {
+            url: "$media.url",
+            publicId: "$media.publicId",
+          },
+
+          author: {
+            userName: "$author.userName",
+            profilePic: "$author.profilePic",
+          },
+
+          likesCount: {
+            $size: { $ifNull: ["$likes", []] },
+          },
+
+          commentsCount: {
+            $size: { $ifNull: ["$comments", []] },
+          },
+        },
+      },
+    ]);
+    if (!videos)
+      return res
+        .status(200)
+        .json({ success: true, message: "No reels present" });
+
+    return res.status(200).json({ success: true, videos });
+  } catch (error: any) {
+    console.log("Error in getAllReels:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getAllReels",
+    });
+  }
+};

@@ -9,6 +9,7 @@ import {
   deletePost,
   getAllComments,
   getAllPosts,
+  getAllReels,
   getUserPosts,
   toggleBookmarkPost,
   toggleLikePost,
@@ -24,7 +25,7 @@ router.post(
   requireAuth(),
   upload.array("media", 5),
   validate(createPostSchema),
-  createPost
+  createPost,
 );
 router.post("/like/:id", requireAuth(), toggleLikePost);
 
@@ -32,11 +33,12 @@ router.post(
   "/:id/comment",
   requireAuth(),
   validate(commentPostSchema),
-  commentPost
+  commentPost,
 );
 router.get("/get-all-posts", requireAuth(), getAllPosts);
 router.get("/get-user-posts/:id", requireAuth(), getUserPosts);
 router.get("/:id/get-all-comments", requireAuth(), getAllComments);
+router.get("/reels", requireAuth(), getAllReels);
 router.delete("/delete-post/:id", requireAuth(), deletePost);
 router.post("/bookmark/:id", requireAuth(), toggleBookmarkPost);
 

@@ -29,7 +29,7 @@ interface Story {
 
 export default function FeedPage() {
  const [visibleCount, setVisibleCount] = useState<number>(5);
-  const [seeMoreClicked, setSeeMoreClicked] = useState<boolean>(false);
+
  
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
@@ -173,9 +173,9 @@ export default function FeedPage() {
                   {authUser.fullName}
                 </p>
               </div>
-              <button className="text-accent text-xs font-semibold hover:underline transition">
+              {/* <button className="text-accent text-xs font-semibold hover:underline transition">
                 Switch
-              </button>
+              </button> */}
             </div>
 
             {/* Suggestions */}
@@ -197,7 +197,7 @@ export default function FeedPage() {
               {isSuggestedUsersLoading ? (
                 <FollowersFollowingSkeleton />
               ) : (
-                <ScrollArea className=" h-[60vh] pr-4">
+                <ScrollArea className=" h-80 pr-4">
                   {visibleSuggestedUsers.map((user: User) => (
                     <Link
                       to={`/profile/${user.userName}`}
