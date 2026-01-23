@@ -22,6 +22,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import CenterLoading from "./components/CenterLoading";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
+import ReelsPage from "./pages/ReelsPage";
 
 const App = () => {
   const {  isSignedIn, isLoaded } = useUser();
@@ -109,10 +110,19 @@ const App = () => {
               />
 
               <Route
-                path="profile/:name"
+                path="/profile/:name"
                 element={
                   <ProtectedRoutes>
                     <ProfilePage />
+                  </ProtectedRoutes>
+                }
+              />
+
+              <Route
+                path="/reels"
+                element={
+                  <ProtectedRoutes>
+                    <ReelsPage />
                   </ProtectedRoutes>
                 }
               />
