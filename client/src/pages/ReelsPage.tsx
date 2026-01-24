@@ -18,12 +18,13 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ReelOptionsModal from "../components/modals/ReelOptionsModal";
+import CommentPostModal from "../components/modals/CommentPostModal";
 
 
 
 const ReelsPage = () => {
   const {isLoading: isReelLoading, data: reelData } = useGetAllReelsQuery(undefined);
-  const [activeReel, setActiveReel] = useState<Reel | null>(null);
+
 
   const navigate = useNavigate();
   const { data: authData } = useGetAuthUserQuery();
@@ -32,14 +33,17 @@ const ReelsPage = () => {
  const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
   const reels = reelData?.videos;
- 
+ const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+const [activeReelId, setActiveReelId] = useState<string | null>(null);
+
+const activeReel = reels?.find((r :Reel) => r._id === activeReelId);
   console.log("reel data", reelData)
   let  isLiked;
   
   const [isReelModalOpen, setIsReelModalOpen] = useState<boolean>(false);
   const [toggleFollow, {isLoading: isFollowLoading}] = useFollowOrUnfollowUsersMutation();
  const isFollowedForModal =
-   activeReel?.author.followers?.some((id) => id === authUser?._id) ?? false;
+   activeReel?.author.followers?.some((id: string) => id === authUser?._id) ?? false;
 
   const handleRouteToProfile = (userName: string) => {
     navigate(`/profile/${userName}`)
@@ -47,9 +51,9 @@ const ReelsPage = () => {
 
   const handleLike = (postId: string) => {
     console.log(postId)
-    toggleLikePost({
+   toggleLikePost({
       postId: postId,
-      userId: authUser?._id
+      userId: authUser?._id??"",
 
     }).unwrap();
   }
@@ -124,7 +128,13 @@ const ReelsPage = () => {
                         {reel.likes?.length}
                       </span>
 
-                      <button className="text-white hover:bg-white/10">
+                      <button
+                        onClick={() => {
+                         setActiveReelId(reel._id);
+                          setIsCommentModalOpen(true);
+                        }}
+                        className="text-white hover:bg-white/10"
+                      >
                         <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
 
@@ -145,7 +155,7 @@ const ReelsPage = () => {
 
                       <button
                         onClick={() => {
-                          setActiveReel(reel);
+                        setActiveReelId(reel._id);
                           setIsReelModalOpen(true);
                         }}
                       >
@@ -211,6 +221,26 @@ const ReelsPage = () => {
           isAuthUser={activeReel.author._id === authUser?._id}
           onClose={() => setIsReelModalOpen(false)}
           onFollow={() => handleFollow(activeReel.author._id)}
+          onGoToPost={() => {
+            setIsCommentModalOpen(true);
+          }}
+        />
+      )}
+
+      {isCommentModalOpen && activeReel && (
+        <CommentPostModal
+          isOpen={isCommentModalOpen}
+          onClose={() => setIsCommentModalOpen(false)}
+          post={activeReel}
+          isLikeLoading={isLikeLoading}
+          handleLike={() => handleLike(activeReel._id)}
+          handleBookmark={() => handleBookmark(activeReel._id)}
+          isBookmarkLoading={isBookmarkLoading}
+          isBookmarked={authUser?.bookmarks?.includes(activeReel._id)}
+          isLiked={!!authUser?._id && activeReel.likes.includes(authUser._id)}
+          handleRouteToProfile={() =>
+            navigate(`/profile/${activeReel.author.userName}`)
+          }
         />
       )}
     </div>

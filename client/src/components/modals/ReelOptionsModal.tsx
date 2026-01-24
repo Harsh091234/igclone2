@@ -6,9 +6,16 @@ interface ReelModalProps {
   isAuthUser: boolean;
   onFollow: () => void;
   isFollowed: boolean;
+  onGoToPost: () => void;
 }
 
-export default function ReelOptionsModal({ onClose, isAuthUser, onFollow, isFollowed }: ReelModalProps) {
+export default function ReelOptionsModal({
+  onClose,
+  isAuthUser,
+  onFollow,
+  isFollowed,
+  onGoToPost,
+}: ReelModalProps) {
   return (
     <div
       onClick={onClose}
@@ -50,7 +57,13 @@ export default function ReelOptionsModal({ onClose, isAuthUser, onFollow, isFoll
             </>
           )}
 
-          <button className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition">
+          <button
+            onClick={() => {
+              onClose();
+              onGoToPost();
+            }}
+            className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition"
+          >
             Go to post
           </button>
 

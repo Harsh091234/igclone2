@@ -11,7 +11,7 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { formatTimeAgo } from "../../utils/timeFormatter";
-import type { CommentT, Post } from "../../types/post.types";
+import type { CommentT, Post, Reel } from "../../types/post.types";
 
 import {
   useCommentPostMutation,
@@ -23,7 +23,7 @@ import VideoPlayer from "../VideoPlayer";
 interface PostDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  post: Post;
+  post: Post | Reel;
   isLikeLoading: boolean;
   handleLike: () => void;
   handleBookmark: () => void;
@@ -73,6 +73,25 @@ const CommentPostModal = ({
     }
   };
 
+  const mediaList = (() => {
+    // Reel → single video
+    if ("video" in post && post.video) {
+      return [
+        {
+          type: "video",
+          url: post.video.url,
+        },
+      ];
+    }
+
+    // Post → multiple media
+    if ("media" in post && Array.isArray(post.media)) {
+      return post.media;
+    }
+
+    return [];
+  })();
+
   useEffect(() => {
     if (!api) return;
 
@@ -107,18 +126,18 @@ const CommentPostModal = ({
             setApi={setApi}
             className=" flex h-full w-[20rem]  rounded-lg overflow-hidden "
           >
-            <CarouselContent className=" h-full">
-              {post.media.map((item, index) => (
-                <CarouselItem key={index} className=" ">
+            <CarouselContent className="h-full">
+              {mediaList.map((item, index) => (
+                <CarouselItem key={index}>
                   {item.type === "image" ? (
                     <img
                       src={item.url}
                       alt={`preview-${index}`}
-                      className="w-full h-full object-cover "
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <VideoPlayer
-                      className={"w-full bg-gray-600 h-full"}
+                      className="w-full h-full bg-black"
                       src={item.url}
                     />
                   )}
@@ -136,16 +155,20 @@ const CommentPostModal = ({
             </CarouselNext>
 
             {/* Optional Dots Indicator */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1">
-              {post.media.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === activeIndex ? "bg-accent scale-125" : "bg-accent/40"
-                  }`}
-                />
-              ))}
-            </div>
+            {mediaList.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1">
+                {mediaList.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      idx === activeIndex
+                        ? "bg-accent scale-125"
+                        : "bg-accent/40"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </Carousel>
         </div>
 
@@ -212,7 +235,7 @@ const CommentPostModal = ({
               </div>
 
               <p className="font-semibold text-xs sm:text-sm mb-1 text-foreground">
-                {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
+                {post?.likes?.length} {post?.likes?.length === 1 ? "like" : "likes"}
               </p>
 
               <div className="flex justify-between ">

@@ -42,7 +42,7 @@ export interface Reel {
   author: Author;
   caption?: string;
   comments?: string[] | [];
-  likes?: string[] | [];
+  likes: string[];
   createdAt: string; // ISO date string
   video: {
     publicId: string;
