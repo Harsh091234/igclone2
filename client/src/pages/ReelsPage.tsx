@@ -1,5 +1,5 @@
 
-import { Heart, MessageCircle, Send, Bookmark, VolumeX } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, VolumeX, Ellipsis } from "lucide-react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -12,24 +12,38 @@ import {
 import { useGetAllReelsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
 import type { Reel } from "../types/post.types";
 import ReelSkeleton from "../components/Skeletons/ReelSkeleton";
-import { useGetAuthUserQuery } from "../services/userApi";
+import { useFollowOrUnfollowUsersMutation, useGetAuthUserQuery } from "../services/userApi";
 import UserAvatar from "../components/UserAvatar";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import ReelOptionsModal from "../components/modals/ReelOptionsModal";
 
 
 
 const ReelsPage = () => {
   const {isLoading: isReelLoading, data: reelData } = useGetAllReelsQuery(undefined);
+  const [activeReel, setActiveReel] = useState<Reel | null>(null);
+
+  const navigate = useNavigate();
   const { data: authData } = useGetAuthUserQuery();
    const authUser = authData?.user;
   const [toggleLikePost, {isLoading: isLikeLoading}] = useToggleLikePostMutation();
  const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
   const reels = reelData?.videos;
+ 
   console.log("reel data", reelData)
   let  isLiked;
-  let isBookmarked:boolean | null;
+  
+  const [isReelModalOpen, setIsReelModalOpen] = useState<boolean>(false);
+  const [toggleFollow, {isLoading: isFollowLoading}] = useFollowOrUnfollowUsersMutation();
+ const isFollowedForModal =
+   activeReel?.author.followers?.some((id) => id === authUser?._id) ?? false;
 
+  const handleRouteToProfile = (userName: string) => {
+    navigate(`/profile/${userName}`)
+  }
 
   const handleLike = (postId: string) => {
     console.log(postId)
@@ -47,6 +61,13 @@ const ReelsPage = () => {
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   }
 
+  const handleFollow = async(userId:string) => {
+    
+
+    await toggleFollow(userId).unwrap();
+
+
+  }
 
   return (
     <div className="flex justify-center pb-10 sm:pb-0 items-center text-foreground h-full bg-primary-foreground">
@@ -66,9 +87,12 @@ const ReelsPage = () => {
               isLiked = reel.likes?.some(
                 (id) => id === authUser?._id.toString(),
               );
-              
-    const isBookmarked = authUser?.bookmarks?.includes(reel._id) ?? false;
-
+              const isAuthUser = reel.author._id === authUser?._id;
+              const isBookmarked =
+                authUser?.bookmarks?.includes(reel._id) ?? false;
+              const isFollowed =
+                reel.author.followers?.some((id) => id === authUser?._id) ??
+                false;
               return (
                 <CarouselItem key={reel._id} className="h-full w-full">
                   <Card className="border-0 bg-primary-foreground min-[350px]:bg-card min-[350px]:border relative flex items-center h-full w-full rounded-none min-[350px]:rounded-xl overflow-hidden">
@@ -118,6 +142,15 @@ const ReelsPage = () => {
                           }`}
                         />
                       </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveReel(reel);
+                          setIsReelModalOpen(true);
+                        }}
+                      >
+                        <Ellipsis className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      </button>
                     </div>
 
                     {/* Bottom Info */}
@@ -125,16 +158,42 @@ const ReelsPage = () => {
                       <div className="flex gap-2 sm:gap-5 items-center flex-wrap">
                         <div className="flex gap-1 sm:gap-2 items-center">
                           <UserAvatar
+                            onClick={() =>
+                              handleRouteToProfile(reel.author.userName)
+                            }
                             user={reel.author}
-                            classes="h-7 w-7 sm:h-8 sm:w-8"
+                            classes="h-7 w-7 cursor-pointer sm:h-8 sm:w-8"
                           />
-                          <p className="text-xs sm:text-sm font-semibold">
+                          <p
+                            onClick={() =>
+                              handleRouteToProfile(reel.author.userName)
+                            }
+                            className="text-xs cursor-pointer sm:text-sm font-semibold"
+                          >
                             {reel.author.userName}
                           </p>
                         </div>
-                        <button className="border text-[0.55rem] sm:text-xs bg-transparent text-white border-gray-400 py-0.5 sm:py-1 rounded-sm sm:rounded-md px-1.5 sm:px-3">
-                          Follow
-                        </button>
+                        {!isAuthUser && (
+                          <button
+                            disabled={isFollowLoading}
+                            onClick={() => handleFollow(reel.author._id)}
+                            className={`
+      text-[0.55rem] sm:text-xs
+      py-0.5 sm:py-1
+      px-1.5 sm:px-3
+      rounded-sm sm:rounded-md
+      transition-all
+      ${
+        isFollowed
+          ? "bg-white text-black border border-white"
+          : "bg-transparent text-white border border-gray-400"
+      }
+      ${isFollowLoading ? "opacity-50 cursor-not-allowed" : ""}
+    `}
+                          >
+                            {isFollowed ? "Following" : "Follow"}
+                          </button>
+                        )}
                       </div>
                       <p className="text-[0.65rem] sm:text-xs opacity-90">
                         {reel.caption}
@@ -146,6 +205,14 @@ const ReelsPage = () => {
             })}
         </CarouselContent>
       </Carousel>
+      {isReelModalOpen && activeReel && (
+        <ReelOptionsModal
+          isFollowed={isFollowedForModal}
+          isAuthUser={activeReel.author._id === authUser?._id}
+          onClose={() => setIsReelModalOpen(false)}
+          onFollow={() => handleFollow(activeReel.author._id)}
+        />
+      )}
     </div>
   );
 };

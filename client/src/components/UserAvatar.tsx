@@ -6,11 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 interface UserAvatarProps {
     user?: User | Author;
     classes?: string
+    onClick?: () => void;
 }
 
-const UserAvatar = ({user, classes}: UserAvatarProps) => {
+const UserAvatar = ({user, classes, onClick}: UserAvatarProps) => {
    return (
-     <Avatar className={`border ${classes} border-zinc-700 `}>
+     <Avatar onClick={onClick} className={`border ${classes} border-zinc-700 `}>
        <AvatarImage
          src={user?.profilePic || "/default user.jpg"}
          alt="Profile"

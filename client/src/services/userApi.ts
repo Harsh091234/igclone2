@@ -55,7 +55,7 @@ export const userApi = api.injectEndpoints({
         url: `/user/follow-unfollow/${id}`,
         method: "POST",
       }),
-      invalidatesTags: ["User"]
+      invalidatesTags: ["User", "UserPosts"]
     }),
 
     fetchSuggestedUsers: builder.query({

@@ -418,6 +418,8 @@ export const getAllReels = async (req: Request, res: Response) => {
           },
 
           author: {
+            followers: "$author.followers",
+            _id: "$author._id",
             userName: "$author.userName",
             profilePic: "$author.profilePic",
           },

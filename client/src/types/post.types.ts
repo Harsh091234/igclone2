@@ -31,7 +31,9 @@ export interface CommentT {
 
 export interface Author {
   userName: string;
+  _id: string;
   profilePic: string;
+  followers?: string[];
   fullName?: string
 }
 
