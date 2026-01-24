@@ -114,19 +114,15 @@ const CommentPostModal = ({
       <div
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
-        className="bg-card w-xs sm:w-[45rem] h-[90vh] sm:h-[60vh] flex flex-col sm:flex-row relative overflow-hidden rounded-lg shadow-lg"
+        className="bg-card w-full max-w-[45rem] h-[90vh] sm:h-[60vh] flex flex-col sm:flex-row relative overflow-hidden rounded-lg shadow-lg"
       >
-        <X
-          className="sm:hidden z-10 right-2 top-2 absolute  cursor-pointer"
-          onClick={onClose}
-        />
         {/* LEFT: Carousel */}
-        <div className="w-full h-[55%] sm:h-full sm:w-[50%] flex items-center justify-center p-2">
+        <div className="w-full sm:w-1/2 h-60 sm:h-full flex bg-green-500 items-center justify-center p-2">
           <Carousel
             setApi={setApi}
-            className=" flex h-full w-[20rem]  rounded-lg overflow-hidden "
+            className="flex h-full w-full justify-center bg-violet-600 rounded-lg overflow-hidden"
           >
-            <CarouselContent className="h-full">
+            <CarouselContent className="h-full bg-red-400">
               {mediaList.map((item, index) => (
                 <CarouselItem key={index}>
                   {item.type === "image" ? (
@@ -145,11 +141,9 @@ const CommentPostModal = ({
               ))}
             </CarouselContent>
 
-            {/* Navigation Buttons */}
-            <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50   z-10 shadow-sm">
+            <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
               ‹
             </CarouselPrevious>
-
             <CarouselNext className="absolute top-1/2 right-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
               ›
             </CarouselNext>
@@ -173,31 +167,31 @@ const CommentPostModal = ({
         </div>
 
         {/* RIGHT: Comments */}
-        <div className="w-full  h-[45%] sm:h-full sm:w-[50%] flex flex-col border-l">
+        <div className="w-full sm:w-1/2 flex flex-col h-full border-l overflow-hidden">
           {/* Header */}
-          <div className="hidden sm:flex order-1 items-center justify-between px-4 py-3 border-b">
+          <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="flex items-center gap-2">
               <img
                 onClick={handleRouteToProfile}
-                src={post.author.profilePic}
+                src={post.author?.profilePic ?? "/default-avatar.png"}
                 className="cursor-pointer h-8 w-8 rounded-full"
               />
               <p
                 onClick={handleRouteToProfile}
                 className="cursor-pointer font-semibold text-sm"
               >
-                {post.author.userName}
+                {post.author?.userName ?? "Unknown"}
               </p>
             </div>
             <X className="cursor-pointer" onClick={onClose} />
           </div>
 
-          {/* Comments */}
-          <div className=" sm:h-full overflow-y-auto px-4 flex flex-col gap-2 order-3  sm:order-2 ">
+          {/* Comments List */}
+          <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-2">
             {isCommentsLoading ? (
-              <>Loading...</>
+              <p className="text-muted-foreground">Loading comments...</p>
             ) : (
-              comments.map((comment: CommentT) => (
+              comments?.map((comment) => (
                 <Comment
                   handleRouteToProfile={handleRouteToProfile}
                   key={comment._id}
@@ -209,73 +203,48 @@ const CommentPostModal = ({
               ))
             )}
           </div>
-          {/* extra option */}
-          <div className="px-3 pt-2   order-2 sm:order-3">
-            <div className="flex flex-col  mb-1">
-              <div className="flex items-center gap-3">
+
+          {/* Likes & Caption */}
+          <div className="px-4 py-2 border-t flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-3">
                 <button disabled={isLikeLoading} onClick={handleLike}>
                   <Heart
-                    className={`h-4.5 sm:h-5 w-4.5 sm:w-5 transition-colors text-primary
-   ${
-     isLiked
-       ? "fill-primary " // filled when liked
-       : ""
-   }     
-  `}
+                    className={`h-5 w-5 ${isLiked ? "fill-primary" : ""}`}
                   />
                 </button>
-
-                <button onClick={handleBookmark} disabled={isBookmarkLoading}>
+                <button disabled={isBookmarkLoading} onClick={handleBookmark}>
                   <Bookmark
-                    className={`h-4.5 sm:h-5 w-4.5 sm:w-5text-primary transition-colors ${
-                      isBookmarked ? "fill-primary" : ""
-                    }`}
+                    className={`h-5 w-5 ${isBookmarked ? "fill-primary" : ""}`}
                   />
                 </button>
               </div>
 
-              <p className="font-semibold text-xs sm:text-sm mb-1 text-foreground">
-                {post?.likes?.length} {post?.likes?.length === 1 ? "like" : "likes"}
-              </p>
-
-              <div className="flex justify-between ">
-                {post.caption && (
-                  <p className="text-xs sm:text-sm mb-1 text-foreground">
-                    <span className="font-semibold mr-1">
-                      {post.author.userName}
-                    </span>
-                    {post.caption}
-                  </p>
-                )}
-
-                <p className="text-[0.65rem] sm:text-xs text-muted-foreground ">
-                  {formatTimeAgo(post.createdAt)} ago
-                </p>
-              </div>
+              <span className="text-xs font-semibold">
+                {post?.likes?.length} likes
+              </span>
             </div>
+            {post.caption && (
+              <p className="text-xs">
+                <span className="font-semibold">{post.author?.userName}</span>{" "}
+                {post.caption}
+              </p>
+            )}
           </div>
 
           {/* Add Comment */}
-          <div className="flex justify-between  order-4  border-t text-xs         sm:text-sm px-4 py-3">
+          <div className="px-4 py-2.5 border-t flex items-center gap-2">
             <input
+              type="text"
               placeholder="Add a comment..."
-              className="w-full pr-3   outline-none"
               value={text}
               onChange={(e) => setText(e.target.value)}
+              className="flex-1 outline-none text-sm"
             />
             <button
-              type="button"
               onClick={handleComment}
               disabled={isCommentPostLoading}
-              className="
-    relative
-    disabled:cursor-not-allowed
-    disabled:opacity-50
-    after:absolute after:left-0 after:bottom-0 after:h-[1px]
-    after:w-0 after:bg-primary after:transition-all after:duration-300
-    hover:after:w-full
-    disabled:hover:after:w-0 text-blue-500
-  "
+              className="text-blue-500 text-sm disabled:opacity-50"
             >
               {isCommentPostLoading ? "Posting..." : "Post"}
             </button>

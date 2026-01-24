@@ -9,7 +9,7 @@ export interface User {
   userName?: string;
   gender: string;
   bio?: string;
-
+  location?: string;
   profilePic?: string;
   profilePicPublicId?: string;
 

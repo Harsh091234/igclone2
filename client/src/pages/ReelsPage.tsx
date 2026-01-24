@@ -1,77 +1,85 @@
-
-import { Heart, MessageCircle, Send, Bookmark, VolumeX, Ellipsis } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, Ellipsis } from "lucide-react";
 import { Card } from "../components/ui/card";
-import { Button } from "../components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "../components/ui/carousel";
 
-
-import { useGetAllReelsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
+import {
+  useGetAllReelsQuery,
+  useToggleBookmarkPostMutation,
+  useToggleLikePostMutation,
+} from "../services/postApi";
 import type { Reel } from "../types/post.types";
 import ReelSkeleton from "../components/Skeletons/ReelSkeleton";
-import { useFollowOrUnfollowUsersMutation, useGetAuthUserQuery } from "../services/userApi";
+import {
+  useFollowOrUnfollowUsersMutation,
+  useGetAuthUserQuery,
+  useGetProfileUserQuery,
+} from "../services/userApi";
 import UserAvatar from "../components/UserAvatar";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ReelOptionsModal from "../components/modals/ReelOptionsModal";
 import CommentPostModal from "../components/modals/CommentPostModal";
-
-
+import AccountInfoModal from "../components/modals/AccountInfoModal";
 
 const ReelsPage = () => {
-  const {isLoading: isReelLoading, data: reelData } = useGetAllReelsQuery(undefined);
-
+  const { isLoading: isReelLoading, data: reelData } =
+    useGetAllReelsQuery(undefined);
 
   const navigate = useNavigate();
   const { data: authData } = useGetAuthUserQuery();
-   const authUser = authData?.user;
-  const [toggleLikePost, {isLoading: isLikeLoading}] = useToggleLikePostMutation();
- const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+  const authUser = authData?.user;
+  const [toggleLikePost, { isLoading: isLikeLoading }] =
+    useToggleLikePostMutation();
+  const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
   const reels = reelData?.videos;
- const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
-const [activeReelId, setActiveReelId] = useState<string | null>(null);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+  const [activeReelId, setActiveReelId] = useState<string | null>(null);
 
-const activeReel = reels?.find((r :Reel) => r._id === activeReelId);
-  console.log("reel data", reelData)
-  let  isLiked;
-  
+  const activeReel = reels?.find((r: Reel) => r._id === activeReelId);
+  console.log("reel data", reelData);
+  let isLiked;
+
   const [isReelModalOpen, setIsReelModalOpen] = useState<boolean>(false);
-  const [toggleFollow, {isLoading: isFollowLoading}] = useFollowOrUnfollowUsersMutation();
- const isFollowedForModal =
-   activeReel?.author.followers?.some((id: string) => id === authUser?._id) ?? false;
-
+  const [toggleFollow, { isLoading: isFollowLoading }] =
+    useFollowOrUnfollowUsersMutation();
+  const isFollowedForModal =
+    activeReel?.author.followers?.some((id: string) => id === authUser?._id) ??
+    false;
+  const { isLoading: isUserLoading, data: userData } = useGetProfileUserQuery(
+    activeReel?.author.userName ?? "",
+    { skip: !activeReel },
+  );
+  const user = userData?.user;
+console.log("user in reels", user)
   const handleRouteToProfile = (userName: string) => {
-    navigate(`/profile/${userName}`)
-  }
+    navigate(`/profile/${userName}`);
+  };
 
   const handleLike = (postId: string) => {
-    console.log(postId)
-   toggleLikePost({
+    console.log(postId);
+    toggleLikePost({
       postId: postId,
-      userId: authUser?._id??"",
-
+      userId: authUser?._id ?? "",
     }).unwrap();
-  }
+  };
 
   const handleBookmark = (postId: string) => {
-     const isBookmarked = authUser?.bookmarks?.includes(postId) ?? false;
+    const isBookmarked = authUser?.bookmarks?.includes(postId) ?? false;
 
-     toggleBookmarkPost(postId).unwrap();
+    toggleBookmarkPost(postId).unwrap();
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
-  }
+  };
 
-  const handleFollow = async(userId:string) => {
-    
-
+  const handleFollow = async (userId: string) => {
     await toggleFollow(userId).unwrap();
-
-
-  }
+  };
 
   return (
     <div className="flex justify-center pb-10 sm:pb-0 items-center text-foreground h-full bg-primary-foreground">
@@ -112,54 +120,58 @@ const activeReel = reels?.find((r :Reel) => r._id === activeReelId);
 
                     {/* Right Actions */}
                     <div className="absolute right-3 bottom-24 flex flex-col items-center gap-2 sm:gap-2.5">
+                      {/* Like Button */}
                       <button
                         onClick={() => handleLike(reel._id)}
                         disabled={isLikeLoading}
-                        className="text-white hover:bg-white/10"
+                        className="text-white transition-colors duration-200 hover:text-white/60 active:text-white/60"
                       >
                         <Heart
                           className={`w-5 h-5 sm:w-6 sm:h-6 ${
-                            isLiked ? "fill-white " : ""
-                          }`}
+                            isLiked ? "fill-white" : ""
+                          } transition-colors duration-200`}
                         />
                       </button>
-
                       <span className="text-xs text-white">
                         {reel.likes?.length}
                       </span>
 
+                      {/* Comment Button */}
                       <button
                         onClick={() => {
-                         setActiveReelId(reel._id);
+                          setActiveReelId(reel._id);
                           setIsCommentModalOpen(true);
                         }}
-                        className="text-white hover:bg-white/10"
+                        className="text-white transition-colors duration-200 hover:text-white/60 active:text-white/60"
                       >
-                        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-200" />
                       </button>
-
                       <span className="text-xs text-white">
                         {reel.comments?.length}
                       </span>
 
+                      {/* Bookmark Button */}
                       <button
                         onClick={() => handleBookmark(reel._id)}
                         disabled={isBookmarkLoading}
+                        className="text-white transition-colors duration-200 hover:text-white/60 active:text-white/60"
                       >
                         <Bookmark
-                          className={`w-5 h-5 sm:w-6 sm:h-6 text-white transition-colors ${
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${
                             isBookmarked ? "fill-white" : ""
-                          }`}
+                          } transition-colors duration-200`}
                         />
                       </button>
 
+                      {/* Options Button */}
                       <button
                         onClick={() => {
-                        setActiveReelId(reel._id);
+                          setActiveReelId(reel._id);
                           setIsReelModalOpen(true);
                         }}
+                        className="text-white transition-colors duration-200 hover:text-white/60 active:text-white/60"
                       >
-                        <Ellipsis className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                        <Ellipsis className="w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-200" />
                       </button>
                     </div>
 
@@ -224,6 +236,7 @@ const activeReel = reels?.find((r :Reel) => r._id === activeReelId);
           onGoToPost={() => {
             setIsCommentModalOpen(true);
           }}
+          onAboutThisAccount={() => setIsAccountModalOpen(true)}
         />
       )}
 
@@ -243,10 +256,16 @@ const activeReel = reels?.find((r :Reel) => r._id === activeReelId);
           }
         />
       )}
+
+      {isAccountModalOpen && activeReel && (
+        <AccountInfoModal
+          user={user ?? undefined}
+          isLoading={isUserLoading}
+          onClose={() => setIsAccountModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
 
-
-
-export default ReelsPage
+export default ReelsPage;

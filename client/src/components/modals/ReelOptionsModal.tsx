@@ -7,6 +7,7 @@ interface ReelModalProps {
   onFollow: () => void;
   isFollowed: boolean;
   onGoToPost: () => void;
+  onAboutThisAccount: () => void;
 }
 
 export default function ReelOptionsModal({
@@ -15,6 +16,7 @@ export default function ReelOptionsModal({
   onFollow,
   isFollowed,
   onGoToPost,
+  onAboutThisAccount,
 }: ReelModalProps) {
   return (
     <div
@@ -87,7 +89,12 @@ export default function ReelOptionsModal({
 
           <Separator /> */}
 
-          <button className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition">
+          <button
+          onClick={() => {
+            onClose();
+            onAboutThisAccount()
+          }}
+          className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition">
             About this account
           </button>
         </div>
