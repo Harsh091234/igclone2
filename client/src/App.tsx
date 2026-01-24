@@ -23,6 +23,7 @@ import CenterLoading from "./components/CenterLoading";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 import ReelsPage from "./pages/ReelsPage";
+import MessagePage from "./pages/MessagePage";
 
 const App = () => {
   const {  isSignedIn, isLoaded } = useUser();
@@ -96,6 +97,15 @@ const App = () => {
                 element={
                   <ProtectedRoutes>
                     <FeedPage />
+                  </ProtectedRoutes>
+                }
+              />
+
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoutes>
+                    <MessagePage />
                   </ProtectedRoutes>
                 }
               />

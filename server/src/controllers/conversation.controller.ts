@@ -20,7 +20,6 @@ const getMediaType = (mimetype: string) => {
   return "doc";
 };
 
-
 export const createMessage = async(req: Request, res: Response) => {
    try {
     const {userId: clerkId} = req.auth!();
@@ -124,8 +123,7 @@ export const getAllMessages = async(req: Request, res: Response) => {
             .json({ success: false, message: "No sender found" });
     const userId = sender._id;
     const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
-
-    
+   
     const conversation = await Conversation.findOne({
       participants: { $all: [userId, receiverId] },
     });
@@ -147,7 +145,6 @@ export const getAllMessages = async(req: Request, res: Response) => {
       .populate("senderId", "userName profilePic")
       .lean();
 
-    
     await Message.updateMany(
       {
         _id: { $in: conversation.messages },

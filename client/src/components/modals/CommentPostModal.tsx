@@ -191,7 +191,7 @@ const CommentPostModal = ({
             {isCommentsLoading ? (
               <p className="text-muted-foreground">Loading comments...</p>
             ) : (
-              comments?.map((comment) => (
+              comments?.map((comment: CommentT) => (
                 <Comment
                   handleRouteToProfile={handleRouteToProfile}
                   key={comment._id}
