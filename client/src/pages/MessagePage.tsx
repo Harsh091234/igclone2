@@ -1,22 +1,30 @@
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Input } from "../components/ui/input";
-import { Card } from "../components/ui/card";
-import { Search, Send, SquarePen } from "lucide-react";
-import { ScrollArea } from "../components/ui/scroll-area";
 
-
+import { Search, SquarePen } from "lucide-react";
+import { useState } from "react";
+import SelectedChat from "../components/SelectedChat";
+import NoChatSelected from "../components/NoChatSelected";
+import UserAvatar from "../components/UserAvatar";
+import NewMessageModal from "../components/modals/NewMessageModal";
 
 const MessagePage = () => {
+  const [isChatSelected, setIsSelectedChat] = useState(false);
+  const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState<boolean>(false);
+
+
   return (
-    // ✅ FIX 1: use h-screen
-    <div className="h-screen w-full bg-background text-foreground flex">
+    <div className="h-screen w-full  text-foreground flex">
       {/* Sidebar */}
-      <aside className="w-full sm:w-[35%] md:w-[40%] lg:w-sm border-r border-border flex flex-col">
-        {/* Header (fixed height) */}
+      <aside
+        className={`w-full ${isChatSelected ? "hidden sm:flex" : "flex"} sm:w-[35%] md:w-[40%] lg:w-sm border-r border-border  flex-col`}
+      >
         <div className="px-4 pt-6 pb-2 border-b border-border shrink-0">
           <h1 className="text-lg md:text-xl px-4 mb-2 flex justify-between font-semibold tracking-tight">
             Username
-            <SquarePen className="cursor-pointer hover:text-primary/60 h-5 w-5 md:h-6 md:w-6 transition-colors" />
+            <SquarePen
+              onClick={() => setIsNewMessageModalOpen(true)}
+              className="cursor-pointer hover:text-primary/60 active:text-primary/60 h-5 w-5 md:h-6 md:w-6 transition-colors"
+            />
           </h1>
 
           <div className="relative mb-3">
@@ -30,17 +38,14 @@ const MessagePage = () => {
           <h2 className="text-base md:text-lg font-semibold">Messages</h2>
         </div>
 
-        {/* ✅ FIX 2: flex-1 instead of fixed height */}
         <div className="flex-1 overflow-y-auto">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((chat) => (
             <div
               key={chat}
-              className="flex items-center gap-3 px-4 py-1.5 md:py-3 cursor-pointer hover:bg-muted/60"
+              onClick={() => setIsSelectedChat(true)}
+              className=" flex items-center gap-3 px-4 py-1.5 md:py-3 cursor-pointer hover:bg-muted/60 active:bg-muted/60"
             >
-              <Avatar className="h-9 w-9 md:h-10 md:w-10">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
+              <UserAvatar classes="h-9 w-9 md:h-10 md:w-10" />
 
               <div className="flex-1">
                 <p className="text-sm font-medium">username_{chat}</p>
@@ -53,38 +58,19 @@ const MessagePage = () => {
         </div>
       </aside>
 
+      {isNewMessageModalOpen && (
+        <NewMessageModal onClose={() => setIsNewMessageModalOpen(false)} />
+      )}
+
       {/* Chat Area */}
-      <main className="hidden sm:flex flex-1 flex-col">
-        {/* Header */}
-        <div className="h-16 border-b border-border flex items-center gap-3 px-4 shrink-0">
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">username</p>
-            <p className="text-xs text-muted-foreground">Active now</p>
-          </div>
-        </div>
-
-        {/* ✅ FIX 3: messages take remaining height */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30">
-          <Card className="max-w-xs p-2 text-sm">Hey 👋</Card>
-          <Card className="max-w-xs p-2 text-sm ml-auto bg-primary text-primary-foreground">
-            Hi! What's up?
-          </Card>
-          <Card className="max-w-xs p-2 text-sm">
-            Working on a new project 🚀
-          </Card>
-        </div>
-
-        {/* Input */}
-        <div className="border-t border-border p-3 flex items-center gap-2 shrink-0">
-          <Input placeholder="Message..." className="flex-1" />
-          <button className="p-2 rounded-md bg-primary text-primary-foreground hover:opacity-90">
-            <Send className="h-4 w-4" />
-          </button>
-        </div>
+      <main
+        className={`${isChatSelected ? "flex" : "hidden sm:flex "}    w-full sm:flex-1  flex-col`}
+      >
+        {isChatSelected ? (
+          <SelectedChat onClose={() => setIsSelectedChat(false)} />
+        ) : (
+          <NoChatSelected />
+        )}
       </main>
     </div>
   );

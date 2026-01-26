@@ -1,7 +1,13 @@
 import mongoose, { Schema, Document, model } from "mongoose";
 
-
-export type MediaType = "image" | "video" | "audio" | "gif" | "pdf" | "doc" | "xls";
+export type MediaType =
+  | "image"
+  | "video"
+  | "audio"
+  | "gif"
+  | "pdf"
+  | "doc"
+  | "xls";
 
 interface Media {
   url: string;
@@ -12,17 +18,15 @@ interface SeenBy {
   seenAt: Date;
 }
 
-
 export interface IMessage extends Document {
-  senderId: mongoose.Types.ObjectId;          
-  receiverId: mongoose.Types.ObjectId;    
+  senderId: mongoose.Types.ObjectId;
+  receiverId: mongoose.Types.ObjectId;
   text: string;
-  media: Media[];                    
-  seenBy: SeenBy[];        
+  media: Media[];
+  seenBy: SeenBy[];
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 const messageSchema = new Schema<IMessage>(
   {
@@ -52,12 +56,12 @@ const messageSchema = new Schema<IMessage>(
       },
     ],
 
-     seenBy: [
+    seenBy: [
       {
         userId: { type: Schema.Types.ObjectId, ref: "User" },
         seenAt: { type: Date, default: Date.now },
       },
-    ]
+    ],
   },
 
   { timestamps: true },
