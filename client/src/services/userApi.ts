@@ -73,6 +73,7 @@ export const {
   useEditProfileMutation,
   useGetProfileUserQuery,
   useLazySearchUsersQuery,
+  useSearchUsersQuery,
   useFollowOrUnfollowUsersMutation,
   useFetchSuggestedUsersQuery
 } = userApi;

@@ -27,7 +27,7 @@ export const createMessage = async(req: Request, res: Response) => {
     const sender = await User.findOne({clerkId});
     if(!sender) return res.status(400).json({success: false, message: "No sender found"});
     const senderId = sender._id;
-    const receiverId = new mongoose.Types.ObjectId( req.params.id);
+    const receiverId = new mongoose.Types.ObjectId( req.params.receiverId);
      
     const {text} = req.body
 
@@ -76,7 +76,6 @@ export const createMessage = async(req: Request, res: Response) => {
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
     });
-
     if (!conversation) {
       conversation = await Conversation.create({
         participants:[senderId, receiverId],
@@ -121,11 +120,11 @@ export const getAllMessages = async(req: Request, res: Response) => {
           return res
             .status(400)
             .json({ success: false, message: "No sender found" });
-    const userId = sender._id;
-    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
-   
+    const senderId = sender._id;
+     const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
+
     const conversation = await Conversation.findOne({
-      participants: { $all: [userId, receiverId] },
+      participants: { $all: [senderId, receiverId] },
     });
 
     if (!conversation) {
@@ -137,7 +136,7 @@ export const getAllMessages = async(req: Request, res: Response) => {
       });
     }
 
-  
+     console.log("hi");
     const messages = await Message.find({
       _id: { $in: conversation.messages },
     })
@@ -148,13 +147,13 @@ export const getAllMessages = async(req: Request, res: Response) => {
     await Message.updateMany(
       {
         _id: { $in: conversation.messages },
-        receiverId: userId,
-        "seenBy.userId": { $ne: userId },
+        receiverId: senderId,
+        "seenBy.userId": { $ne: senderId },
       },
       {
         $push: {
           seenBy: {
-            userId,
+            userId: senderId,
             seenAt: new Date(),
           },
         },
@@ -187,19 +186,37 @@ export const getLastMessages = async(req: Request, res: Response) => {
 
      const userId = authUser._id;
 
-     const conversations = await Conversation.find({
-       participants: userId,
-     })
-       .populate({
-         path: "lastMessage",
-         select: "senderId receiverId text media createdAt seenBy",
-       })
-       .sort({ updatedAt: -1 });
+    const conversations = await Conversation.find({
+      participants: userId,
+    })
+      .populate({
+        path: "participants",
+        select: "userName profilePic",
+      })
+      .populate({
+        path: "lastMessage",
+        select: "text media createdAt seenBy senderId",
+      })
+      .sort({ updatedAt: -1 })
+      .lean();
 
-     res.status(200).json({
-       success: true,
-       conversations,
-     });
+
+    const formattedConversations = conversations.map((conv) => {
+      const receiver = conv.participants.find(
+        (p: any) => p._id.toString() !== userId.toString(),
+      );
+
+      return {
+        _id: conv._id,
+        receiver,
+        lastMessage: conv.lastMessage,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      conversations: formattedConversations,
+    });
    } catch (error) {
      console.error("Get last messages error:", error);
      res.status(500).json({ message: "Internal server error" });

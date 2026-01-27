@@ -2,12 +2,36 @@ import { X } from "lucide-react";
 import { Input } from "../ui/input";
 
 import UserAvatar from "../UserAvatar";
+import { useState } from "react";
+import { useSearchUsersQuery } from "../../services/userApi";
+import type { SearchUser } from "../../types/user.types";
+import { ScrollArea } from "../ui/scroll-area";
 
 interface NewMessageModalProps {
   onClose: () => void;
+  onStartChat: (users: SearchUser[]) => void;
+  startChat: () => void;
 }
 
-const NewMessageModal = ({ onClose }: NewMessageModalProps) => {
+const NewMessageModal = ({ onClose, onStartChat , startChat}: NewMessageModalProps) => {
+    const [searchTerm, setSearchTerm] = useState("");
+ const [selectedUsers, setSelectedUsers] = useState<SearchUser[]>([]);
+    const { data: searchData} = useSearchUsersQuery(searchTerm, {
+      skip: !searchTerm.trim()
+    })
+ 
+    const users = searchData?.users;
+
+    const toggleUser = (user: SearchUser) => {
+      setSelectedUsers((prev) => {
+        const exists = prev.some((u) => u._id === user._id);
+        if (exists) {
+          return prev.filter((u) => u._id !== user._id);
+        }
+        return [...prev, user];
+      });
+    };
+
 
   return (
     <div
@@ -43,6 +67,8 @@ const NewMessageModal = ({ onClose }: NewMessageModalProps) => {
           <span className="text-xs sm:text-sm font-medium">To:</span>
           <Input
             placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="
           border-0 focus-visible:ring-0
           h-7 sm:h-8
@@ -53,45 +79,80 @@ const NewMessageModal = ({ onClose }: NewMessageModalProps) => {
 
         {/* Suggested */}
         <div className="px-3 sm:px-4 py-3">
-          <p className="text-xs font-semibold text-muted-foreground mb-2">
+          <p className="text-xs font-semibold text-muted-foreground mb-3">
             Suggested
           </p>
 
-          {/* User item */}
-          <div
-            className="
-          flex items-center justify-between
-          px-2 py-2
-          rounded-md
-          hover:bg-muted/40
-          cursor-pointer
-        "
-          >
-            <div className="flex items-center gap-3">
-              <UserAvatar />
+        {users?.map((user: SearchUser) => {
+  const isSelected = selectedUsers.some(
+    (u) => u._id === user._id
+  );
 
-              <div>
-                <p className="text-sm font-medium">zahilkutta1000</p>
-                <p className="text-xs text-muted-foreground">zahilkutta1000</p>
-              </div>
-            </div>
+  return (
+    <div
+      key={user._id}
+      onClick={() => toggleUser(user)}  
+      className="
+        flex items-center justify-between
+        px-2 py-2
+        rounded-md
+        hover:bg-muted/40
+        active:bg-muted/40
+        transition-colors
+        duration-100
+        cursor-pointer
+      "
+    >
+      <div className="flex items-center gap-3">
+        <UserAvatar user={user} />
 
-            {/* Circle selector */}
-            <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full border border-muted-foreground" />
-          </div>
+        <div>
+          <p className="text-sm font-medium">{user.userName}</p>
+          <p className="text-xs text-muted-foreground">
+            {user.fullName}
+          </p>
+        </div>
+      </div>
+
+      {/* ✅ Circle selector */}
+      <div
+        className={`
+          h-4 w-4 rounded-full
+          border flex items-center justify-center
+          transition-all duration-150
+          ${
+            isSelected
+              ? "border-primary bg-primary"
+              : "border-muted-foreground bg-transparent"
+          }
+        `}
+      >
+        {isSelected && (
+          <div className="h-1.5 w-1.5 rounded-full bg-background" />
+        )}
+      </div>
+    </div>
+  );
+})}
         </div>
 
         {/* Footer */}
         <div className="p-3 sm:p-4">
           <button
-            onClick={onClose}
-            className="
-          w-full py-2 sm:py-2.5
-          rounded-lg
-          bg-primary/30
-          text-primary-foreground
-          text-sm font-medium
-        "
+            disabled={selectedUsers.length === 0}
+            onClick={() => {
+              onStartChat(selectedUsers);
+              startChat();
+              onClose();
+            }}
+            className={`
+    w-full py-2.5 rounded-lg text-sm font-medium
+    ${
+      selectedUsers.length === 0
+        ? "bg-muted text-muted-foreground"
+        : "bg-primary text-primary-foreground"
+    }
+  `}
           >
             Chat
           </button>
