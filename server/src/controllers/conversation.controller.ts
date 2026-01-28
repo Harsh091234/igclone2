@@ -32,6 +32,15 @@ export const createMessage = async(req: Request, res: Response) => {
     const {text} = req.body
 
     const files = req.files as Express.Multer.File[];
+
+    
+if (!text?.trim() && (!files || files.length === 0)) {
+  return res.status(400).json({
+    success: false,
+    message: "Message cannot be empty",
+  });
+}
+
    const media: { url: string; type: MediaType }[] = [];
 
     for (const file of files || []) {

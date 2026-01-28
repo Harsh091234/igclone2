@@ -1,51 +1,81 @@
-
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
-import { Loader2, Send, X } from "lucide-react";
+import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 import { useState } from "react";
 import type { SearchUser } from "../types/user.types";
-import { useCreateMessageMutation, useGetAllMessagesQuery } from "../services/conversationApi";
+import {
+  useCreateMessageMutation,
+  useGetAllMessagesQuery,
+} from "../services/conversationApi";
 import { useGetAuthUserQuery } from "../services/userApi";
+import toast from "react-hot-toast";
+import MessageBubble from "./MessageBubble";
 
-interface SelectedChatProps{
+interface SelectedChatProps {
   onClose: () => void;
   user: SearchUser;
 }
 
-const SelectedChat = ({onClose, user}: SelectedChatProps) => {
- 
+type PreviewItem = {
+  url: string;
+  type: "image" | "video" | "audio" | "file";
+  name: string;
+};
+const getPreviewType = (file: File): PreviewItem["type"] => {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "file";
+};
+
+const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
   const [text, setText] = useState<string>("");
-  const [createMessage, {isLoading: isCreateMessageLoading}] = useCreateMessageMutation();
-  const {isLoading: isMessagesLoading, data: messagesData} = useGetAllMessagesQuery(user._id);
-  const messages = messagesData?.messages?? [];
- 
-  const {data: authData} = useGetAuthUserQuery();
+  const [media, setMedia] = useState<File[]>([]);
+  const [createMessage, { isLoading: isCreateMessageLoading }] =
+    useCreateMessageMutation();
+  const { isLoading: isMessagesLoading, data: messagesData } =
+    useGetAllMessagesQuery(user._id);
+  const messages = messagesData?.messages ?? [];
+
+  const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
+  const MAX_MEDIA_FILES = 5;
+const [previews, setPreviews] = useState<PreviewItem[]>([]);
 
-
-
-  const handleInput = async() => {
+  const handleInput = async () => {
+    try {
       const formData = new FormData();
 
-      if(text.trim()){
+      if (!text.trim() && media.length === 0) {
+        return toast.error("Message cannot be empty");
+      }
+
+      if (media.length > MAX_MEDIA_FILES) {
+        toast.error(`You can only send up to ${MAX_MEDIA_FILES} media files`);
+        return;
+      }
+
+      if (text.trim()) {
         formData.append("text", text);
       }
 
-      // if(media?.length ){
-      //   media.forEach((file) => {
-      //     formData.append("media", file);
-      //   })
-      // }
+      media.forEach((file) => {
+        formData.append("media", file);
+      });
 
       const data = await createMessage({
         receiverId: user._id,
-        formData
+        formData,
       }).unwrap();
-     
-      setText("")
-  }
-
+      console.log("cre data:", data);
+      setText("");
+      setMedia([]);
+      setPreviews([])
+    } catch (error: any) {
+      console.log("error in handleInput: SelectChat.tsx-", error.data.message);
+    }
+  };
 
   return (
     <div className="flex flex-col w-full bg-background h-full z-60">
@@ -65,36 +95,122 @@ const SelectedChat = ({onClose, user}: SelectedChatProps) => {
       </div>
 
       <div className="flex-1 text-xs sm:text-sm overflow-y-auto p-4 space-y-2.5 sm:space-y-5 bg-muted/30">
-        {isMessagesLoading? <>loading..</> :  messages.map((message) => {
-          const isSender = message.senderId._id === authUserId;
+        {isMessagesLoading ? (
+          <>loading..</>
+        ) : (
+          messages.map((message) => {
+            const isSender = message.senderId._id === authUserId;
 
-          return (
-            <Card
-              key={message._id}
-              className={
-              `  max-w-xs md:max-w-sm xl:max-w-md p-2.5 text-sm wrap-break-word
-               ${ isSender
-                  ? "ml-auto bg-secondary text-secondary-foreground"
-                  : "bg-background" }
-              `}
-            >
-              {message.text && message.text}
-
-            </Card>
-          );
-        })}
+            return (
+              <MessageBubble
+                key={message._id}
+                message={message}
+                isSender={message.senderId._id === authUserId}
+              />
+            );
+          })
+        )}
       </div>
 
-      <div className="border-t border-border p-3 flex items-center gap-2 shrink-0">
+      <div className="relative border-t border-border p-3 flex items-center gap-2 shrink-0">
+        {previews.length > 0 && (
+          <div
+            className="
+      absolute bottom-full mb-2
+      max-w-[7.6rem]
+      max-h-[20vh]
+      bg-card border border-border p-2
+      rounded-md
+      overflow-y-auto
+    "
+          >
+            <div className="flex flex-wrap  flex-row-reverse gap-2">
+              {previews.map((item, i) => (
+                <div
+                  key={i}
+                  className="
+            relative
+            h-10 w-10
+            shrink-0
+            border rounded-lg border-border
+            flex items-center justify-center
+            bg-muted
+          "
+                >
+                  {/* IMAGE PREVIEW */}
+                  {item.type === "image" ? (
+                    <img
+                      src={item.url}
+                      className="h-full w-full object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center text-[7px] text-primary text-center px-1">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:opacity-80"
+                      >
+                        Attachment
+                      </a>
+                    </div>
+                  )}
+
+                  {/* REMOVE */}
+                  <button
+                    onClick={() => {
+                      setMedia((prev) => prev.filter((_, idx) => idx !== i));
+                      setPreviews((prev) => prev.filter((_, idx) => idx !== i));
+                    }}
+                    className="absolute -top-1 -right-1 bg-black/70 text-white rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <input
+          type="file"
+          multiple
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+          className="hidden"
+          id="media-upload"
+          onChange={(e) => {
+            if (e.target.files) {
+              const files = Array.from(e.target.files);
+              setMedia(files);
+              const previewItems: PreviewItem[] = files.map((file) => ({
+                url: URL.createObjectURL(file),
+                type: getPreviewType(file),
+                name: file.name,
+              }));
+              setPreviews(previewItems);
+            }
+          }}
+        />
+        {}
+        <label
+          htmlFor="media-upload"
+          className="text-muted-foreground cursor-pointer absolute left-6"
+        >
+          <ImagePlus className="h-4 w-4" />
+        </label>
         <Input
           placeholder="Message..."
-          className="flex-1  text-xs sm:text-sm"
+          className="flex-1 pl-9  text-xs sm:text-sm"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+          }}
         />
         <button
           onClick={handleInput}
-          disabled={isCreateMessageLoading}
+          disabled={
+            isCreateMessageLoading || (!text.trim() && media.length === 0)
+          }
           className="
         p-2 rounded-md bg-primary text-primary-foreground
         hover:opacity-90
