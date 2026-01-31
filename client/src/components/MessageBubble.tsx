@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { decryptText } from "../utils/crypto/crypto";
+import { getSessionKey } from "../utils/session";
 import { Card } from "./ui/card";
 
 interface Media {
@@ -5,16 +8,61 @@ interface Media {
   type: string;
 }
 
-interface MessageBubbleProps {
-  message: any;
-  isSender: boolean;
+interface EncryptedMessage {
+  _id: string;
+  senderId: string | { _id: string };
+  cipherText?: ArrayBuffer | Uint8Array;
+  iv?: Uint8Array;
+  media?: Media[];
 }
 
-const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
+interface MessageBubbleProps {
+  message: EncryptedMessage;
+  isSender: boolean;
+   conversationId: string;
+  senderPublicKey: ArrayBuffer; 
+}
+
+const MessageBubble = ({
+  message,
+  isSender,
+  conversationId,
+  senderPublicKey,
+}: MessageBubbleProps) => {
+   const [decryptedText, setDecryptedText] = useState<string>("");
   const images = message.media?.filter((m: Media) => m.type === "image") || [];
   const otherMedia =
     message.media?.filter((m: Media) => m.type !== "image") || [];
 
+    useEffect(() => {
+      let cancelled = false;
+
+      async function decrypt() {
+        if (!message.cipherText || !message.iv) return;
+
+        try {
+          const sessionKey = await getSessionKey(
+            conversationId,
+            senderPublicKey,
+          );
+
+          const text = await decryptText(
+            message.cipherText,
+            message.iv,
+            sessionKey,
+          );
+
+          if (!cancelled) setDecryptedText(text);
+        } catch (err) {
+          console.error("Decryption failed", err);
+        }
+      }
+
+      decrypt();
+      return () => {
+        cancelled = true;
+      };
+    }, [message.cipherText, message.iv, conversationId, senderPublicKey]);
   return (
     <Card
       className={`
@@ -57,8 +105,8 @@ const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
       ))}
 
       {/* ✏️ TEXT (always AFTER media) */}
-      {message.text && (
-        <p className="text-sm break-words pt-1">{message.text}</p>
+      {decryptedText && (
+        <p className="text-sm break-words pt-1">{decryptedText}</p>
       )}
     </Card>
   );

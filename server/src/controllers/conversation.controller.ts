@@ -29,12 +29,12 @@ export const createMessage = async(req: Request, res: Response) => {
     const senderId = sender._id;
     const receiverId = new mongoose.Types.ObjectId( req.params.receiverId);
      
-    const {text} = req.body
+   const { cipherText, iv } = req.body;
 
     const files = req.files as Express.Multer.File[];
 
     
-if (!text?.trim() && (!files || files.length === 0)) {
+if (!cipherText?.trim() && (!files || files.length === 0)) {
   return res.status(400).json({
     success: false,
     message: "Message cannot be empty",
@@ -94,7 +94,8 @@ if (!text?.trim() && (!files || files.length === 0)) {
     const message = await Message.create({
       senderId,
       receiverId,
-      text,
+      cipherText: Buffer.from(cipherText),
+      iv: Buffer.from(iv),
       media,
       seenBy: [
         {

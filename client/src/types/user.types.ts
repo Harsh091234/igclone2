@@ -18,7 +18,7 @@ export interface User {
 
   bookmarks?: string[];
   posts?: string[];
-
+  publicKey?: number[];
   isProfileComplete: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -38,6 +38,7 @@ export interface SearchUser {
   userName: string;
   profilePic: string;
   fullName: string;
+  publicKey?: number[];
 }
 
 //api responses

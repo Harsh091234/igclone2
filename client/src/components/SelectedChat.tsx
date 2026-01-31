@@ -1,4 +1,5 @@
-import { Card } from "./ui/card";
+import { encryptText } from "../utils/crypto/crypto";
+
 import { Input } from "./ui/input";
 import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
@@ -11,6 +12,9 @@ import {
 import { useGetAuthUserQuery } from "../services/userApi";
 import toast from "react-hot-toast";
 import MessageBubble from "./MessageBubble";
+import { getSessionKey } from "../utils/session";
+import { publicKeyToArrayBuffer } from "../utils/crypto/keyUtils";
+import { uint8ToBase64 } from "../utils/crypto/binary";
 
 interface SelectedChatProps {
   onClose: () => void;
@@ -41,7 +45,8 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
   const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
   const MAX_MEDIA_FILES = 5;
-const [previews, setPreviews] = useState<PreviewItem[]>([]);
+  const [previews, setPreviews] = useState<PreviewItem[]>([]);
+  const [sessionKey, setSessionKey] = useState<CryptoKey | null>(null);
 
   const handleInput = async () => {
     try {
@@ -57,7 +62,22 @@ const [previews, setPreviews] = useState<PreviewItem[]>([]);
       }
 
       if (text.trim()) {
-        formData.append("text", text);
+        if (!user.publicKey) {
+          throw new Error("Receiver public key not found");
+        }
+        const receiverPublicKeyRaw = publicKeyToArrayBuffer(user.publicKey);
+        const sessionKey = await getSessionKey(
+          messagesData.conversationId,
+          receiverPublicKeyRaw,
+        );
+
+        const { cipherText, iv } = await encryptText(text, sessionKey);
+
+        formData.append(
+          "cipherText",
+          uint8ToBase64(new Uint8Array(cipherText)),
+        );
+        formData.append("iv", uint8ToBase64(iv));
       }
 
       media.forEach((file) => {
@@ -71,9 +91,11 @@ const [previews, setPreviews] = useState<PreviewItem[]>([]);
       console.log("cre data:", data);
       setText("");
       setMedia([]);
-      setPreviews([])
+      setPreviews([]);
     } catch (error: any) {
-      console.log("error in handleInput: SelectChat.tsx-", error.data.message);
+      const message = error?.data?.message || error?.message || "Unknown error";
+      console.log("error in handleInput: SelectChat.tsx-", message);
+      toast.error(message);
     }
   };
 
@@ -98,14 +120,22 @@ const [previews, setPreviews] = useState<PreviewItem[]>([]);
         {isMessagesLoading ? (
           <>loading..</>
         ) : (
-          messages.map((message) => {
+          messages.map((message: any) => {
             const isSender = message.senderId._id === authUserId;
 
+            if (!user.publicKey) {
+              console.error("User public key missing");
+              return null; // or render placeholder
+            }
+
+            const senderPublicKey = publicKeyToArrayBuffer(user.publicKey);
             return (
               <MessageBubble
                 key={message._id}
                 message={message}
                 isSender={message.senderId._id === authUserId}
+                conversationId={messagesData.conversationId}
+                senderPublicKey={senderPublicKey}
               />
             );
           })

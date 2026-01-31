@@ -24,28 +24,52 @@ import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 import ReelsPage from "./pages/ReelsPage";
 import MessagePage from "./pages/MessagePage";
+import { assertWebCrypto } from "./utils/crypto/cryptoSupport";
+import { exportPublicKey, generateIdentityKeyPair } from "./utils/crypto/crypto";
+import { savePrivateKey } from "./utils/storage/keyStore";
+import { useSavePublicKeyMutation } from "./services/keysApi";
 
 const App = () => {
   const {  isSignedIn, isLoaded } = useUser();
   const [syncUser, {isLoading: syncUserLoading}] = useSyncUserMutation();
- 
+  const [savePublicKey] = useSavePublicKeyMutation();
   const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   });
   const { theme, setTheme } = useTheme();
   const authUser = data?.user;
 
-  
+
    useEffect(() => {
      if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
        syncUser()
          .unwrap()
-         .then(() => {
-           refetch(); // refetch after syncing
+         .then(async() => {
+          const refreshedUser = refetch(); // refetch after syncing
+
+             if (!refreshedUser?.user?.publicKey) {
+               const keyPair = await generateIdentityKeyPair();
+
+               // Store private key in IndexedDB
+               await savePrivateKey(keyPair.privateKey);
+
+               // Export & send public key to server
+               const rawPublicKey = await exportPublicKey(keyPair.publicKey);
+               const publicKeyBase64 = btoa(
+                 String.fromCharCode(...new Uint8Array(rawPublicKey)),
+               );
+
+              await savePublicKey(publicKeyBase64).unwrap();
+             }
+
          })
          .catch(console.error);
+
+         assertWebCrypto();
      }
-   }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
+   }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch,
+    savePublicKey
+   ]);
   
 
 
