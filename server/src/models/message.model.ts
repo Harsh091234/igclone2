@@ -21,11 +21,7 @@ interface SeenBy {
 export interface IMessage extends Document {
   senderId: mongoose.Types.ObjectId;
   receiverId: mongoose.Types.ObjectId;
-  // e2ee 
-  cipherText: Buffer;
-  iv: Buffer;
-  senderEphemeralPublicKey?: Buffer;
-
+  text: string;
   media: Media[];
   seenBy: SeenBy[];
   createdAt: Date;
@@ -44,20 +40,10 @@ const messageSchema = new Schema<IMessage>(
       ref: "User",
     },
 
-    // e2ee fields
-
-    cipherText: {
-      type: Buffer,
-      required: true,
-    },
-
-    iv: {
-      type: Buffer,
-      required: true,
-    },
-
-    senderEphemeralPublicKey: {
-      type: Buffer,
+    text: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
     },
 
     media: [

@@ -7,27 +7,34 @@ import postRoutes from "./routes/post.route.js";
 import conversationRoutes from "./routes/conversation.route.js"
 import keyRoutes from "./routes/key.route.js"
 import cors from "cors";
+import http from "http"
 import { clerkMiddleware } from "@clerk/express";
 import path from "node:path";
-
+import { Server } from "socket.io";
+import { app, server } from "./socket/socket.js";
 dotenv.config();
 const __dirname = path.resolve();
 
 const PORT = process.env.PORT || 3001;
-const app: Application = express();
+
+
+
+
+
 
 connectDB(process.env.MONGO_URI || "");
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production" ? true : process.env.CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // headers your frontend sends
+  }),
+);
 app.use(clerkMiddleware());
 
-app.use(cors(
-  {
-    origin: process.env.NODE_ENV === "production"? true : process.env.CLIENT_URL,  
-    credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allowed methods
-  allowedHeaders: ["Content-Type", "Authorization"],   // headers your frontend sends
-                
-  }
-));
+
 app.use(express.json({limit: "10mb"}));
 app.use(urlencoded({limit: "10mb", extended: true}));
 
@@ -52,7 +59,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
 

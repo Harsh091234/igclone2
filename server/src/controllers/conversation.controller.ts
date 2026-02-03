@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import User from "../models/user.model.js";
-import {Request, Response} from "express"
+import { Request, Response } from "express";
 import { convertToBase64 } from "../config/convertToBase64.js";
 import { uploadBase64Image } from "../config/uploadPic.js";
 import { uploadVideo } from "../config/uploadVideo.js";
@@ -9,6 +9,8 @@ import Conversation from "../models/conversation.model.js";
 import Message, { MediaType } from "../models/message.model.js";
 import mongoose from "mongoose";
 import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
+
 
 const getMediaType = (mimetype: string) => {
   if (mimetype.startsWith("image/")) return "image";
@@ -20,33 +22,35 @@ const getMediaType = (mimetype: string) => {
   return "doc";
 };
 
-export const createMessage = async(req: Request, res: Response) => {
-   try {
-    const {userId: clerkId} = req.auth!();
-  //  const { clerkId } = req.body;
-    const sender = await User.findOne({clerkId});
-    if(!sender) return res.status(400).json({success: false, message: "No sender found"});
+export const createMessage = async (req: Request, res: Response) => {
+  try {
+    const { userId: clerkId } = req.auth!();
+    //  const { clerkId } = req.body;
+    const sender = await User.findOne({ clerkId });
+    if (!sender)
+      return res
+        .status(400)
+        .json({ success: false, message: "No sender found" });
     const senderId = sender._id;
-    const receiverId = new mongoose.Types.ObjectId( req.params.receiverId);
-     
-   const { cipherText, iv } = req.body;
+    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
+
+    const { text } = req.body;
 
     const files = req.files as Express.Multer.File[];
 
-    
-if (!cipherText?.trim() && (!files || files.length === 0)) {
-  return res.status(400).json({
-    success: false,
-    message: "Message cannot be empty",
-  });
-}
+    if (!text?.trim() && (!files || files.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Message cannot be empty",
+      });
+    }
 
-   const media: { url: string; type: MediaType }[] = [];
+    const media: { url: string; type: MediaType }[] = [];
 
     for (const file of files || []) {
       const type = getMediaType(file.mimetype);
 
-     // IMAGE
+      // IMAGE
       if (type === "image") {
         const optimizedBuffer = await sharp(file.buffer)
           .resize({ width: 800, height: 800, fit: "inside" })
@@ -57,7 +61,7 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
 
         const uploaded = await uploadBase64Image(
           base64Image,
-          CLOUDINARY_FOLDERS.CHAT_IMAGES
+          CLOUDINARY_FOLDERS.CHAT_IMAGES,
         );
 
         media.push({ url: uploaded.secure_url, type });
@@ -67,7 +71,7 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
       else if (type === "video") {
         const uploaded = await uploadVideo(
           file.buffer,
-          CLOUDINARY_FOLDERS.CHAT_VIDEOS
+          CLOUDINARY_FOLDERS.CHAT_VIDEOS,
         );
         media.push({ url: uploaded.secure_url, type });
       }
@@ -76,7 +80,7 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
       else {
         const uploaded = await uploadRaw(
           file.buffer,
-          CLOUDINARY_FOLDERS.CHAT_RAW_FILES
+          CLOUDINARY_FOLDERS.CHAT_RAW_FILES,
         );
         media.push({ url: uploaded.secure_url, type });
       }
@@ -87,15 +91,14 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
     });
     if (!conversation) {
       conversation = await Conversation.create({
-        participants:[senderId, receiverId],
+        participants: [senderId, receiverId],
       });
     }
 
     const message = await Message.create({
       senderId,
       receiverId,
-      cipherText: Buffer.from(cipherText),
-      iv: Buffer.from(iv),
+      text,
       media,
       seenBy: [
         {
@@ -105,9 +108,21 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
       ],
     });
 
+    const populatedMessage = await Message.findById(message._id)
+      .populate("senderId", "_id") // populate sender info
+      .populate("receiverId", "_id"); // optional
+
     conversation.messages.push(message._id);
     conversation.lastMessage = message._id;
     await conversation.save();
+
+    const senderSocketId = getReceiverSocketId(senderId.toString());
+    if (senderSocketId)
+      io.to(senderSocketId).emit("newMessage", populatedMessage);
+
+    const receiverSocketId = getReceiverSocketId(receiverId.toString());
+    console.log("📤 Emitting newMessage to:", receiverSocketId);
+    if (receiverSocketId) io.to(receiverSocketId).emit("newMessage", populatedMessage);
 
     res.status(201).json({
       success: true,
@@ -118,27 +133,25 @@ if (!cipherText?.trim() && (!files || files.length === 0)) {
     console.error("Create message error:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
+};
 
-}
-
-export const getAllMessages = async(req: Request, res: Response) => {
+export const getAllMessages = async (req: Request, res: Response) => {
   try {
-    const {userId: clerkId} = req.auth!();
+    const { userId: clerkId } = req.auth!();
     // const { clerkId } = req.body;
-    const sender = await User.findOne({clerkId});
-        if (!sender)
-          return res
-            .status(400)
-            .json({ success: false, message: "No sender found" });
+    const sender = await User.findOne({ clerkId });
+    if (!sender)
+      return res
+        .status(400)
+        .json({ success: false, message: "No sender found" });
     const senderId = sender._id;
-     const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
+    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
 
     const conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
     });
 
     if (!conversation) {
-     
       return res.json({
         success: true,
         conversationId: null,
@@ -146,7 +159,7 @@ export const getAllMessages = async(req: Request, res: Response) => {
       });
     }
 
-     console.log("hi");
+    console.log("hi");
     const messages = await Message.find({
       _id: { $in: conversation.messages },
     })
@@ -179,22 +192,21 @@ export const getAllMessages = async(req: Request, res: Response) => {
     console.error("Get conversation messages error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
 
-}
-
-export const getLastMessages = async(req: Request, res: Response) => {
-   try {
-     const { userId: clerkId } = req.auth!();
+export const getLastMessages = async (req: Request, res: Response) => {
+  try {
+    const { userId: clerkId } = req.auth!();
     // const {clerkId} = req.body;
-     const authUser = await User.findOne({ clerkId });
-     if (!authUser) {
-       return res.status(400).json({
-         success: false,
-         message: "No auth user not found",
-       });
-     }
+    const authUser = await User.findOne({ clerkId });
+    if (!authUser) {
+      return res.status(400).json({
+        success: false,
+        message: "No auth user not found",
+      });
+    }
 
-     const userId = authUser._id;
+    const userId = authUser._id;
 
     const conversations = await Conversation.find({
       participants: userId,
@@ -209,7 +221,6 @@ export const getLastMessages = async(req: Request, res: Response) => {
       })
       .sort({ updatedAt: -1 })
       .lean();
-
 
     const formattedConversations = conversations.map((conv) => {
       const receiver = conv.participants.find(
@@ -227,8 +238,8 @@ export const getLastMessages = async(req: Request, res: Response) => {
       success: true,
       conversations: formattedConversations,
     });
-   } catch (error) {
-     console.error("Get last messages error:", error);
-     res.status(500).json({ message: "Internal server error" });
-   }
-}
+  } catch (error) {
+    console.error("Get last messages error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

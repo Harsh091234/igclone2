@@ -36,8 +36,7 @@
       if (!email)
         return res.status(400).json({ message: "Email not found in clerk db" });
       let user = await User.findOne({ clerkId });
-      console.log("id", clerkId);
-      console.log("user", user);
+   
       if (!user) {
         user = await User.create({
           clerkId,
@@ -175,7 +174,7 @@
             fullName: regex,
           },
         ],
-      }).select("userName profilePic fullName");
+      }).select("userName profilePic fullName publicKey");
 
       res.json({ success: true, users });
     } catch (error) {

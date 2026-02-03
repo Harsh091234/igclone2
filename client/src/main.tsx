@@ -8,8 +8,9 @@ import { Toaster } from "react-hot-toast";
 
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from './utils/ThemeProvider.tsx'
-import {ApiProvider} from "@reduxjs/toolkit/query/react"
-import { api } from './services/api.ts'
+
+import { Provider } from 'react-redux';
+import { store } from './store/store.ts';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -21,11 +22,11 @@ createRoot(document.getElementById("root")!).render(
   
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <BrowserRouter>
-        <ApiProvider api={api}>
+        <Provider store={store}>
           <ThemeProvider defaultTheme='light' storageKey="vite-ui-theme">
             <App />
           </ThemeProvider>
-        </ApiProvider>
+        </Provider>
         <Toaster
           toastOptions={{
             success: {

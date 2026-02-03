@@ -6,11 +6,10 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import { useEffect } from "react";
-import {  Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import UserSetupPage from "./pages/UserSetupPage";
-
 import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
 import LeftSideBar from "./components/LeftSideBar";
@@ -24,54 +23,64 @@ import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 import ReelsPage from "./pages/ReelsPage";
 import MessagePage from "./pages/MessagePage";
-import { assertWebCrypto } from "./utils/crypto/cryptoSupport";
-import { exportPublicKey, generateIdentityKeyPair } from "./utils/crypto/crypto";
-import { savePrivateKey } from "./utils/storage/keyStore";
-import { useSavePublicKeyMutation } from "./services/keysApi";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "./store/store";
+import { connectSocket, disconnectSocket, getSocket } from "./utils/socket";
+import { setConnected, setOnlineUsers } from "./redux/socketSlice";
+import { useAppSelector } from "./utils/hooks";
 
 const App = () => {
-  const {  isSignedIn, isLoaded } = useUser();
-  const [syncUser, {isLoading: syncUserLoading}] = useSyncUserMutation();
-  const [savePublicKey] = useSavePublicKeyMutation();
-  const { data, isLoading, refetch} = useGetAuthUserQuery(undefined, {
+  const { isSignedIn, isLoaded } = useUser();
+  const [syncUser, { isLoading: syncUserLoading }] = useSyncUserMutation();
+  const { onlineUsers, connected } = useAppSelector((state) => state.socket);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   });
   const { theme, setTheme } = useTheme();
   const authUser = data?.user;
 
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
+      syncUser()
+        .unwrap()
+        .then(() => {
+          refetch(); // refetch after syncing
+        })
+        .catch(console.error);
+    }
+  }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
 
-   useEffect(() => {
-     if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
-       syncUser()
-         .unwrap()
-         .then(async() => {
-          const refreshedUser = refetch(); // refetch after syncing
+  useEffect(() => {
+    console.log("🟢 Redux socket state:", {
+      connected,
+      onlineUsers,
+    });
+  }, [connected, onlineUsers]);
 
-             if (!refreshedUser?.user?.publicKey) {
-               const keyPair = await generateIdentityKeyPair();
+  useEffect(() => {
+    if (!authUser?._id) return;
 
-               // Store private key in IndexedDB
-               await savePrivateKey(keyPair.privateKey);
-
-               // Export & send public key to server
-               const rawPublicKey = await exportPublicKey(keyPair.publicKey);
-               const publicKeyBase64 = btoa(
-                 String.fromCharCode(...new Uint8Array(rawPublicKey)),
-               );
-
-              await savePublicKey(publicKeyBase64).unwrap();
-             }
-
-         })
-         .catch(console.error);
-
-         assertWebCrypto();
-     }
-   }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch,
-    savePublicKey
-   ]);
+    const socket = connectSocket(authUser._id);
   
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      dispatch(setConnected(true));
+    });
+    socket.on("getOnlineUsers", (users: string[]) => {
+      dispatch(setOnlineUsers(users));
+    });
 
+    socket.on("disconnect", () => {
+      dispatch(setConnected(false));
+    });
+
+    return () => {
+      socket.off("getOnlineUsers");
+      disconnectSocket();
+    };
+  }, [authUser?._id, dispatch]);
 
   const handleTheme = () => {
     if (theme === "light") {
@@ -80,7 +89,7 @@ const App = () => {
       setTheme("light");
     }
   };
-  
+
   if (!isLoaded || isLoading || syncUserLoading) return <CenterLoading />;
   return (
     <div className="">

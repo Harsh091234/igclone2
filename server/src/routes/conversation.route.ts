@@ -15,8 +15,7 @@ router.post(
   "/send/:receiverId",
   requireAuth(),
   upload.array("media", 5),
-  validate(createMessageSchema),
-  requireAuth(),
+
   createMessage,
 );
 

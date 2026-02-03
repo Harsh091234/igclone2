@@ -2,7 +2,8 @@ import { api } from "./api";
 
 export const keysApi = api.injectEndpoints({
   endpoints: (builder) => ({
-     savePublicKey: builder.mutation({ // input: base64 public key
+    savePublicKey: builder.mutation({
+      // input: base64 public key
       query: (publicKey) => ({
         url: "/keys/identity",
         method: "POST",
@@ -10,16 +11,13 @@ export const keysApi = api.injectEndpoints({
       }),
     }),
 
-    getPublicKey: builder.query({ // input: userId
+    getPublicKey: builder.query({
+      // input: userId
       query: (userId) => ({
         url: `/keys/${userId}`,
       }),
     }),
   }),
-  })
+});
 
-
-export const {
-    useSavePublicKeyMutation,
-    useGetPublicKeyQuery
-} = keysApi;
+export const { useSavePublicKeyMutation, useGetPublicKeyQuery } = keysApi;

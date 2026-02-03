@@ -10,18 +10,17 @@ export const conversationApi = api.injectEndpoints({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Messages", "Conversation"],
+    
     }),
 
     getAllMessages: builder.query({
       query: (receiverId: string) =>
         `/conversation/get-all-messages/${receiverId}`,
-      providesTags: ["Messages", "Conversation"],
     }),
 
     getLastMessages: builder.query({
-      query: () => "/conversation/get-last-messages"
-    })
+      query: () => "/conversation/get-last-messages",
+    }),
   }),
 });
 

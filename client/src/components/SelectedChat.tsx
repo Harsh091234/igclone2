@@ -1,20 +1,21 @@
-import { encryptText } from "../utils/crypto/crypto";
-
+import { Card } from "./ui/card";
 import { Input } from "./ui/input";
+import { useRef } from "react";
 import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SearchUser } from "../types/user.types";
 import {
+  conversationApi,
   useCreateMessageMutation,
   useGetAllMessagesQuery,
 } from "../services/conversationApi";
 import { useGetAuthUserQuery } from "../services/userApi";
 import toast from "react-hot-toast";
 import MessageBubble from "./MessageBubble";
-import { getSessionKey } from "../utils/session";
-import { publicKeyToArrayBuffer } from "../utils/crypto/keyUtils";
-import { uint8ToBase64 } from "../utils/crypto/binary";
+import { getSocket } from "../utils/socket";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../store/store";
 
 interface SelectedChatProps {
   onClose: () => void;
@@ -36,17 +37,56 @@ const getPreviewType = (file: File): PreviewItem["type"] => {
 const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
   const [text, setText] = useState<string>("");
   const [media, setMedia] = useState<File[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
   const [createMessage, { isLoading: isCreateMessageLoading }] =
     useCreateMessageMutation();
   const { isLoading: isMessagesLoading, data: messagesData } =
     useGetAllMessagesQuery(user._id);
-  const messages = messagesData?.messages ?? [];
+ const messages = messagesData?.messages ?? [];
 
   const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
   const MAX_MEDIA_FILES = 5;
   const [previews, setPreviews] = useState<PreviewItem[]>([]);
-  const [sessionKey, setSessionKey] = useState<CryptoKey | null>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !user?._id || !authUserId) return;
+
+    const handleNewMessage = (message: any) => {
+      console.log("📩 NEW MESSAGE RECEIVED (socket):", message);
+      const senderId = message.senderId._id ;
+      const receiverId = message.receiverId._id ;
+     const isBetweenTheseUsers =
+       (senderId === authUserId && receiverId === user._id) ||
+       (senderId === user._id && receiverId === authUserId);
+      if (!isBetweenTheseUsers) return;
+
+      // 🔥 Update RTK Query cache
+      dispatch(
+        conversationApi.util.updateQueryData(
+          "getAllMessages",
+          user._id,
+          (draft: any) => {
+            if (!draft.messages.some((m: any) => m._id === message._id)) {
+              draft.messages.push(message);
+            }
+          },
+        ),
+      );
+    };;
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [user._id, authUserId]);
 
   const handleInput = async () => {
     try {
@@ -62,22 +102,7 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
       }
 
       if (text.trim()) {
-        if (!user.publicKey) {
-          throw new Error("Receiver public key not found");
-        }
-        const receiverPublicKeyRaw = publicKeyToArrayBuffer(user.publicKey);
-        const sessionKey = await getSessionKey(
-          messagesData.conversationId,
-          receiverPublicKeyRaw,
-        );
-
-        const { cipherText, iv } = await encryptText(text, sessionKey);
-
-        formData.append(
-          "cipherText",
-          uint8ToBase64(new Uint8Array(cipherText)),
-        );
-        formData.append("iv", uint8ToBase64(iv));
+        formData.append("text", text);
       }
 
       media.forEach((file) => {
@@ -88,14 +113,12 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
         receiverId: user._id,
         formData,
       }).unwrap();
-      console.log("cre data:", data);
+ 
       setText("");
       setMedia([]);
       setPreviews([]);
     } catch (error: any) {
-      const message = error?.data?.message || error?.message || "Unknown error";
-      console.log("error in handleInput: SelectChat.tsx-", message);
-      toast.error(message);
+      console.log("error in handleInput: SelectChat.tsx-", error.data.message);
     }
   };
 
@@ -120,26 +143,20 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
         {isMessagesLoading ? (
           <>loading..</>
         ) : (
-          messages.map((message: any) => {
+          messages.map((message) => {
             const isSender = message.senderId._id === authUserId;
 
-            if (!user.publicKey) {
-              console.error("User public key missing");
-              return null; // or render placeholder
-            }
-
-            const senderPublicKey = publicKeyToArrayBuffer(user.publicKey);
             return (
               <MessageBubble
                 key={message._id}
                 message={message}
                 isSender={message.senderId._id === authUserId}
-                conversationId={messagesData.conversationId}
-                senderPublicKey={senderPublicKey}
               />
             );
           })
         )}
+        {/* div to scroll automatically */}
+        <div ref={messagesEndRef} /> 
       </div>
 
       <div className="relative border-t border-border p-3 flex items-center gap-2 shrink-0">

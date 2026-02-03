@@ -10,16 +10,23 @@ import type { SearchUser } from "../types/user.types";
 import { useGetLastMessagesQuery } from "../services/conversationApi";
 import ChatListSkeleton from "../components/Skeletons/ChatListSkeleton";
 
+
+
 const MessagePage = () => {
   const [isChatSelected, setIsChatSelected] = useState(false);
-  const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState<boolean>(false);
- const {isLoading: isLastChatsLoading, data: lastChatData} = useGetLastMessagesQuery(undefined);
-const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
+  const [isNewMessageModalOpen, setIsNewMessageModalOpen] =
+    useState<boolean>(false);
+  
+  const { isLoading: isLastChatsLoading, data: lastChatData } =
+    useGetLastMessagesQuery(undefined);
+  const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
   console.log("data side", lastChatData);
   const conversations = lastChatData?.conversations;
-   const [demo, setDemo] = useState(false);
+  const [demo, setDemo] = useState(false);
+ 
+ 
 
-
+ 
 
   return (
     <div className="h-screen w-full  text-foreground flex">
@@ -58,12 +65,19 @@ const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
                   setActiveChatUser(chat.receiver);
                   setIsChatSelected(true);
                 }}
-                className=" flex items-center gap-3 px-4 py-1.5 md:py-3 cursor-pointer hover:bg-muted/60 active:bg-muted/60"
+                className="  flex items-center gap-3 px-4 py-1.5 md:py-3 cursor-pointer hover:bg-muted/60 active:bg-muted/60"
               >
-                <UserAvatar
-                  user={chat.receiver}
-                  classes="h-9 w-9 md:h-10 md:w-10"
-                />
+                <div className="relative">
+                  <UserAvatar
+                    user={chat.receiver}
+                    classes="h-9 w-9 md:h-10 md:w-10"
+                  />
+                  {/* <span
+                    className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background
+      ${isUserOnline(chat.receiver._id) ? "bg-green-500" : "bg-red-500"}
+    `}
+                  /> */}
+                </div>
 
                 <div className="flex-1">
                   <p className="text-sm font-medium">
@@ -130,6 +144,5 @@ const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
     </div>
   );
 };
-
 
 export default MessagePage;

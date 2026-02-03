@@ -24,7 +24,6 @@ export interface IUser extends Document {
   isProfileComplete: boolean;
   createdAt: Date;
   updatedAt: Date;
-  publicKey: Buffer;
 }
 
 const userSchema = new Schema<IUser>(
@@ -117,10 +116,6 @@ const userSchema = new Schema<IUser>(
     isProfileComplete: {
       type: Boolean,
       default: false,
-    },
-    publicKey: {
-      type: Buffer, // or String (base64)
-      default: null,
     },
   },
   { timestamps: true },
