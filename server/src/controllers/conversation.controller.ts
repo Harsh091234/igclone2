@@ -109,8 +109,8 @@ export const createMessage = async (req: Request, res: Response) => {
     });
 
     const populatedMessage = await Message.findById(message._id)
-      .populate("senderId", "_id") // populate sender info
-      .populate("receiverId", "_id"); // optional
+      .populate("senderId", "_id userName profilePic") // populate sender info
+      .populate("receiverId", "_id userName profilePic"); // optional
 
     conversation.messages.push(message._id);
     conversation.lastMessage = message._id;

@@ -6,13 +6,14 @@ interface UserAvatarProps {
   user?: User | Author;
   classes?: string;
   onClick?: () => void;
+  profilePic?: string;
 }
 
-const UserAvatar = ({ user, classes, onClick }: UserAvatarProps) => {
+const UserAvatar = ({ user, classes, onClick, profilePic }: UserAvatarProps) => {
   return (
     <Avatar onClick={onClick} className={`border ${classes} border-zinc-700 `}>
       <AvatarImage
-        src={user?.profilePic || "/default user.jpg"}
+        src={profilePic || user?.profilePic || "/default user.jpg"}
         alt="Profile"
         className="object-cover"
       />

@@ -20,6 +20,8 @@ import type { AppDispatch } from "../store/store";
 interface SelectedChatProps {
   onClose: () => void;
   user: SearchUser;
+  isOnline: boolean;
+  statusText: string;
 }
 
 type PreviewItem = {
@@ -34,7 +36,7 @@ const getPreviewType = (file: File): PreviewItem["type"] => {
   return "file";
 };
 
-const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
+const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps) => {
   const [text, setText] = useState<string>("");
   const [media, setMedia] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -125,11 +127,18 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
   return (
     <div className="flex flex-col w-full bg-background h-full z-60">
       <div className="h-14 sm:h-16 border-b border-border flex items-center gap-1.5 sm:gap-3 px-4 shrink-0">
-        <UserAvatar user={user} />
+        <div className="relative">
+          <UserAvatar user={user} />
+          <span
+            className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background
+      ${isOnline ? "bg-green-500" : "bg-red-500"}
+    `}
+          />
+        </div>
 
         <div>
           <p className="text-sm font-medium">{user.userName}</p>
-          <p className="text-xs text-muted-foreground">Active now</p>
+          <p className="text-xs text-muted-foreground">{statusText}</p>
         </div>
         <button className="ml-auto hover:opacity-70 transition">
           <X
@@ -150,13 +159,13 @@ const SelectedChat = ({ onClose, user }: SelectedChatProps) => {
               <MessageBubble
                 key={message._id}
                 message={message}
-                isSender={message.senderId._id === authUserId}
+                isSender={isSender}
               />
             );
           })
         )}
         {/* div to scroll automatically */}
-        <div ref={messagesEndRef} /> 
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="relative border-t border-border p-3 flex items-center gap-2 shrink-0">

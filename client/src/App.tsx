@@ -68,8 +68,10 @@ const App = () => {
       console.log("Socket connected:", socket.id);
       dispatch(setConnected(true));
     });
-    socket.on("getOnlineUsers", (users: string[]) => {
-      dispatch(setOnlineUsers(users));
+    socket.on("getOnlineUsers", (users: {userId: string, lastActive: number}[]) => {
+       const userMap: Record<string, number> = {};
+        users.forEach((u) => (userMap[u.userId] = u.lastActive));
+      dispatch(setOnlineUsers(userMap));
     });
 
     socket.on("disconnect", () => {

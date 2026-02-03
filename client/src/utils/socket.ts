@@ -5,10 +5,13 @@ let socket: Socket | null = null;
 
 export const connectSocket = (userId: string) => {
   if (!socket) {
-    socket = io("http://localhost:3000", {
-      query: { userId },
-      withCredentials: true,
-    });
+   const url =
+     import.meta.env.MODE === "development" ? "http://localhost:3000" : "/"; // production uses same origin
+
+   socket = io(url, {
+     query: { userId },
+     withCredentials: true,
+   });
   }
   return socket;
 };

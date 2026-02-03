@@ -2,19 +2,19 @@ import { createSlice,type PayloadAction } from "@reduxjs/toolkit";
 
 
 interface SocketState {
-  onlineUsers: string[];
+  onlineUsers: Record<string, number>;
   connected: boolean;
 }
 
 const initialState: SocketState = {
-    onlineUsers: [],
+    onlineUsers: {},
     connected: false,
 }
 const socketSlice = createSlice({
   name: "socket",
   initialState,
   reducers: {
-    setOnlineUsers(state, action: PayloadAction<string[]>) {
+    setOnlineUsers(state, action: PayloadAction<Record<string, number>>) {
       state.onlineUsers = action.payload;
     },
     setConnected(state, action: PayloadAction<boolean>) {
