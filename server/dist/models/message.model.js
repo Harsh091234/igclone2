@@ -27,7 +27,7 @@ const messageSchema = new Schema({
             userId: { type: Schema.Types.ObjectId, ref: "User" },
             seenAt: { type: Date, default: Date.now },
         },
-    ]
+    ],
 }, { timestamps: true });
 const Message = model("Message", messageSchema);
 export default Message;

@@ -10,7 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
-import { formatTimeAgo } from "../../utils/timeFormatter";
+
 import type { CommentT, Post, Reel } from "../../types/post.types";
 
 import {
@@ -117,12 +117,12 @@ const CommentPostModal = ({
         className="bg-card w-full max-w-[45rem] h-[90vh] sm:h-[60vh] flex flex-col sm:flex-row relative overflow-hidden rounded-lg shadow-lg"
       >
         {/* LEFT: Carousel */}
-        <div className="w-full sm:w-1/2 h-60 sm:h-full flex bg-green-500 items-center justify-center p-2">
+        <div className="w-full sm:w-1/2 h-60 sm:h-full flex items-center justify-center p-2">
           <Carousel
             setApi={setApi}
-            className="flex h-full w-full justify-center bg-violet-600 rounded-lg overflow-hidden"
+            className="flex h-full w-full justify-center rounded-lg overflow-hidden"
           >
-            <CarouselContent className="h-full bg-red-400">
+            <CarouselContent className="h-full">
               {mediaList.map((item, index) => (
                 <CarouselItem key={index}>
                   {item.type === "image" ? (
@@ -141,12 +141,17 @@ const CommentPostModal = ({
               ))}
             </CarouselContent>
 
-            <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
-              ‹
-            </CarouselPrevious>
-            <CarouselNext className="absolute top-1/2 right-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
-              ›
-            </CarouselNext>
+            {mediaList.length > 1 && (
+              <>
+                <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
+                  ‹
+                </CarouselPrevious>
+
+                <CarouselNext className="absolute top-1/2 right-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
+                  ›
+                </CarouselNext>
+              </>
+            )}
 
             {/* Optional Dots Indicator */}
             {mediaList.length > 1 && (

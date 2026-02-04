@@ -1,14 +1,16 @@
 import  { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../../utils/ThemeProvider";
 import {
   Settings,
-  Bookmark,
+  // Bookmark,
   SunMedium,
   MessageCircleWarning,
-  Activity,
+  // Activity,
   LogOut,
   UserPlus,
   CircleEllipsis,
+  Moon,
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 
@@ -20,7 +22,7 @@ interface MoreMenuProps {
 export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const {signOut} = useClerk()
-
+const { theme, setTheme } = useTheme();
   const onHandleLogout = () => {
     onClose?.();
     signOut();
@@ -67,7 +69,7 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
          <Settings size={18} />
          <span>Settings</span>
        </Link>
-
+       {/* 
        <Link
          to="/activity"
          onClick={onClose}
@@ -90,12 +92,15 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
        >
          <Bookmark size={18} />
          <span>Saved</span>
-       </Link>
+       </Link> */}
 
        <hr className="my-2 mx-2 border-t border-border" />
 
        <button
-         onClick={onClose}
+         onClick={() => {
+           setTheme(theme === "dark" ? "light" : "dark");
+           onClose?.();
+         }}
          className="
       flex items-center gap-3 px-3 py-2 w-full text-sm rounded-lg
       text-foreground
@@ -103,7 +108,7 @@ export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
       transition-colors duration-200
     "
        >
-         <SunMedium size={18} />
+         {theme === "dark" ? <SunMedium size={18} /> : <Moon size={18} />}
          <span>Switch appearance</span>
        </button>
 

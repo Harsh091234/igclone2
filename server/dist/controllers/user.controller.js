@@ -30,8 +30,6 @@ export const syncUser = async (req, res) => {
         if (!email)
             return res.status(400).json({ message: "Email not found in clerk db" });
         let user = await User.findOne({ clerkId });
-        console.log("id", clerkId);
-        console.log("user", user);
         if (!user) {
             user = await User.create({
                 clerkId,
@@ -81,7 +79,9 @@ export const getProfile = async (req, res) => {
             .populate("followers", "userName profilePic fullName")
             .populate("following", "userName fullName profilePic");
         if (!user)
-            return res.status(400).json({ success: false, message: "User not found" });
+            return res
+                .status(400)
+                .json({ success: false, message: "User not found" });
         console.log(user);
         return res.status(200).json({
             success: true,
@@ -137,7 +137,9 @@ export const searchUsers = async (req, res) => {
     try {
         const { q } = req.query;
         if (!q || typeof q !== "string") {
-            return res.status(400).json({ success: false, message: "Query is required" });
+            return res
+                .status(400)
+                .json({ success: false, message: "Query is required" });
         }
         const regex = new RegExp("^" + q, "i");
         const users = await User.find({
@@ -145,9 +147,9 @@ export const searchUsers = async (req, res) => {
                 { userName: regex },
                 {
                     fullName: regex,
-                }
-            ]
-        }).select("userName profilePic fullName");
+                },
+            ],
+        }).select("userName profilePic fullName publicKey");
         res.json({ success: true, users });
     }
     catch (error) {
@@ -157,17 +159,29 @@ export const searchUsers = async (req, res) => {
 export const getSuggestedUsers = async (req, res) => {
     try {
         const { userId: clerkId } = req.auth();
+        const { limit } = req.query;
         if (!clerkId) {
             return res.status(401).json({ message: "Not authenticated" });
         }
-        const suggestedUsers = await User.find({ clerkId: { $ne: clerkId } }).select("userName fullName profilePic");
+        const count = Number(limit) || 14;
+        const suggestedUsers = await User.aggregate([
+            { $match: { clerkId: { $ne: clerkId } } },
+            { $sample: { size: count } },
+            {
+                $project: {
+                    userName: 1,
+                    fullName: 1,
+                    profilePic: 1
+                }
+            }
+        ]);
         if (suggestedUsers.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
                 message: "No users found",
             });
         }
-        return res.status(200).json({ success: true, suggestedUsers });
+        return res.status(200).json({ success: true, users: suggestedUsers });
     }
     catch (error) {
         return res.status(500).json({
@@ -201,7 +215,7 @@ export const followOrUnfollowUser = async (req, res) => {
             //unfollow
             await Promise.all([
                 User.updateOne({ _id: authUser._id }, { $pull: { following: targetUserId } }),
-                User.updateOne({ _id: targetUserId }, { $pull: { followers: authUser._id } })
+                User.updateOne({ _id: targetUserId }, { $pull: { followers: authUser._id } }),
             ]);
             return res.status(200).json({
                 success: true,
@@ -212,7 +226,7 @@ export const followOrUnfollowUser = async (req, res) => {
             //follow
             await Promise.all([
                 User.updateOne({ _id: authUser._id }, { $push: { following: targetUserId } }),
-                User.updateOne({ _id: targetUserId }, { $push: { followers: authUser._id } })
+                User.updateOne({ _id: targetUserId }, { $push: { followers: authUser._id } }),
             ]);
             return res.status(200).json({
                 success: true,

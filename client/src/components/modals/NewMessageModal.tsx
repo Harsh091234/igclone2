@@ -5,7 +5,7 @@ import UserAvatar from "../UserAvatar";
 import { useState } from "react";
 import { useSearchUsersQuery } from "../../services/userApi";
 import type { SearchUser } from "../../types/user.types";
-import { ScrollArea } from "../ui/scroll-area";
+
 
 interface NewMessageModalProps {
   onClose: () => void;

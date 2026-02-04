@@ -8,6 +8,7 @@ import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import mongoose from "mongoose";
 import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 const getMediaType = (mimetype) => {
     if (mimetype.startsWith("image/"))
         return "image";
@@ -29,11 +30,19 @@ export const createMessage = async (req, res) => {
         //  const { clerkId } = req.body;
         const sender = await User.findOne({ clerkId });
         if (!sender)
-            return res.status(400).json({ success: false, message: "No sender found" });
+            return res
+                .status(400)
+                .json({ success: false, message: "No sender found" });
         const senderId = sender._id;
-        const receiverId = new mongoose.Types.ObjectId(req.params.id);
+        const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
         const { text } = req.body;
         const files = req.files;
+        if (!text?.trim() && (!files || files.length === 0)) {
+            return res.status(400).json({
+                success: false,
+                message: "Message cannot be empty",
+            });
+        }
         const media = [];
         for (const file of files || []) {
             const type = getMediaType(file.mimetype);
@@ -78,9 +87,19 @@ export const createMessage = async (req, res) => {
                 },
             ],
         });
+        const populatedMessage = await Message.findById(message._id)
+            .populate("senderId", "_id userName profilePic") // populate sender info
+            .populate("receiverId", "_id userName profilePic"); // optional
         conversation.messages.push(message._id);
         conversation.lastMessage = message._id;
         await conversation.save();
+        const senderSocketId = getReceiverSocketId(senderId.toString());
+        if (senderSocketId)
+            io.to(senderSocketId).emit("newMessage", populatedMessage);
+        const receiverSocketId = getReceiverSocketId(receiverId.toString());
+        console.log("📤 Emitting newMessage to:", receiverSocketId);
+        if (receiverSocketId)
+            io.to(receiverSocketId).emit("newMessage", populatedMessage);
         res.status(201).json({
             success: true,
             message,
@@ -101,10 +120,10 @@ export const getAllMessages = async (req, res) => {
             return res
                 .status(400)
                 .json({ success: false, message: "No sender found" });
-        const userId = sender._id;
+        const senderId = sender._id;
         const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
         const conversation = await Conversation.findOne({
-            participants: { $all: [userId, receiverId] },
+            participants: { $all: [senderId, receiverId] },
         });
         if (!conversation) {
             return res.json({
@@ -113,6 +132,7 @@ export const getAllMessages = async (req, res) => {
                 messages: [],
             });
         }
+        console.log("hi");
         const messages = await Message.find({
             _id: { $in: conversation.messages },
         })
@@ -121,12 +141,12 @@ export const getAllMessages = async (req, res) => {
             .lean();
         await Message.updateMany({
             _id: { $in: conversation.messages },
-            receiverId: userId,
-            "seenBy.userId": { $ne: userId },
+            receiverId: senderId,
+            "seenBy.userId": { $ne: senderId },
         }, {
             $push: {
                 seenBy: {
-                    userId,
+                    userId: senderId,
                     seenAt: new Date(),
                 },
             },
@@ -158,13 +178,26 @@ export const getLastMessages = async (req, res) => {
             participants: userId,
         })
             .populate({
-            path: "lastMessage",
-            select: "senderId receiverId text media createdAt seenBy",
+            path: "participants",
+            select: "userName profilePic",
         })
-            .sort({ updatedAt: -1 });
+            .populate({
+            path: "lastMessage",
+            select: "text media createdAt seenBy senderId",
+        })
+            .sort({ updatedAt: -1 })
+            .lean();
+        const formattedConversations = conversations.map((conv) => {
+            const receiver = conv.participants.find((p) => p._id.toString() !== userId.toString());
+            return {
+                _id: conv._id,
+                receiver,
+                lastMessage: conv.lastMessage,
+            };
+        });
         res.status(200).json({
             success: true,
-            conversations,
+            conversations: formattedConversations,
         });
     }
     catch (error) {

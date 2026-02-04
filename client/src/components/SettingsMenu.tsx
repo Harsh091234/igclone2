@@ -2,23 +2,23 @@ import { Link, useLocation } from "react-router-dom";
 import {
   User,
   Bell,
-  Lock,
-  Users,
-  Ban,
-  MapPin,
-  MessageSquare,
-  AtSign,
-  MessageCircle,
-  Repeat,
-  Shield,
-  Download,
-  Accessibility,
-  Globe,
-  Monitor,
-  BadgeHelp,
-  HelpCircle,
-  ShieldCheck,
-  LayoutDashboard,
+  // Lock,
+  // Users,
+  // Ban,
+  // MapPin,
+  // MessageSquare,
+  // AtSign,
+  // MessageCircle,
+  // Repeat,
+  // Shield,
+  // Download,
+  // Accessibility,
+  // Globe,
+  // Monitor,
+  // BadgeHelp,
+  // HelpCircle,
+  // ShieldCheck,
+  // LayoutDashboard,
 } from "lucide-react";
 
 const sections = [
@@ -29,93 +29,93 @@ const sections = [
       { label: "Notifications", icon: Bell, path: "/settings/notifications" },
     ],
   },
-  {
-    title: "Who can see your content",
-    items: [
-      {
-        label: "Account privacy",
-        icon: Lock,
-        path: "/settings/account-privacy",
-      },
-      { label: "Close Friends", icon: Users, path: "/settings/close-friends" },
-      { label: "Blocked", icon: Ban, path: "/settings/blocked" },
-      {
-        label: "Story and location",
-        icon: MapPin,
-        path: "/settings/story-location",
-      },
-    ],
-  },
-  {
-    title: "How others interact with you",
-    items: [
-      {
-        label: "Messages and story replies",
-        icon: MessageSquare,
-        path: "/settings/messages",
-      },
-      { label: "Tags and mentions", icon: AtSign, path: "/settings/tags" },
-      { label: "Comments", icon: MessageCircle, path: "/settings/comments" },
-      { label: "Sharing and reuse", icon: Repeat, path: "/settings/sharing" },
-      {
-        label: "Restricted accounts",
-        icon: Shield,
-        path: "/settings/restricted",
-      },
-    ],
-  },
-  {
-    title: "Your app and media",
-    items: [
-      {
-        label: "Archiving and downloading",
-        icon: Download,
-        path: "/settings/archive",
-      },
-      {
-        label: "Accessibility",
-        icon: Accessibility,
-        path: "/settings/accessibility",
-      },
-      { label: "Language", icon: Globe, path: "/settings/language" },
-      {
-        label: "Website permissions",
-        icon: Monitor,
-        path: "/settings/permissions",
-      },
-    ],
-  },
-  {
-    title: "For professionals",
-    items: [
-      {
-        label: "Account type and tools",
-        icon: LayoutDashboard,
-        path: "/settings/tools",
-      },
-      {
-        label: "Meta Verified",
-        icon: BadgeHelp,
-        path: "/settings/meta-verified",
-      },
-    ],
-  },
-  {
-    title: "More info",
-    items: [
-      { label: "Help", icon: HelpCircle, path: "/settings/help" },
-      {
-        label: "Privacy Center",
-        icon: ShieldCheck,
-        path: "/settings/privacy-center",
-      },
-      {
-        label: "Account Status",
-        icon: ShieldCheck,
-        path: "/settings/account-status",
-      },
-    ],
-  },
+  // {
+  //   title: "Who can see your content",
+  //   items: [
+  //     {
+  //       label: "Account privacy",
+  //       icon: Lock,
+  //       path: "/settings/account-privacy",
+  //     },
+  //     { label: "Close Friends", icon: Users, path: "/settings/close-friends" },
+  //     { label: "Blocked", icon: Ban, path: "/settings/blocked" },
+  //     {
+  //       label: "Story and location",
+  //       icon: MapPin,
+  //       path: "/settings/story-location",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "How others interact with you",
+  //   items: [
+  //     {
+  //       label: "Messages and story replies",
+  //       icon: MessageSquare,
+  //       path: "/settings/messages",
+  //     },
+  //     { label: "Tags and mentions", icon: AtSign, path: "/settings/tags" },
+  //     { label: "Comments", icon: MessageCircle, path: "/settings/comments" },
+  //     { label: "Sharing and reuse", icon: Repeat, path: "/settings/sharing" },
+  //     {
+  //       label: "Restricted accounts",
+  //       icon: Shield,
+  //       path: "/settings/restricted",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "Your app and media",
+  //   items: [
+  //     {
+  //       label: "Archiving and downloading",
+  //       icon: Download,
+  //       path: "/settings/archive",
+  //     },
+  //     {
+  //       label: "Accessibility",
+  //       icon: Accessibility,
+  //       path: "/settings/accessibility",
+  //     },
+  //     { label: "Language", icon: Globe, path: "/settings/language" },
+  //     {
+  //       label: "Website permissions",
+  //       icon: Monitor,
+  //       path: "/settings/permissions",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "For professionals",
+  //   items: [
+  //     {
+  //       label: "Account type and tools",
+  //       icon: LayoutDashboard,
+  //       path: "/settings/tools",
+  //     },
+  //     {
+  //       label: "Meta Verified",
+  //       icon: BadgeHelp,
+  //       path: "/settings/meta-verified",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "More info",
+  //   items: [
+  //     { label: "Help", icon: HelpCircle, path: "/settings/help" },
+  //     {
+  //       label: "Privacy Center",
+  //       icon: ShieldCheck,
+  //       path: "/settings/privacy-center",
+  //     },
+  //     {
+  //       label: "Account Status",
+  //       icon: ShieldCheck,
+  //       path: "/settings/account-status",
+  //     },
+  //   ],
+  // },
 ];
 
 interface SettingsMenuProps{

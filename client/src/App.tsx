@@ -14,7 +14,7 @@ import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
 import LeftSideBar from "./components/LeftSideBar";
 import { useTheme } from "./utils/ThemeProvider";
-import { Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
 // import CenterLoading from "./components/CenterLoading";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -23,9 +23,9 @@ import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 import ReelsPage from "./pages/ReelsPage";
 import MessagePage from "./pages/MessagePage";
-import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "./store/store";
-import { connectSocket, disconnectSocket, getSocket } from "./utils/socket";
+import { useDispatch} from "react-redux";
+import type { AppDispatch} from "./store/store";
+import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import { useAppSelector } from "./utils/hooks";
 
@@ -104,18 +104,27 @@ const App = () => {
           <button
             onClick={handleTheme}
             className="
-        flex  absolute bottom-10 z-50 right-10 items-center justify-center
-        px-3 py-3
-        rounded-full
-        bg-muted
-        text-foreground
-        shadow-md
-        hover:shadow-lg
-        active:shadow-inner
-        transition-all duration-300
-      "
+    flex absolute bottom-10 right-10 z-50
+    items-center justify-center
+    px-3 py-3
+    rounded-full
+
+    bg-neutral-200 dark:bg-neutral-900
+    border border-neutral-300 dark:border-neutral-700
+    text-foreground
+   
+    shadow-lg 
+    hover:shadow-xl
+    active:shadow-inner
+
+    transition-all duration-300
+  "
           >
-            <Sun className="w-5 h-5  transition-colors duration-300 text-foreground" />
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
           </button>
 
           <div className="sm:w-[7%] order-2 sm:order-1  h-0 sm:h-full w-full">

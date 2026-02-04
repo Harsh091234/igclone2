@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import {
   Heart,
   MessageCircle,
@@ -34,12 +34,13 @@ interface PostCardProps {
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetAuthUserQuery();
-
+  console.log(post)
   const authUser = authData?.user;
   const navigate = useNavigate();
   
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
+   
   const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
@@ -50,13 +51,10 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   let isBookmarked = authUser?.bookmarks?.some(
     (id) => id.toString() === post._id.toString()
   );
-useEffect(() => {
-console.log("post", post)
 
-}, [])
   const handleBookmark = async () => {
    
-    const data = await toggleBookmarkPost(post._id).unwrap();
+   await toggleBookmarkPost(post._id).unwrap();
     
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };

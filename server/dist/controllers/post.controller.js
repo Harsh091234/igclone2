@@ -322,3 +322,56 @@ export const toggleBookmarkPost = async (req, res) => {
         });
     }
 };
+export const getAllReels = async (req, res) => {
+    try {
+        const videos = await Post.aggregate([
+            // 1️⃣ Only single-media posts
+            { $match: { media: { $size: 1 } } },
+            // 2️⃣ Flatten media
+            { $unwind: "$media" },
+            // 3️⃣ Keep only videos
+            { $match: { "media.type": "video" } },
+            // 4️⃣ Join author
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author",
+                },
+            },
+            { $unwind: "$author" },
+            // 5️⃣ Shape response + counts
+            {
+                $project: {
+                    caption: 1,
+                    createdAt: 1,
+                    video: {
+                        url: "$media.url",
+                        publicId: "$media.publicId",
+                    },
+                    author: {
+                        followers: "$author.followers",
+                        _id: "$author._id",
+                        userName: "$author.userName",
+                        profilePic: "$author.profilePic",
+                    },
+                    likes: 1,
+                    comments: 1,
+                },
+            },
+        ]);
+        if (!videos)
+            return res
+                .status(200)
+                .json({ success: true, message: "No reels present" });
+        return res.status(200).json({ success: true, videos });
+    }
+    catch (error) {
+        console.log("Error in getAllReels:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error in getAllReels",
+        });
+    }
+};

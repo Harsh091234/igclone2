@@ -28,10 +28,10 @@ const MessagePage = () => {
     useGetLastMessagesQuery(undefined);
     const [search, setSearch] = useState("");
   const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
-  console.log("data side", lastChatData);
+
   const conversations = lastChatData?.conversations;
-  console.log("cpnv", conversations)
-  const [demo, setDemo] = useState(false);
+  
+  
   const { onlineUsers } = useAppSelector((state) => state.socket);
   const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
@@ -100,7 +100,7 @@ const MessagePage = () => {
     };
 
     socket.on("newMessage", handleNewMessage);
-    return () => socket.off("newMessage", handleNewMessage);
+    return () => {socket.off("newMessage", handleNewMessage)};
   }, [authUserId, dispatch]);
 
  const filteredConversations = useMemo(() => {

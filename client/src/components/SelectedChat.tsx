@@ -1,9 +1,9 @@
-import { Card } from "./ui/card";
+
 import { Input } from "./ui/input";
 import { useRef } from "react";
 import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect,useState } from "react";
 import type { SearchUser } from "../types/user.types";
 import {
   conversationApi,
@@ -16,6 +16,7 @@ import MessageBubble from "./MessageBubble";
 import { getSocket } from "../utils/socket";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
+import type { Message } from "../types/conversation.types";
 
 interface SelectedChatProps {
   onClose: () => void;
@@ -111,7 +112,7 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
         formData.append("media", file);
       });
 
-      const data = await createMessage({
+       await createMessage({
         receiverId: user._id,
         formData,
       }).unwrap();
@@ -152,7 +153,8 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
         {isMessagesLoading ? (
           <>loading..</>
         ) : (
-          messages.map((message) => {
+          messages.map((message: Message) => {
+          
             const isSender = message.senderId._id === authUserId;
 
             return (

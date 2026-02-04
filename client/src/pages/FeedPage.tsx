@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -49,14 +49,7 @@ export default function FeedPage() {
   ];
 
   const posts = postData?.posts;
-  useEffect(() => {
-    const fn = () => {
-      if (!isPostLoading) {
-        console.log("postin feed:", posts);
-      }
-    };
-    fn();
-  }, [posts]);
+ 
   const { data } = useGetAuthUserQuery();
 
   const authUser = data?.user;

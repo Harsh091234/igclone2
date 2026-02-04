@@ -28,6 +28,8 @@ export interface IMessage extends Document {
   updatedAt: Date;
 }
 
+
+
 const messageSchema = new Schema<IMessage>(
   {
     senderId: {

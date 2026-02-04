@@ -1,26 +1,10 @@
+import type { Message } from "../types/conversation.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
-import { Card } from "./ui/card";
+
 import UserAvatar from "./UserAvatar";
 
-interface Media {
-  url: string;
-  type: string;
-}
 
-interface User {
-  _id: string;
-  userName: string;
-  profilePic?: string;
-}
 
-interface Message {
-  _id: string;
-  text?: string;
-  media?: Media[];
-  senderId: User;
-  receiverId: User;
-  createdAt: string;
-}
 
 interface MessageBubbleProps {
   message: Message;

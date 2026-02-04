@@ -1,8 +1,10 @@
 
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
-import { useGetAuthUserQuery } from "../../services/userApi";
+import { useGetAuthUserQuery, useGetProfileUserQuery } from "../../services/userApi";
 import { useDeletePostMutation } from "../../services/postApi";
+import AccountInfoModal from "./AccountInfoModal";
+import { useState } from "react";
 
 const PostActionDivider = () => <div className="h-px bg-border" />;
 
@@ -52,12 +54,15 @@ export const PostMenuModal = ({
   const { data: userData } = useGetAuthUserQuery();
   const authUser = userData?.user;
   const isOwner = postOwnerName === authUser?.userName;
+ const [isAccountInfoOpen, setIsAccountInfoOpen] = useState<boolean>(false);
+  const {isLoading: isProfileLoading, data: profileData} = useGetProfileUserQuery(postOwnerName!)
+  const user = profileData?.user;
+  
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-    <div>
-      
-    </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <div></div>
         <DialogContent className="p-0 gap-0  max-w-[400px] rounded-2xl overflow-hidden">
           {isOwner ? (
             <>
@@ -84,61 +89,69 @@ export const PostMenuModal = ({
             </>
           )}
 
-          <PostActionButton
+          {/* <PostActionButton
             label="Go to post"
             onClick={() => {
               onClose();
             }}
           />
-          <PostActionDivider />
+          <PostActionDivider /> */}
           {isOwner && (
             <>
-              <PostActionButton
+              {/* <PostActionButton
                 label="Edit Post"
                 onClick={() => {
                   onClose();
                 }}
               />
-              <PostActionDivider />
+              <PostActionDivider /> */}
             </>
           )}
 
-          <PostActionButton
+          {/* <PostActionButton
             label="Share to..."
             onClick={() => {
               onClose();
             }}
           />
-          <PostActionDivider />
+          <PostActionDivider /> */}
 
-          <PostActionButton
+          {/* <PostActionButton
             label="Copy link"
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);
               onClose();
             }}
           />
-          <PostActionDivider />
+          <PostActionDivider /> */}
 
-          <PostActionButton
+          {/* <PostActionButton
             label="Embed"
             onClick={() => {
               onClose();
             }}
           />
-          <PostActionDivider />
+          <PostActionDivider /> */}
 
           <PostActionButton
             label="About this account"
             onClick={() => {
               onClose();
+              setIsAccountInfoOpen(true);
             }}
           />
           <PostActionDivider />
 
           <PostActionButton label="Cancel" onClick={onClose} />
         </DialogContent>
-    
-    </Dialog>
+      </Dialog>
+      {isAccountInfoOpen && (
+        <AccountInfoModal
+          isLoading={isProfileLoading}
+          user={user}
+          onClose={() => setIsAccountInfoOpen(false)}
+        />
+      )}
+    </>
   );
 };
