@@ -28,6 +28,7 @@ import type { AppDispatch} from "./store/store";
 import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import { useAppSelector } from "./utils/hooks";
+import NotificationPage from "./pages/NotificationPage";
 
 const App = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -150,6 +151,15 @@ const App = () => {
                 element={
                   <ProtectedRoutes>
                     <MessagePage />
+                  </ProtectedRoutes>
+                }
+              />
+
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoutes>
+                    <NotificationPage />
                   </ProtectedRoutes>
                 }
               />

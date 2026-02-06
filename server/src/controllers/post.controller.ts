@@ -1,3 +1,4 @@
+import { getReceiverSocketId, io } from "../socket/socket.js";
 import { uploadBase64Image } from "../config/uploadPic.js";
 import { uploadVideo } from "../config/uploadVideo.js";
 
@@ -8,6 +9,7 @@ import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 import { Request, Response } from "express";
 
 import sharp from "sharp";
+import Notification from "../models/notification.model.js";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -97,7 +99,7 @@ export const toggleLikePost = async (req: Request, res: Response) => {
     const { userId: clerkId } = req.auth!();
     const { id } = req.params; //post id
 
-    const authUser = await User.findOne({ clerkId });
+    const authUser = await User.findOne({ clerkId }).select("userName profilePic");
     if (!authUser)
       return res.status(401).json({
         success: false,
@@ -126,8 +128,28 @@ export const toggleLikePost = async (req: Request, res: Response) => {
     } else {
       post.likes.push(authUser._id);
       await post.save();
+
       // 🔔 realtime notification (optional)
       // notifyPostOwner(post.author, authUser._id, "like")
+      if(post.author._id.toString() !== authUser._id.toString()){
+         const notification = await Notification.create({
+            receiver: post.author._id,
+            sender: authUser,
+            type: "like",
+            post: post,
+            message: "liked your post",
+          
+         })
+           const postOwnerSocketId = getReceiverSocketId(
+             post.author._id.toString(),
+           );
+           io.to(postOwnerSocketId).emit("notification", notification)
+      }
+
+   
+      
+
+
       return res.status(200).json({
         success: true,
         message: "Post liked successfully",
