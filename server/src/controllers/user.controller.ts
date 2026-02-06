@@ -7,6 +7,8 @@
   import { clerkClient } from "@clerk/express";
   import { convertToBase64 } from "../config/convertToBase64.js";
   import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
+import { getReceiverSocketId, io } from "@/socket/socket.js";
+import Notification from "@/models/notification.model.js";
 
   export const syncUser = async (req: Request, res: Response) => {
     try {
@@ -234,7 +236,7 @@
         return res.status(400).json({ message: "Invalid user id" });
       }
 
-      const authUser = await User.findOne({ clerkId });
+      const authUser = await User.findOne({ clerkId })
       const targetUser = await User.findById(targetUserId);
       if (!authUser || !targetUser) {
         return res.status(400).json({ message: "User not found" });
@@ -262,6 +264,21 @@
           ),
         ]);
 
+        // delete notification when unfollowed
+        await Notification.deleteOne({
+          type: "follow",
+          receiver: targetUserId,
+          sender: authUser._id
+        })  
+
+          const receiverSocketId = getReceiverSocketId(targetUserId.toString());
+            if (receiverSocketId) {
+              io.to(receiverSocketId).emit("notification:remove", {
+                type: "follow",
+                sender: authUser._id,
+              });
+            }
+
         return res.status(200).json({
           success: true,
           message: "User unfollowed successfully",
@@ -279,6 +296,19 @@
           ),
         ]);
 
+        // follow notification on receiver
+        const notification = await Notification.create({
+          receiver: targetUserId,
+          sender: authUser._id,
+          type: "follow",
+          message: "started following you",
+          
+        })
+
+   await notification.populate("sender", "userName profilePic");
+
+        const receiverSocketId = getReceiverSocketId(targetUserId.toString());
+        io.to(receiverSocketId).emit("notification", notification)
         return res.status(200).json({
           success: true,
           message: "User followed successfully",

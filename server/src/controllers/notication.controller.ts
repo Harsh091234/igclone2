@@ -15,6 +15,8 @@ export const getNotifications = async (req: Request, res: Response) => {
       receiver: authUser._id,
     })
       .populate("sender", "userName profilePic")
+      .populate("post", "media")
+      .populate("comment", "text")
       .sort({ createdAt: -1 });
     if (notifications.length === 0)
       return res

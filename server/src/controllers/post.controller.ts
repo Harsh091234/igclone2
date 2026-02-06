@@ -99,7 +99,7 @@ export const toggleLikePost = async (req: Request, res: Response) => {
     const { userId: clerkId } = req.auth!();
     const { id } = req.params; //post id
 
-    const authUser = await User.findOne({ clerkId }).select("userName profilePic");
+    const authUser = await User.findOne({ clerkId });
     if (!authUser)
       return res.status(401).json({
         success: false,
@@ -120,6 +120,27 @@ export const toggleLikePost = async (req: Request, res: Response) => {
         (id) => id.toString() !== authUser._id.toString(),
       );
       await post.save();
+
+      // 🔔 realtime notification (optional)
+      // notifyPostOwner(post.author, authUser._id, "like")
+      if (post.author._id.toString() !== authUser._id.toString()) {
+        await Notification.deleteOne({
+          type: "like",
+          sender: authUser._id,
+          receiver: post.author,
+          post: post._id,
+        });
+
+        const postOwnerSocketId = getReceiverSocketId(
+          post.author._id.toString(),
+        );
+        io.to(postOwnerSocketId).emit("notification:remove", {
+          type: "like",
+          sender: authUser._id.toString(),
+          post: post._id.toString(),
+        });
+      }
+
       return res.status(200).json({
         success: true,
         message: "Post unliked successfully",
@@ -131,24 +152,31 @@ export const toggleLikePost = async (req: Request, res: Response) => {
 
       // 🔔 realtime notification (optional)
       // notifyPostOwner(post.author, authUser._id, "like")
-      if(post.author._id.toString() !== authUser._id.toString()){
-         const notification = await Notification.create({
-            receiver: post.author._id,
-            sender: authUser,
-            type: "like",
-            post: post,
-            message: "liked your post",
-          
-         })
-           const postOwnerSocketId = getReceiverSocketId(
-             post.author._id.toString(),
-           );
-           io.to(postOwnerSocketId).emit("notification", notification)
+      if (post.author._id.toString() !== authUser._id.toString()) {
+        const notification = await Notification.create({
+          receiver: post.author._id,
+          sender: authUser._id,
+          type: "like",
+          post: post._id,
+          message: "liked your post",
+        });
+
+        await notification.populate([
+          {
+            path: "sender",
+            select: "userName profilePic",
+          },
+          {
+            path: "post",
+            select: "media",
+          },
+        ]);
+
+        const postOwnerSocketId = getReceiverSocketId(
+          post.author._id.toString(),
+        );
+        io.to(postOwnerSocketId).emit("notification", notification);
       }
-
-   
-      
-
 
       return res.status(200).json({
         success: true,
@@ -197,6 +225,34 @@ export const commentPost = async (req: Request, res: Response) => {
 
     await post.comments.push(comment._id);
     await post.save();
+
+    // 🔔 COMMENT NOTIFICATION
+    const notification = await Notification.create({
+      receiver: post.author._id,
+      sender: authUser._id,
+      type: "comment",
+      post: post._id,
+      comment: comment._id,
+      message: "commented on your post",
+    });
+    await notification.populate([
+      {
+        path: "sender",
+        select: "userName profilePic",
+      },
+      {
+        path: "post",
+        select: "media",
+      },
+      {
+        path: "comment",
+        select: "text"
+      }
+    ]);
+
+    const postOwnerSocketId = getReceiverSocketId(post.author._id.toString());
+    io.to(postOwnerSocketId).emit("notification", notification);
+
     return res.status(200).json({
       success: true,
       message: "Commented  successfully",
