@@ -1,3 +1,4 @@
+import { getReceiverSocketId, io } from "../socket/socket.js";
 import { uploadBase64Image } from "../config/uploadPic.js";
 import { uploadVideo } from "../config/uploadVideo.js";
 import Comment from "../models/comment.model.js";
@@ -5,6 +6,7 @@ import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 import sharp from "sharp";
+import Notification from "../models/notification.model.js";
 export const createPost = async (req, res) => {
     try {
         const { userId: clerkId } = req.auth();
@@ -87,6 +89,22 @@ export const toggleLikePost = async (req, res) => {
         if (isLiked) {
             post.likes = post.likes.filter((id) => id.toString() !== authUser._id.toString());
             await post.save();
+            // 🔔 realtime notification (optional)
+            // notifyPostOwner(post.author, authUser._id, "like")
+            if (post.author._id.toString() !== authUser._id.toString()) {
+                await Notification.deleteOne({
+                    type: "like",
+                    sender: authUser._id,
+                    receiver: post.author,
+                    post: post._id,
+                });
+                const postOwnerSocketId = getReceiverSocketId(post.author._id.toString());
+                io.to(postOwnerSocketId).emit("notification:remove", {
+                    type: "like",
+                    sender: authUser._id.toString(),
+                    post: post._id.toString(),
+                });
+            }
             return res.status(200).json({
                 success: true,
                 message: "Post unliked successfully",
@@ -98,6 +116,27 @@ export const toggleLikePost = async (req, res) => {
             await post.save();
             // 🔔 realtime notification (optional)
             // notifyPostOwner(post.author, authUser._id, "like")
+            if (post.author._id.toString() !== authUser._id.toString()) {
+                const notification = await Notification.create({
+                    receiver: post.author._id,
+                    sender: authUser._id,
+                    type: "like",
+                    post: post._id,
+                    message: "liked your post",
+                });
+                await notification.populate([
+                    {
+                        path: "sender",
+                        select: "userName profilePic",
+                    },
+                    {
+                        path: "post",
+                        select: "media",
+                    },
+                ]);
+                const postOwnerSocketId = getReceiverSocketId(post.author._id.toString());
+                io.to(postOwnerSocketId).emit("notification", notification);
+            }
             return res.status(200).json({
                 success: true,
                 message: "Post liked successfully",
@@ -139,6 +178,33 @@ export const commentPost = async (req, res) => {
         }
         await post.comments.push(comment._id);
         await post.save();
+        // 🔔 COMMENT NOTIFICATION
+        if (authUser._id.toString() !== post.author._id.toString()) {
+            const notification = await Notification.create({
+                receiver: post.author._id,
+                sender: authUser._id,
+                type: "comment",
+                post: post._id,
+                comment: comment._id,
+                message: "commented on your post",
+            });
+            await notification.populate([
+                {
+                    path: "sender",
+                    select: "userName profilePic",
+                },
+                {
+                    path: "post",
+                    select: "media",
+                },
+                {
+                    path: "comment",
+                    select: "text",
+                },
+            ]);
+            const postOwnerSocketId = getReceiverSocketId(post.author._id.toString());
+            io.to(postOwnerSocketId).emit("notification", notification);
+        }
         return res.status(200).json({
             success: true,
             message: "Commented  successfully",
@@ -151,6 +217,73 @@ export const commentPost = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error in commentPost",
+        });
+    }
+};
+export const deleteComment = async (req, res) => {
+    try {
+        const { userId: clerkId } = req.auth();
+        const { id: commentId } = req.params;
+        // Auth user
+        const authUser = await User.findOne({ clerkId });
+        if (!authUser) {
+            return res.status(401).json({
+                success: false,
+                message: "Auth user not found",
+            });
+        }
+        const comment = await Comment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({
+                success: false,
+                message: "Comment not found",
+            });
+        }
+        // Find post
+        const post = await Post.findById(comment.post);
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found",
+            });
+        }
+        // Comment author OR post owner can delete
+        const isCommentAuthor = comment.author.toString() === authUser._id.toString();
+        const isPostOwner = post.author.toString() === authUser._id.toString();
+        if (!isCommentAuthor && !isPostOwner) {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to delete this comment",
+            });
+        }
+        post.comments = post.comments.filter((c) => c.toString() !== commentId);
+        await post.save();
+        await Comment.findByIdAndDelete(commentId);
+        await Notification.deleteMany({
+            type: "comment",
+            comment: commentId,
+        });
+        // 🔴 Optional: realtime update
+        const postOwnerSocketId = getReceiverSocketId(post.author.toString());
+        if (postOwnerSocketId) {
+            io.to(postOwnerSocketId).emit("notification:remove", {
+                comment: comment._id.toString(),
+                type: "comment",
+                post: post._id.toString(),
+                sender: authUser._id.toString(),
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Comment deleted successfully",
+            commentId,
+        });
+    }
+    catch (error) {
+        console.error("Error in deleteComment:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Error in deleteComment",
         });
     }
 };

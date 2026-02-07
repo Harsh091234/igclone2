@@ -10,6 +10,7 @@ import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
 import {
+  useDeleteCommentMutation,
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
@@ -26,6 +27,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "./ui/carousel";
+import CustomConfirmModal from "./modals/CustomConfirmModal";
 
 
 interface PostCardProps {
@@ -37,7 +39,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   console.log(post)
   const authUser = authData?.user;
   const navigate = useNavigate();
-  
+    const [deleteComment] = useDeleteCommentMutation()
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
    
@@ -47,10 +49,17 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   let isLiked = post.likes.some(
     (id) => id.toString() === authUser?._id?.toString()
   );
+     const [open, setOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
+      null,
+    );
   let isBookmarked = authUser?.bookmarks?.some(
     (id) => id.toString() === post._id.toString()
   );
+ const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+   null,
+ );
 
   const handleBookmark = async () => {
    
@@ -69,6 +78,21 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const handleRouteToProfile = () => {
     navigate(`/profile/${post.author.userName}`);
   };
+
+  const handleDeleteComment = async () => {
+      if (!selectedCommentId) return;
+  
+      try {
+        setDeletingCommentId(selectedCommentId);
+  
+        await deleteComment(selectedCommentId).unwrap();
+        setOpen(false);
+      } catch (error: any) {
+        toast.error(error?.data?.message || "Failed to delete comment");
+      } finally {
+        setDeletingCommentId(null);
+      }
+    };
 
   return (
     <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full">
@@ -208,6 +232,11 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
           {post.comments.map((comment) => (
             <Comment
               key={comment._id}
+              isDeleting={deletingCommentId === comment._id}
+              onDelete={() => {
+                setSelectedCommentId(comment._id);
+                setOpen(true);
+              }}
               text={comment.text}
               author={comment.author}
               likes={comment.likes}
@@ -217,6 +246,19 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
           ))}
         </div>
       )}
+      {
+        <CustomConfirmModal
+          open={open}
+          onConfirm={() => {
+            handleDeleteComment();
+          }}
+          onCancel={() => {
+            setSelectedCommentId(null);
+            setOpen(false);
+          }}
+          text={"Are u sure want to delete?"}
+        />
+      }
     </article>
   );
 };

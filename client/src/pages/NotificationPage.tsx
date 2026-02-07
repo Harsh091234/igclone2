@@ -14,6 +14,7 @@ import {
   useGetNotificationsQuery,
 } from "../services/notificationApi";
 import { useNavigate } from "react-router-dom";
+import NotificationsSkeleton from "../components/Skeletons/NotificationsSkeleton";
 
 const NotificationPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -78,7 +79,7 @@ const NotificationPage = () => {
             if (!Array.isArray(draft.notifications)) return;
 
             draft.notifications = draft.notifications.filter(
-              (n) =>
+              (n: any) =>
                 !(
                   n.type === type &&
                   n.sender._id === sender &&
@@ -117,9 +118,7 @@ const NotificationPage = () => {
       {/* Notifications list */}
       <div className="max-w-xl space-y-3 mb-15 sm:mb-0">
         {isNotificationLoading ? (
-          <p className="text-sm text-muted-foreground text-center">
-            Loading notifications...
-          </p>
+         <NotificationsSkeleton />
         ) : notifications && notifications.length > 0 ? (
           /* Notifications list */
           notifications.map((n: any) => (

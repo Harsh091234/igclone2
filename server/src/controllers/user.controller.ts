@@ -7,8 +7,8 @@
   import { clerkClient } from "@clerk/express";
   import { convertToBase64 } from "../config/convertToBase64.js";
   import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
-import { getReceiverSocketId, io } from "@/socket/socket.js";
-import Notification from "@/models/notification.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
+import Notification from "../models/notification.model.js";
 
   export const syncUser = async (req: Request, res: Response) => {
     try {

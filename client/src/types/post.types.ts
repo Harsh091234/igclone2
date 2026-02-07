@@ -21,6 +21,7 @@ export interface Post {
 export interface CommentT {
   text: string;
   author: {
+    _id: string;
     userName: string;
     profilePic: string;
   };

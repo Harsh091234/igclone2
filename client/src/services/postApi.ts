@@ -20,12 +20,12 @@ export const postApi = api.injectEndpoints({
         url: `/post/get-user-posts/${id}`,
         method: "GET",
       }),
-      providesTags: ["UserPosts"],
+      providesTags: ["UserPosts", "UserComments"],
     }),
 
     getAllPosts: builder.query({
       query: () => "/post/get-all-posts",
-      providesTags: ["UserPosts"],
+      providesTags: ["UserPosts", "UserComments"],
     }),
 
     deletePost: builder.mutation({

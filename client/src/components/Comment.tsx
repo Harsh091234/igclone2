@@ -1,6 +1,7 @@
 
-import { Trash2 } from 'lucide-react';
+import { Loader, Trash2 } from 'lucide-react';
 import { formatTimeAgo } from '../utils/timeFormatter';
+import { useGetAuthUserQuery } from '../services/userApi';
 
 
 export interface CommentProps {
@@ -8,14 +9,20 @@ export interface CommentProps {
   author: {
     userName: string;
     profilePic: string;
+    _id: string;
   };
   likes: string[];
   createdAt: string;
   handleRouteToProfile: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 }
 
-const Comment = ({text, author, createdAt, handleRouteToProfile, onDelete }: CommentProps) => {
+const Comment = ({text, author, createdAt, handleRouteToProfile, onDelete, isDeleting }: CommentProps) => {
+    const {data: authData} = useGetAuthUserQuery();
+    const authUser = authData?.user;
+    console.log("auth", authData)
+    const isAuthUserComment = author._id === authUser?._id;
    return (
      <div className="flex gap-3 items-center">
        <img
@@ -48,9 +55,15 @@ const Comment = ({text, author, createdAt, handleRouteToProfile, onDelete }: Com
            {/* <button className="font-semibold hover:text-foreground">
              Reply
            </button> */}
-           <button onClick={onDelete} className="ml-auto ">
-             <Trash2 className="h-3.5 w-3.5 hover:text-foreground" />
-           </button>
+           {isAuthUserComment && (
+             <button onClick={onDelete} className="ml-auto ">
+               {isDeleting ? (
+                 <Loader className="h-3.5 w-3.5 animate-spin " />
+               ) : (
+                 <Trash2 className="h-3.5 w-3.5 hover:text-foreground" />
+               )}
+             </button>
+           )}
          </div>
        </div>
 
