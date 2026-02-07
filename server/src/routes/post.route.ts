@@ -6,6 +6,7 @@ import {
 import {
   commentPost,
   createPost,
+  deleteComment,
   deletePost,
   getAllComments,
   getAllPosts,
@@ -34,6 +35,11 @@ router.post(
   requireAuth(),
   validate(commentPostSchema),
   commentPost,
+);
+router.delete(
+  "/:id/comment",
+  requireAuth(),
+  deleteComment,
 );
 router.get("/get-all-posts", requireAuth(), getAllPosts);
 router.get("/get-user-posts/:id", requireAuth(), getUserPosts);

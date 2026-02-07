@@ -37,63 +37,62 @@ export const postApi = api.injectEndpoints({
     }),
 
     getAllReels: builder.query({
-      query:  () => "/post/reels",
-      providesTags: ["UserPosts"]
+      query: () => "/post/reels",
+      providesTags: ["UserPosts"],
     }),
 
     toggleLikePost: builder.mutation({
-      query: ({ postId}) => ({
+      query: ({ postId }) => ({
         url: `/post/like/${postId}`,
         method: "POST",
       }),
 
       //  OPTIMISTIC UPDATE
-      async onQueryStarted({ postId, userId, profileUserId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted(
+        { postId, userId, profileUserId },
+        { dispatch, queryFulfilled },
+      ) {
         //  update UserPosts cache
         const patchResults = [];
 
         // 🔹 update ALL POSTS (feed)
         patchResults.push(
           dispatch(
-           postApi.util.updateQueryData(
-  "getAllPosts",
-  undefined, // ✅ CORRECT CACHE KEY
-  (draft) => {
-    const post = draft.posts.find((p: Post) => p._id === postId);
-    if (!post) return;
-    toggleLike(post, userId);
-  }
-)
+            postApi.util.updateQueryData(
+              "getAllPosts",
+              undefined, // ✅ CORRECT CACHE KEY
+              (draft) => {
+                const post = draft.posts.find((p: Post) => p._id === postId);
+                if (!post) return;
+                toggleLike(post, userId);
+              },
+            ),
           ),
         );
 
+        patchResults.push(
+          dispatch(
+            postApi.util.updateQueryData("getAllReels", undefined, (draft) => {
+              const reel = draft.videos.find((r: Reel) => r._id === postId);
+              if (reel) toggleLike(reel, userId);
+            }),
+          ),
+        );
+
+        if (profileUserId) {
           patchResults.push(
             dispatch(
               postApi.util.updateQueryData(
-                "getAllReels",
-                undefined,
+                "getUserPosts",
+                profileUserId,
                 (draft) => {
-                  const reel = draft.videos.find((r: Reel) => r._id === postId);
-                  if (reel) toggleLike(reel, userId);
+                  const post = draft.posts.find((p: Post) => p._id === postId);
+                  if (post) toggleLike(post, userId);
                 },
               ),
             ),
           );
-
-       if (profileUserId) {
-         patchResults.push(
-           dispatch(
-             postApi.util.updateQueryData(
-               "getUserPosts",
-               profileUserId,
-               (draft) => {
-                 const post = draft.posts.find((p: Post) => p._id === postId);
-                 if (post) toggleLike(post, userId);
-               },
-             ),
-           ),
-         );
-       }
+        }
 
         try {
           await queryFulfilled;
@@ -111,7 +110,6 @@ export const postApi = api.injectEndpoints({
 
       //Optimistic
       async onQueryStarted(postId, { dispatch, queryFulfilled }) {
-        
         const patches = [];
 
         // AUTH USER
@@ -141,11 +139,10 @@ export const postApi = api.injectEndpoints({
           ),
         );
 
-
         try {
           await queryFulfilled;
         } catch (error) {
-           patches.forEach((p) => p.undo());
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -158,12 +155,17 @@ export const postApi = api.injectEndpoints({
       }),
       invalidatesTags: ["UserComments"],
     }),
+    deleteComment: builder.mutation({
+      query: (id: string) => ({
+        url: `/post/${id}/comment`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["UserComments"],
+    }),
 
     getAllComments: builder.query({
       query: (id) => `/post/${id}/get-all-comments`,
-       providesTags: ( id) => [
-    { type: "UserComments", id }
-  ],
+      providesTags: (id) => [{ type: "UserComments", id }],
     }),
   }),
 });
@@ -176,6 +178,7 @@ export const {
   useToggleLikePostMutation,
   useToggleBookmarkPostMutation,
   useCommentPostMutation,
+  useDeleteCommentMutation,
   useGetAllCommentsQuery,
   useGetAllReelsQuery
 } = postApi;

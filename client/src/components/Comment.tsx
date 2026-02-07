@@ -1,4 +1,5 @@
 
+import { Trash2 } from 'lucide-react';
 import { formatTimeAgo } from '../utils/timeFormatter';
 
 
@@ -11,9 +12,10 @@ export interface CommentProps {
   likes: string[];
   createdAt: string;
   handleRouteToProfile: () => void;
+  onDelete: () => void;
 }
 
-const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps) => {
+const Comment = ({text, author, createdAt, handleRouteToProfile, onDelete }: CommentProps) => {
    return (
      <div className="flex gap-3 items-center">
        <img
@@ -37,7 +39,7 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
            >
              {author.userName}
            </span>
-           <span className='wrap-anywhere'>{text}</span>
+           <span className="wrap-anywhere">{text}</span>
          </p>
 
          <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground ">
@@ -46,6 +48,9 @@ const Comment = ({text, author, createdAt, handleRouteToProfile }: CommentProps)
            {/* <button className="font-semibold hover:text-foreground">
              Reply
            </button> */}
+           <button onClick={onDelete} className="ml-auto ">
+             <Trash2 className="h-3.5 w-3.5 hover:text-foreground" />
+           </button>
          </div>
        </div>
 

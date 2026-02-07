@@ -5,11 +5,11 @@ export interface Notification {
   receiver: string;
   sender: {
     _id: string;
-    userName: string;
-    profilePic: string
+    userName?: string;
+    profilePic?: string
   };
   post: string;
-  message: string;
+  message?: string;
   createdAt?: string;
   isRead?: boolean;
 }

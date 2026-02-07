@@ -15,10 +15,12 @@ import type { CommentT, Post, Reel } from "../../types/post.types";
 
 import {
   useCommentPostMutation,
+  useDeleteCommentMutation,
   useGetAllCommentsQuery,
 } from "../../services/postApi";
 import toast from "react-hot-toast";
 import VideoPlayer from "../VideoPlayer";
+import CustomConfirmModal from "./CustomConfirmModal";
 
 interface PostDialogProps {
   isOpen: boolean;
@@ -49,7 +51,11 @@ const CommentPostModal = ({
   const [api, setApi] = useState<any>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [text, setText] = useState<string>("");
-
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
+    null,
+  );
+  const [deleteComment, {isLoading: isDeletingComment}] = useDeleteCommentMutation()
+   const [open, setOpen] = useState(false);
   const [commentPost, { isLoading: isCommentPostLoading }] =
     useCommentPostMutation();
   const { isLoading: isCommentsLoading, data: commentData } =
@@ -91,6 +97,20 @@ const CommentPostModal = ({
 
     return [];
   })();
+
+  const handleDeleteComment = async() => {
+    try {
+      if (!selectedCommentId) return;
+      const res = await deleteComment(selectedCommentId).unwrap();
+      console.log("res del", res);
+          setSelectedCommentId(null);
+          setOpen(false);
+    } catch (error: any) {
+        toast.error(error?.data?.message || "Failed to delete comment");
+        console.log("error in handleDeleteComment:", error?.data?.message || error?.message || error)
+    }
+  }
+
 
   useEffect(() => {
     if (!api) return;
@@ -204,6 +224,10 @@ const CommentPostModal = ({
                   text={comment.text}
                   likes={comment.likes}
                   createdAt={comment.createdAt}
+                  onDelete={() => {
+                    setSelectedCommentId(comment._id);
+                    setOpen(true);
+                  }}
                 />
               ))
             )}
@@ -256,6 +280,19 @@ const CommentPostModal = ({
           </div>
         </div>
       </div>
+      {
+        <CustomConfirmModal
+          open={open}
+          onConfirm={() => {
+            handleDeleteComment();
+           
+          }}
+          onCancel={() => {
+               setSelectedCommentId(null);
+            setOpen(false)}}
+          text={"Are u sure want to delete?"}
+        />
+      }
     </div>
   );
 };
