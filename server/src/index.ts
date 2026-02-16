@@ -5,6 +5,7 @@ import userRoutes from "./routes/user.route.js";
 import postRoutes from "./routes/post.route.js";
 import conversationRoutes from "./routes/conversation.route.js"
 import notificationRoutes from "./routes/notification.route.js"
+import storyRoutes from "./routes/story.route.js";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 import path from "node:path";
@@ -35,6 +36,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/conversation", conversationRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/story", storyRoutes);
 
 
 if (process.env.NODE_ENV === "production") {
