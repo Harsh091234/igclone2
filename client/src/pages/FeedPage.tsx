@@ -19,6 +19,7 @@ import type { User } from "../types/user.types";
 import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
 import UserAvatar from "../components/UserAvatar";
+import AddStoryPanel from "../components/panels/AddStoryPanel";
 
 interface Story {
   id: number;
@@ -29,7 +30,7 @@ interface Story {
 
 export default function FeedPage() {
  const [visibleCount, setVisibleCount] = useState<number>(5);
-
+  const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
  
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
@@ -81,7 +82,10 @@ export default function FeedPage() {
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-11 sm:w-14 h-11 sm:h-14 relative rounded-full bg-muted p-[2px]">
                       {/* + Icon */}
-                      <button className="absolute z-3 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center">
+                      <button
+                        onClick={() => setIsStoryPanelOpen(true)}
+                        className="absolute z-3 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center"
+                      >
                         <Plus className="w-2.5 h-2.5" strokeWidth={2.5} />
                       </button>
                       <div className="relative w-full h-full rounded-full bg-card overflow-hidden">
@@ -177,14 +181,13 @@ export default function FeedPage() {
                 <p className="text-muted-foreground  font-semibold text-sm">
                   Suggestions For You
                 </p>
-                
-                  <button
-                    onClick={handleVisibleCount}
-                    className="text-xs mr-4 font-semibold text-muted-foreground  hover:text-foreground hover:underline transition"
-                  >
-                   { visibleCount === 14 ? "See Less" : "See More"}
-                  </button>
-              
+
+                <button
+                  onClick={handleVisibleCount}
+                  className="text-xs mr-4 font-semibold text-muted-foreground  hover:text-foreground hover:underline transition"
+                >
+                  {visibleCount === 14 ? "See Less" : "See More"}
+                </button>
               </div>
 
               {isSuggestedUsersLoading ? (
@@ -197,10 +200,7 @@ export default function FeedPage() {
                       key={user._id}
                       className="flex items-center gap-3 mb-3 p-2 rounded-lg hover:bg-accent transition-colors"
                     >
-                      <UserAvatar 
-                      classes=""
-                      user={user}
-                      />
+                      <UserAvatar classes="" user={user} />
                       <div className="flex-1">
                         <p className="font-semibold text-sm text-foreground">
                           {user.userName}
@@ -234,7 +234,11 @@ export default function FeedPage() {
             </div>
           </div>
         </aside>
-      </div>
+      </div>{
+      <AddStoryPanel
+        open={isStoryPanelOpen}
+        onOpenChange={() => setIsStoryPanelOpen(false)}
+      />}
     </div>
   );
 }
