@@ -8,8 +8,19 @@ export interface IStory extends Document {
     publicId: string;
   };
   text: string;
-  viewers: Types.ObjectId[];
-  likes: Types.ObjectId[];
+  views: [
+    {
+      user: Types.ObjectId;
+      viewedAt: Date;
+    },
+  ];
+
+  likes: 
+    {
+      user: Types.ObjectId;
+      likedAt: Date;
+    }[];
+
   createdAt: Date;
   expiresAt: Date;
 }
@@ -34,16 +45,23 @@ const storySchema = new Schema<IStory>(
         required: true,
       },
     },
-    viewers: [
+    views: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        user: { type: Types.ObjectId, ref: "User" },
+        viewedAt: { type: Date, default: Date.now },
       },
     ],
     likes: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        likedAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
     expiresAt: {
