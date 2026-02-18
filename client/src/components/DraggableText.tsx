@@ -6,6 +6,7 @@ interface TextLayer {
   text: string;
   x: number;
   y: number;
+  color: string;
 }
 
 interface Props {
@@ -26,7 +27,7 @@ export default function DraggableText({
   return (
     <Draggable
       nodeRef={nodeRef}
-      defaultPosition={{ x: layer.x, y: layer.y }}
+      position={{ x: layer.x, y: layer.y }}
       bounds="parent"
       onStop={(e, data) => {
         updatePosition(layer.id, data.x, data.y);
@@ -35,6 +36,7 @@ export default function DraggableText({
       <div
         ref={nodeRef}
         onClick={() => setActiveTextId(layer.id)}
+        style={{ color: layer.color }}
         className={`absolute cursor-move px-3 py-1 text-2xl font-bold
           ${activeTextId === layer.id ? "border border-white" : ""}
         `}

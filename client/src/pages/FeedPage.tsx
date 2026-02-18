@@ -20,18 +20,87 @@ import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowi
 import { ScrollArea } from "../components/ui/scroll-area";
 import UserAvatar from "../components/UserAvatar";
 import AddStoryPanel from "../components/panels/AddStoryPanel";
+import StoryViewerModal from "../components/modals/StoryViewerModal";
 
-interface Story {
-  id: number;
-  user: string;
+interface StoryCircle {
+  id: string;
+  userName: string;
   avatar: string;
   isOwn?: boolean;
 }
 
+interface StoryViewer {
+  id: string;
+  user: {
+    userName: string;
+    profilePic: string;
+  };
+  media: {
+    type: "image" | "video";
+    url: string;
+    publicId: string;
+  };
+  createdAt: string;
+  likes: number;
+  viewers: number;
+  isOwn?: boolean;
+}
+const demoStories: StoryViewer[] = [
+  {
+    id: "1",
+    user: {
+      userName: "Your Story",
+      profilePic: "/user avatar.png",
+    },
+    media: {
+      type: "image",
+      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+      publicId: "demo1",
+    },
+    createdAt: "1h ago",
+    likes: 25,
+    viewers: 120,
+    isOwn: true,
+  },
+  {
+    id: "2",
+    user: {
+      userName: "travel_diaries",
+      profilePic: "/user avatar.png",
+    },
+    media: {
+      type: "image",
+      url: "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
+      publicId: "demo2",
+    },
+    createdAt: "2h ago",
+    likes: 40,
+    viewers: 210,
+  },
+  {
+    id: "3",
+    user: {
+      userName: "fitness_pro",
+      profilePic: "/user avatar.png",
+    },
+    media: {
+      type: "video",
+      url: "https://www.w3schools.com/html/mov_bbb.mp4",
+      publicId: "demo3",
+    },
+    createdAt: "3h ago",
+    likes: 15,
+    viewers: 80,
+  },
+];
+
+
 export default function FeedPage() {
  const [visibleCount, setVisibleCount] = useState<number>(5);
   const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
- 
+ const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
+ const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
   const {isLoading: isSuggestedUsersLoading, data: suggestedUsersData} = useFetchSuggestedUsersQuery(14);
@@ -39,15 +108,15 @@ export default function FeedPage() {
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
  
   const navigate = useNavigate();
-  const stories: Story[] = [
-    { id: 1, user: "Your Story", avatar: "😜", isOwn: true },
-    { id: 2, user: "alice_wonder", avatar: "🐱‍👤" },
-    { id: 3, user: "travel_diaries", avatar: "💋" },
-    { id: 4, user: "foodie_life", avatar: "😎" },
-    { id: 5, user: "tech_guru", avatar: "A" },
-    { id: 6, user: "fitness_pro", avatar: "J" },
-    { id: 7, user: "art_daily", avatar: "I" },
-  ];
+ const storyCircles: StoryCircle[] = [
+   { id: "1", userName: "Your Story", avatar: "😜", isOwn: true },
+   { id: "2", userName: "alice_wonder", avatar: "🐱‍👤" },
+   { id: "3", userName: "travel_diaries", avatar: "💋" },
+   { id: "4", userName: "foodie_life", avatar: "😎" },
+   { id: "5", userName: "tech_guru", avatar: "A" },
+   { id: "6", userName: "fitness_pro", avatar: "J" },
+   { id: "7", userName: "art_daily", avatar: "I" },
+ ];
 
   const posts = postData?.posts;
  
@@ -103,12 +172,18 @@ export default function FeedPage() {
                 </CarouselItem>
 
                 {/* ───── Other Stories ───── */}
-                {stories.map((story) => (
+                {storyCircles.map((story, index) => (
                   <CarouselItem
                     key={story.id}
                     className="basis-[70px] sm:basis-[80px]"
                   >
-                    <div className="flex flex-col items-center gap-1">
+                    <div
+                      onClick={() => {
+                        setSelectedStoryIndex(index);
+                        setIsStoryViewerOpen(true);
+                      }}
+                      className="flex flex-col items-center gap-1 cursor-pointer"
+                    >
                       <div className="w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
                         <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
                           <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
@@ -118,7 +193,7 @@ export default function FeedPage() {
                       </div>
 
                       <span className="text-xs text-foreground truncate max-w-[64px]">
-                        {story.user}
+                        {story.avatar}
                       </span>
                     </div>
                   </CarouselItem>
@@ -234,11 +309,22 @@ export default function FeedPage() {
             </div>
           </div>
         </aside>
-      </div>{
-      <AddStoryPanel
-        open={isStoryPanelOpen}
-        onOpenChange={() => setIsStoryPanelOpen(false)}
-      />}
+      </div>
+      {
+        <AddStoryPanel
+          open={isStoryPanelOpen}
+          onOpenChange={() => setIsStoryPanelOpen(false)}
+        />
+      }
+      {
+        <StoryViewerModal
+          open={isStoryViewerOpen}
+          onClose={() => setIsStoryViewerOpen(false)}
+          stories={demoStories}
+         
+          initialIndex={selectedStoryIndex}
+        />
+      }
     </div>
   );
 }

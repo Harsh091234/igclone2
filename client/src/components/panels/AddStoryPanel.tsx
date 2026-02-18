@@ -18,11 +18,22 @@ interface TextLayer {
   text: string;
   x: number;
   y: number;
+  color: string;
 }
+
+const predefinedColors = [
+  "#ffffff",
+  "#000000",
+  "#ff3b30",
+  "#34c759",
+  "#007aff",
+  "#ffcc00",
+  "#af52de",
+];
 
 export default function AddStoryPanel({ open, onOpenChange }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
-
+  
   const [media, setMedia] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
@@ -45,6 +56,7 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
       text: "New Text",
       x: 100,
       y: 100,
+      color: "#ffffff", // 👈 default color
     };
 
     setTextLayers((prev) => [...prev, newText]);
@@ -72,6 +84,14 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
     });
 
     onOpenChange(false);
+  };
+
+  const handleColorChange = (color: string) => {
+    setTextLayers((prev) =>
+      prev.map((layer) =>
+        layer.id === activeTextId ? { ...layer, color } : layer,
+      ),
+    );
   };
 
   useEffect(() => {
@@ -135,6 +155,7 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
                   <DraggableText
                     key={layer.id}
                     layer={layer}
+                    
                     activeTextId={activeTextId}
                     setActiveTextId={setActiveTextId}
                     updatePosition={(id, x, y) => {
@@ -166,6 +187,21 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
                 placeholder="Edit text..."
                 className="w-full  border-2 border-primary/20 px-3 py-2 rounded-md outline-none focus:ring-2 focus:ring-primary"
               />
+              <div className="flex gap-3 mt-3 flex-wrap justify-center  ">
+                {predefinedColors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => handleColorChange(color)}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      textLayers.find((l) => l.id === activeTextId)?.color ===
+                      color
+                        ? "border-primary scale-110"
+                        : "border-white/30"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
