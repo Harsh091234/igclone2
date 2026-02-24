@@ -1,5 +1,13 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
+interface TextLayer {
+  _id: string;
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
 export interface IStory extends Document {
   user: Types.ObjectId;
   media: {
@@ -7,7 +15,7 @@ export interface IStory extends Document {
     url: string;
     publicId: string;
   };
-  text: string;
+  textLayers: TextLayer[];
   views: [
     {
       user: Types.ObjectId;
@@ -15,11 +23,10 @@ export interface IStory extends Document {
     },
   ];
 
-  likes: 
-    {
-      user: Types.ObjectId;
-      likedAt: Date;
-    }[];
+  likes: {
+    user: Types.ObjectId;
+    likedAt: Date;
+  }[];
 
   createdAt: Date;
   expiresAt: Date;
@@ -32,14 +39,34 @@ const storySchema = new Schema<IStory>(
       ref: "User",
       required: true,
     },
-    text: String,
+    textLayers: [
+      {
+        text: {
+          type: String,
+          required: true,
+        },
+        x: {
+          type: Number,
+          required: true,
+        },
+        y: {
+          type: Number,
+          required: true,
+        },
+        color: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+
     media: {
       type: {
         type: String,
         enum: ["image", "video"],
         required: true,
       },
-      publicId: { type: String, required: true },
+      publicId: { type: String },
       url: {
         type: String,
         required: true,

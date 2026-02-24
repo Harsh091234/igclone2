@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import Draggable from "react-draggable";
 import DraggableText from "../DraggableText";
 import CustomButton from "../CustomButton";
+import { useCreateStoryMutation } from "../../services/storyApi";
 
 interface Props {
   open: boolean;
@@ -33,7 +34,7 @@ const predefinedColors = [
 
 export default function AddStoryPanel({ open, onOpenChange }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
-  
+  const [createStory, { isLoading: isCreating }] = useCreateStoryMutation();
   const [media, setMedia] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
@@ -75,13 +76,30 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
     setActiveTextId(null);
   };
 
-  const handleSubmit = () => {
-    // TODO → send to backend
-    console.log({
-      media,
-      mediaType,
-      textLayers,
-    });
+  const handleSubmit = async () => {
+    try {
+      // TODO → send to backend
+      console.log({
+        media,
+        mediaType,
+        textLayers,
+      });
+
+      const formdata = new FormData();
+      if (!fileRef.current?.files?.[0]) return;
+      formdata.append("media", fileRef.current.files[0]);
+      formdata.append("textLayers", JSON.stringify(textLayers));
+      console.log("hi");
+      const story = await createStory(formdata).unwrap();
+      console.log("st", story);
+    } catch (error: any) {
+      const message: string =
+        (error?.data?.message as string) ||
+        (error?.error as string) ||
+        "Something went wrong";
+
+      console.error("error in handleSubmit: addstorypanel =>", message);
+    }
 
     onOpenChange(false);
   };
@@ -130,6 +148,7 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
             </div>
 
             <CustomButton
+              loading={isCreating}
               onClick={handleSubmit}
               text={"Share"}
               className="w-20 font-semibold rounded-md text-sm py-1"
@@ -155,7 +174,6 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
                   <DraggableText
                     key={layer.id}
                     layer={layer}
-                    
                     activeTextId={activeTextId}
                     setActiveTextId={setActiveTextId}
                     updatePosition={(id, x, y) => {

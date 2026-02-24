@@ -1,4 +1,4 @@
-import {  useState } from "react";
+import { useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -8,7 +8,10 @@ import {
 } from "../components/ui/carousel";
 
 import { Link, useNavigate } from "react-router-dom";
-import { useFetchSuggestedUsersQuery, useGetAuthUserQuery } from "../services/userApi";
+import {
+  useFetchSuggestedUsersQuery,
+  useGetAuthUserQuery,
+} from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
 import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
@@ -21,6 +24,8 @@ import { ScrollArea } from "../components/ui/scroll-area";
 import UserAvatar from "../components/UserAvatar";
 import AddStoryPanel from "../components/panels/AddStoryPanel";
 import StoryViewerModal from "../components/modals/StoryViewerModal";
+import { useGetAllUsersStoryQuery } from "../services/storyApi";
+import type { Story } from "../types/story.types";
 
 interface StoryCircle {
   id: string;
@@ -94,42 +99,42 @@ const demoStories: StoryViewer[] = [
   },
 ];
 
-
 export default function FeedPage() {
- const [visibleCount, setVisibleCount] = useState<number>(5);
+  const [visibleCount, setVisibleCount] = useState<number>(5);
   const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
- const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
- const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
-  const {isLoading: isSuggestedUsersLoading, data: suggestedUsersData} = useFetchSuggestedUsersQuery(14);
-  const suggestedUsers = suggestedUsersData?.users?? [];
+  const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
+    useFetchSuggestedUsersQuery(14);
+  const suggestedUsers = suggestedUsersData?.users ?? [];
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
- 
+  const { isLoading: isStoryLoading, data: storyData } =
+    useGetAllUsersStoryQuery(undefined);
+  const stories = storyData?.stories;
+  console.log("storyies", stories);
   const navigate = useNavigate();
- const storyCircles: StoryCircle[] = [
-   { id: "1", userName: "Your Story", avatar: "😜", isOwn: true },
-   { id: "2", userName: "alice_wonder", avatar: "🐱‍👤" },
-   { id: "3", userName: "travel_diaries", avatar: "💋" },
-   { id: "4", userName: "foodie_life", avatar: "😎" },
-   { id: "5", userName: "tech_guru", avatar: "A" },
-   { id: "6", userName: "fitness_pro", avatar: "J" },
-   { id: "7", userName: "art_daily", avatar: "I" },
- ];
+  const storyCircles: StoryCircle[] = [
+    { id: "1", userName: "Your Story", avatar: "😜", isOwn: true },
+    { id: "2", userName: "alice_wonder", avatar: "🐱‍👤" },
+    { id: "3", userName: "travel_diaries", avatar: "💋" },
+    { id: "4", userName: "foodie_life", avatar: "😎" },
+    { id: "5", userName: "tech_guru", avatar: "A" },
+    { id: "6", userName: "fitness_pro", avatar: "J" },
+    { id: "7", userName: "art_daily", avatar: "I" },
+  ];
 
   const posts = postData?.posts;
- 
+
   const { data } = useGetAuthUserQuery();
 
   const authUser = data?.user;
 
- const handleVisibleCount = () => {
-   setVisibleCount((prev) =>
-     prev === 5 ? 14 : 5,
-   );
- };
-
+  const handleVisibleCount = () => {
+    setVisibleCount((prev) => (prev === 5 ? 14 : 5));
+  };
 
   if (!authUser) return <CenterLoading />;
 
@@ -172,9 +177,9 @@ export default function FeedPage() {
                 </CarouselItem>
 
                 {/* ───── Other Stories ───── */}
-                {storyCircles.map((story, index) => (
+                {stories.map((story: Story, index) => (
                   <CarouselItem
-                    key={story.id}
+                    key={story._id}
                     className="basis-[70px] sm:basis-[80px]"
                   >
                     <div
@@ -184,16 +189,15 @@ export default function FeedPage() {
                       }}
                       className="flex flex-col items-center gap-1 cursor-pointer"
                     >
-                      <div className="w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
-                        <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
-                            {story.avatar}
-                          </div>
-                        </div>
+                      <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px]">
+                        <UserAvatar
+                          classes="w-11 flex  sm:w-13 h-11 sm:h-13 "
+                          user={story.user}
+                        />
                       </div>
 
                       <span className="text-xs text-foreground truncate max-w-[64px]">
-                        {story.avatar}
+                        {story.user.userName}
                       </span>
                     </div>
                   </CarouselItem>
@@ -321,7 +325,6 @@ export default function FeedPage() {
           open={isStoryViewerOpen}
           onClose={() => setIsStoryViewerOpen(false)}
           stories={demoStories}
-         
           initialIndex={selectedStoryIndex}
         />
       }

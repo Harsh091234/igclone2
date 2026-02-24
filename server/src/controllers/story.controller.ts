@@ -9,9 +9,10 @@ import Story from "../models/story.model.js";
 
 export async function createStory(req: Request, res: Response) {
   try {
-    const { text } = req.body;
+    const { textLayers: textLayersString } = req.body;
+    const textLayers = JSON.parse(textLayersString || "[]");
     // const { userId: clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
     const file = req.file;
 
     if (!clerkId) return res.status(401).json({ message: "Unauthenticated" });
@@ -49,7 +50,7 @@ export async function createStory(req: Request, res: Response) {
 
     const newStory = await Story.create({
       user: user._id,
-      text,
+      textLayers,
       media: {
         type: mediaType,
         url: mediaUrl,
@@ -68,7 +69,7 @@ export async function createStory(req: Request, res: Response) {
 export async function getStories(req: Request, res: Response) {
   try {
     // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
     const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(400).json({ message: "No auth user found" });
@@ -118,7 +119,7 @@ export async function getStories(req: Request, res: Response) {
 export async function getSingleUserStories(req: Request, res: Response) {
   try {
     // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
 
     const user = await User.findOne({ clerkId }).select("userName profilePic");
     if (!user) {
@@ -163,7 +164,7 @@ export async function viewStory(req: Request, res: Response) {
     const { storyId } = req.params;
 
     // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
     const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(401).json({
@@ -217,8 +218,8 @@ export async function viewStory(req: Request, res: Response) {
 export async function getStoryViews(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
-    // const { clerkId } = req.body; 
-    const { userId: clerkId } = req.auth!() ;
+    // const { clerkId } = req.body;
+    const { userId: clerkId } = req.auth!();
 
     const user = await User.findOne({ clerkId });
     if (!user) {
@@ -268,7 +269,7 @@ export async function likeStory(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
     // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
     const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(401).json({
@@ -333,7 +334,7 @@ export async function deleteStory(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
     // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!() ;
+    const { userId: clerkId } = req.auth!();
     const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(401).json({
