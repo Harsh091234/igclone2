@@ -1,12 +1,14 @@
 import { X, Heart, Eye } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UserAvatar from "../UserAvatar";
 import StoryViewsPanel from "../panels/StoryViewPanel";
 import { StoryViewsModal } from "./StoryViewsModal";
+import { formatTimeAgo } from "../../utils/timeFormatter";
 
 interface Story {
-  id: string;
+  _id: string;
   user: {
+    _id: string;
     userName: string;
     profilePic: string;
   };
@@ -19,13 +21,13 @@ interface Story {
   likes: number;
   isLiked?: boolean;
   viewers: number;
-  isOwn?: boolean;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
   stories: Story[];
+  isStoryOwner?: boolean;
   initialIndex: number;
 }
 
@@ -60,15 +62,14 @@ export default function StoryViewerModal({
   open,
   onClose,
   stories,
+  isStoryOwner,
   initialIndex,
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [storyList, setStoryList] = useState<Story[]>(stories);
   const [viewsOpen, setViewsOpen] = useState(false);
 
-  const story = storyList[currentIndex];
-
-  if (!open) return null;
+  console.log("stories in modal:", stories);
 
   const goNext = () => {
     if (viewsOpen) return; // prevent navigation when modal open
@@ -100,15 +101,26 @@ export default function StoryViewerModal({
     );
   };
 
+  useEffect(() => {
+    setStoryList(stories);
+    setCurrentIndex(initialIndex);
+  }, [stories, initialIndex]);
+
+  if (!open || !stories || stories.length === 0) return null;
+  const story = storyList[currentIndex] ?? storyList[0];
+  if (!story) return null;
   return (
     <div className="fixed inset-0 bg-primary-foreground z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 text-primary">
         <div className="flex items-center gap-3">
-          <UserAvatar classes="w-10 h-10" />
+          <UserAvatar user={story.user} classes="w-10 h-10" />
           <div>
-            <p className="text-sm font-semibold">harsh sharma</p>
-            <p className="text-xs text-secondary-foreground">12 feb 23</p>
+            <p className="text-sm font-semibold">{story.user.userName}</p>
+            <p className="text-xs text-secondary-foreground">
+              {" "}
+              {`${formatTimeAgo(story.createdAt)}   `}
+            </p>
           </div>
         </div>
 
@@ -140,19 +152,23 @@ export default function StoryViewerModal({
           >
             {storyList.map((s, index) => (
               <div
-                key={s.id}
+                key={s._id} // ✅ FIXED
                 className="min-w-full h-full flex items-center justify-center"
               >
                 {s.media.type === "image" ? (
                   <img
                     src={s.media.url}
+                    alt=""
                     className="h-full w-full object-cover"
                   />
                 ) : (
                   <video
+                    key={index === currentIndex ? "active" : "inactive"} // ✅ forces remount
                     src={s.media.url}
                     className="h-full w-full object-cover"
                     autoPlay={index === currentIndex}
+                    muted
+                    playsInline
                   />
                 )}
               </div>
@@ -161,7 +177,7 @@ export default function StoryViewerModal({
 
           {/* Bottom Overlay */}
           <div className="absolute bottom-0 left-0 w-full p-4 z-30 text-white bg-gradient-to-t from-black/80 to-transparent">
-            {story.isOwn ? (
+            {isStoryOwner ? (
               <div className="flex items-center justify-between">
                 <div
                   className="flex items-center gap-1 cursor-pointer"

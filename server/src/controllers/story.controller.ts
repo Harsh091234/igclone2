@@ -68,51 +68,47 @@ export async function createStory(req: Request, res: Response) {
 
 export async function getStories(req: Request, res: Response) {
   try {
-    // const { clerkId } = req.body;
     const { userId: clerkId } = req.auth!();
     const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(400).json({ message: "No auth user found" });
     }
+
     const followingIds = user.following;
     const mergedIds = [...followingIds, user._id];
+
     const stories = await Story.find({
       user: { $in: mergedIds },
       expiresAt: { $gt: new Date() },
     })
-      .populate("user", "userName profilePic")
+      .populate("user", "userName profilePic") // populate user info
       .sort({ createdAt: -1 });
 
-    if (stories.length === 0)
-      return res
-        .status(200)
-        .json({ success: true, message: "No stories found", stories: [] });
-    // grouping logic
+    if (!stories.length) {
+      return res.status(200).json({ success: true, stories: [] }); // empty array
+    }
+
+    // Group stories by user
     const groupedStories = stories.reduce((acc: any[], story: any) => {
+      const storyObj = story.toObject(); // convert Mongoose doc to plain object
+
       const existingUser = acc.find(
-        (item) => item.user._id.toString() === story.user._id.toString(),
+        (item) => item.user._id.toString() === storyObj.user._id.toString(),
       );
 
       if (existingUser) {
-        existingUser.stories.push(story);
+        existingUser.stories.push(storyObj);
       } else {
-        acc.push({
-          user: story.user,
-          stories: [story],
-        });
+        acc.push({ user: storyObj.user, stories: [storyObj] });
       }
-
       return acc;
     }, []);
 
-    return res.status(200).json({
-      success: true,
-      message: "Stories found",
-      stories: groupedStories,
-    });
-  } catch (error: any) {
-    console.log("Error in getStories:", error.message);
-    return res.status(500).json({ success: false, message: "Server failed" });
+    // Send as proper JSON
+    res.status(200).json({ success: true, stories: groupedStories });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
   }
 }
 

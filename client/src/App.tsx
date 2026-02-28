@@ -23,8 +23,8 @@ import { ProtectedRoutes } from "./utils/ProtectedRoutes";
 import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
 import ReelsPage from "./pages/ReelsPage";
 import MessagePage from "./pages/MessagePage";
-import { useDispatch} from "react-redux";
-import type { AppDispatch} from "./store/store";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "./store/store";
 import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import { useAppSelector } from "./utils/hooks";
@@ -64,16 +64,19 @@ const App = () => {
     if (!authUser?._id) return;
 
     const socket = connectSocket(authUser._id);
-  
+
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
       dispatch(setConnected(true));
     });
-    socket.on("getOnlineUsers", (users: {userId: string, lastActive: number}[]) => {
-       const userMap: Record<string, number> = {};
+    socket.on(
+      "getOnlineUsers",
+      (users: { userId: string; lastActive: number }[]) => {
+        const userMap: Record<string, number> = {};
         users.forEach((u) => (userMap[u.userId] = u.lastActive));
-      dispatch(setOnlineUsers(userMap));
-    });
+        dispatch(setOnlineUsers(userMap));
+      },
+    );
 
     socket.on("disconnect", () => {
       dispatch(setConnected(false));

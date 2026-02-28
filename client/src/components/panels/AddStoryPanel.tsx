@@ -12,6 +12,7 @@ import { useCreateStoryMutation } from "../../services/storyApi";
 interface Props {
   open: boolean;
   onOpenChange: (value: boolean) => void;
+  setAnimateRing: (value: boolean) => void;
 }
 
 interface TextLayer {
@@ -32,7 +33,11 @@ const predefinedColors = [
   "#af52de",
 ];
 
-export default function AddStoryPanel({ open, onOpenChange }: Props) {
+export default function AddStoryPanel({
+  open,
+  onOpenChange,
+  setAnimateRing,
+}: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [createStory, { isLoading: isCreating }] = useCreateStoryMutation();
   const [media, setMedia] = useState<string | null>(null);
@@ -92,6 +97,11 @@ export default function AddStoryPanel({ open, onOpenChange }: Props) {
       console.log("hi");
       const story = await createStory(formdata).unwrap();
       console.log("st", story);
+
+      setAnimateRing(true);
+      setTimeout(() => {
+        setAnimateRing(false); // reset after animation finishes
+      }, 800); // same duration as animation
     } catch (error: any) {
       const message: string =
         (error?.data?.message as string) ||

@@ -1,11 +1,5 @@
-import React, {  useState } from "react";
-import {
-  Heart,
-  MessageCircle,
- 
-  Bookmark,
-  MoreHorizontal,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Heart, MessageCircle, Bookmark, MoreHorizontal } from "lucide-react";
 import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
@@ -14,7 +8,7 @@ import {
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
-import { useGetAuthUserQuery} from "../services/userApi";
+import { useGetAuthUserQuery } from "../services/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
@@ -29,47 +23,45 @@ import {
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
 
-
 interface PostCardProps {
   post: Post;
 }
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetAuthUserQuery();
-  console.log(post)
+  console.log(post);
   const authUser = authData?.user;
   const navigate = useNavigate();
-    const [deleteComment] = useDeleteCommentMutation()
+  const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-   
+
   const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
   let isLiked = post.likes.some(
-    (id) => id.toString() === authUser?._id?.toString()
+    (id) => id.toString() === authUser?._id?.toString(),
   );
-     const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
-      null,
-    );
-  let isBookmarked = authUser?.bookmarks?.some(
-    (id) => id.toString() === post._id.toString()
+    null,
   );
- const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
-   null,
- );
+  let isBookmarked = authUser?.bookmarks?.some(
+    (id) => id.toString() === post._id.toString(),
+  );
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null,
+  );
 
   const handleBookmark = async () => {
-   
-   await toggleBookmarkPost(post._id).unwrap();
-    
+    await toggleBookmarkPost(post._id).unwrap();
+
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
   const handleLike = async () => {
-   await toggleLikePost({
+    await toggleLikePost({
       postId: post._id,
       userId: authUser?._id,
     }).unwrap();
@@ -80,19 +72,19 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   const handleDeleteComment = async () => {
-      if (!selectedCommentId) return;
-  
-      try {
-        setDeletingCommentId(selectedCommentId);
-  
-        await deleteComment(selectedCommentId).unwrap();
-        setOpen(false);
-      } catch (error: any) {
-        toast.error(error?.data?.message || "Failed to delete comment");
-      } finally {
-        setDeletingCommentId(null);
-      }
-    };
+    if (!selectedCommentId) return;
+
+    try {
+      setDeletingCommentId(selectedCommentId);
+
+      await deleteComment(selectedCommentId).unwrap();
+      setOpen(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete comment");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
 
   return (
     <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full">
@@ -223,7 +215,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
         )}
 
         <p className="text-[0.68rem] sm:text-xs text-muted-foreground ">
-          {formatTimeAgo(post.createdAt)} ago
+          {formatTimeAgo(post.createdAt)}
         </p>
       </div>
 

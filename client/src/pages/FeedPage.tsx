@@ -17,7 +17,7 @@ import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
-import { Plus } from "lucide-react";
+import { Group, Plus } from "lucide-react";
 import type { User } from "../types/user.types";
 import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -26,6 +26,7 @@ import AddStoryPanel from "../components/panels/AddStoryPanel";
 import StoryViewerModal from "../components/modals/StoryViewerModal";
 import { useGetAllUsersStoryQuery } from "../services/storyApi";
 import type { Story } from "../types/story.types";
+import { StoriesSkeleton } from "../components/Skeletons/StoriesSkeleton";
 
 interface StoryCircle {
   id: string;
@@ -35,8 +36,9 @@ interface StoryCircle {
 }
 
 interface StoryViewer {
-  id: string;
+  _id: string;
   user: {
+    _id: string;
     userName: string;
     profilePic: string;
   };
@@ -50,61 +52,16 @@ interface StoryViewer {
   viewers: number;
   isOwn?: boolean;
 }
-const demoStories: StoryViewer[] = [
-  {
-    id: "1",
-    user: {
-      userName: "Your Story",
-      profilePic: "/user avatar.png",
-    },
-    media: {
-      type: "image",
-      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-      publicId: "demo1",
-    },
-    createdAt: "1h ago",
-    likes: 25,
-    viewers: 120,
-    isOwn: true,
-  },
-  {
-    id: "2",
-    user: {
-      userName: "travel_diaries",
-      profilePic: "/user avatar.png",
-    },
-    media: {
-      type: "image",
-      url: "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
-      publicId: "demo2",
-    },
-    createdAt: "2h ago",
-    likes: 40,
-    viewers: 210,
-  },
-  {
-    id: "3",
-    user: {
-      userName: "fitness_pro",
-      profilePic: "/user avatar.png",
-    },
-    media: {
-      type: "video",
-      url: "https://www.w3schools.com/html/mov_bbb.mp4",
-      publicId: "demo3",
-    },
-    createdAt: "3h ago",
-    likes: 15,
-    viewers: 80,
-  },
-];
-
 export default function FeedPage() {
   const [visibleCount, setVisibleCount] = useState<number>(5);
   const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
   const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [animateRing, setAnimateRing] = useState(false);
+  const [viewerStories, setViewerStories] = useState<StoryViewer[]>([]);
+  const { data } = useGetAuthUserQuery();
 
+  const authUser = data?.user;
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
@@ -113,24 +70,20 @@ export default function FeedPage() {
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
   const { isLoading: isStoryLoading, data: storyData } =
     useGetAllUsersStoryQuery(undefined);
-  const stories = storyData?.stories;
-  console.log("storyies", stories);
+  const storyGroups = storyData?.stories ?? [];
+  const authUserStoryGroups = storyGroups.find(
+    (group: any) => group.user._id === authUser?._id,
+  );
+  const hasAuthStory = authUserStoryGroups?.stories?.length > 0;
+  console.log("auth user story:", authUserStoryGroups);
+  const otherUsersStories = storyGroups.filter(
+    (group: any) => group.user._id !== authUser?._id,
+  );
+
+  console.log("storyies", storyGroups);
   const navigate = useNavigate();
-  const storyCircles: StoryCircle[] = [
-    { id: "1", userName: "Your Story", avatar: "😜", isOwn: true },
-    { id: "2", userName: "alice_wonder", avatar: "🐱‍👤" },
-    { id: "3", userName: "travel_diaries", avatar: "💋" },
-    { id: "4", userName: "foodie_life", avatar: "😎" },
-    { id: "5", userName: "tech_guru", avatar: "A" },
-    { id: "6", userName: "fitness_pro", avatar: "J" },
-    { id: "7", userName: "art_daily", avatar: "I" },
-  ];
 
   const posts = postData?.posts;
-
-  const { data } = useGetAuthUserQuery();
-
-  const authUser = data?.user;
 
   const handleVisibleCount = () => {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
@@ -154,54 +107,131 @@ export default function FeedPage() {
                 {/* ───── Your Story ───── */}
                 <CarouselItem className="pl-4 basis-[70px] sm:basis-[80px]">
                   <div className="flex flex-col items-center gap-1">
-                    <div className="w-11 sm:w-14 h-11 sm:h-14 relative rounded-full bg-muted p-[2px]">
-                      {/* + Icon */}
+                    <div className="relative w-14 h-14 flex items-center justify-center">
+                      {hasAuthStory && (
+                        <svg
+                          className="absolute inset-0 w-full h-full -rotate-90"
+                          viewBox="0 0 100 100"
+                        >
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="46"
+                            stroke="url(#gradient)"
+                            strokeWidth="6"
+                            fill="none"
+                            strokeDasharray="289"
+                            strokeDashoffset={animateRing ? 289 : 0}
+                            strokeLinecap="round"
+                            className={animateRing ? "animate-fillCircle" : ""}
+                          />
+                          <defs>
+                            <linearGradient
+                              id="gradient"
+                              x1="0%"
+                              y1="0%"
+                              x2="100%"
+                              y2="100%"
+                            >
+                              <stop offset="0%" stopColor="#feda75" />
+                              <stop offset="50%" stopColor="#d62976" />
+                              <stop offset="100%" stopColor="#962fbf" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      )}
+
+                      <div
+                        onClick={() => {
+                          if (!hasAuthStory) return;
+
+                          const myStories =
+                            authUserStoryGroups?.stories?.map((story: any) => ({
+                              id: story._id,
+                              user: {
+                                _id: authUserStoryGroups.user._id,
+                                userName: authUserStoryGroups.user.userName,
+                                profilePic: authUserStoryGroups.user.profilePic,
+                              },
+                              media: story.media,
+                              createdAt: story.createdAt,
+                              likes: story.likes?.length ?? 0,
+                              viewers: story.viewers?.length ?? 0,
+                              isOwn: true,
+                            })) ?? [];
+
+                          setViewerStories(myStories);
+                          setSelectedStoryIndex(0);
+                          setIsStoryViewerOpen(true);
+                        }}
+                        className="w-12 h-12 rounded-full overflow-hidden bg-card"
+                      >
+                        <img
+                          src={authUser.profilePic || "/user avatar.png"}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      </div>
+
+                      {/* {!hasAuthStory && ( */}
                       <button
                         onClick={() => setIsStoryPanelOpen(true)}
-                        className="absolute z-3 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center"
+                        className="absolute z-10 -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground border border-card flex items-center justify-center"
                       >
                         <Plus className="w-2.5 h-2.5" strokeWidth={2.5} />
                       </button>
-                      <div className="relative w-full h-full rounded-full bg-card overflow-hidden">
-                        <img
-                          src={authUser.profilePic || "/user avatar.png"}
-                          alt="user image"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
+                      {/* )} */}
                     </div>
-                    <span className="text-xs text-foreground truncate max-w-[64px]">
+                    <span className="text-xs truncate max-w-[64px]">
                       Your Story
                     </span>
                   </div>
                 </CarouselItem>
 
                 {/* ───── Other Stories ───── */}
-                {stories.map((story: Story, index) => (
-                  <CarouselItem
-                    key={story._id}
-                    className="basis-[70px] sm:basis-[80px]"
-                  >
-                    <div
-                      onClick={() => {
-                        setSelectedStoryIndex(index);
-                        setIsStoryViewerOpen(true);
-                      }}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
+                {isStoryLoading ? (
+                  <StoriesSkeleton />
+                ) : (
+                  otherUsersStories.map((group: any, index: number) => (
+                    <CarouselItem
+                      key={group.user._id}
+                      className="basis-[70px] sm:basis-[80px]"
                     >
-                      <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px]">
-                        <UserAvatar
-                          classes="w-11 flex  sm:w-13 h-11 sm:h-13 "
-                          user={story.user}
-                        />
-                      </div>
+                      <div
+                        onClick={() => {
+                          const mappedStories =
+                            group.stories?.map((story: any) => ({
+                              _id: story._id,
+                              user: {
+                                _id: group.user._id,
+                                userName: group.user.userName,
+                                profilePic: group.user.profilePic,
+                              },
+                              media: story.media,
+                              createdAt: story.createdAt,
+                              likes: story.likes?.length ?? 0,
+                              viewers: story.viewers?.length ?? 0,
+                            })) ?? [];
 
-                      <span className="text-xs text-foreground truncate max-w-[64px]">
-                        {story.user.userName}
-                      </span>
-                    </div>
-                  </CarouselItem>
-                ))}
+                          setViewerStories(mappedStories);
+                          setSelectedStoryIndex(0);
+                          setIsStoryViewerOpen(true);
+                        }}
+                        className="flex flex-col items-center gap-1 cursor-pointer"
+                      >
+                        <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px]">
+                          <UserAvatar
+                            classes="w-11 flex sm:w-13 h-11 sm:h-13"
+                            user={group.user}
+                          />
+                        </div>
+
+                        <span className="text-xs text-foreground truncate max-w-[64px]">
+                          {group.user.userName}
+                        </span>
+                      </div>
+                    </CarouselItem>
+                  ))
+                )}
               </CarouselContent>
 
               {/* ───── Controls ───── */}
@@ -318,14 +348,16 @@ export default function FeedPage() {
         <AddStoryPanel
           open={isStoryPanelOpen}
           onOpenChange={() => setIsStoryPanelOpen(false)}
+          setAnimateRing={setAnimateRing}
         />
       }
       {
         <StoryViewerModal
           open={isStoryViewerOpen}
           onClose={() => setIsStoryViewerOpen(false)}
-          stories={demoStories}
+          stories={viewerStories}
           initialIndex={selectedStoryIndex}
+          isStoryOwner={viewerStories[0]?.user._id === authUser?._id}
         />
       }
     </div>
