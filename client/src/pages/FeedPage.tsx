@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -48,7 +48,7 @@ interface StoryViewer {
     publicId: string;
   };
   createdAt: string;
-  likes: number;
+  likes: string[];
   viewers: number;
   isOwn?: boolean;
 }
@@ -58,7 +58,7 @@ export default function FeedPage() {
   const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [animateRing, setAnimateRing] = useState(false);
-  const [viewerStories, setViewerStories] = useState<StoryViewer[]>([]);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data } = useGetAuthUserQuery();
 
   const authUser = data?.user;
@@ -71,6 +71,20 @@ export default function FeedPage() {
   const { isLoading: isStoryLoading, data: storyData } =
     useGetAllUsersStoryQuery(undefined);
   const storyGroups = storyData?.stories ?? [];
+  const activeGroup = activeGroupId
+    ? storyGroups.find((group: any) => group.user._id === activeGroupId)
+    : null;
+
+  const viewerStories =
+    activeGroup?.stories?.map((story: any) => ({
+      _id: story._id,
+      user: activeGroup.user,
+      media: story.media,
+      createdAt: story.createdAt,
+      likes: story.likes,
+      viewers: story.viewers?.length ?? 0,
+    })) ?? [];
+  console.log("story groups", storyGroups);
   const authUserStoryGroups = storyGroups.find(
     (group: any) => group.user._id === authUser?._id,
   );
@@ -84,11 +98,19 @@ export default function FeedPage() {
   const navigate = useNavigate();
 
   const posts = postData?.posts;
-
+  const handleCloseStoryViewer = () => {
+    setActiveGroupId(null); // reset active story group
+    setSelectedStoryIndex(0); // reset selected story index
+    setIsStoryViewerOpen(false); // close modal
+  };
   const handleVisibleCount = () => {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
   };
-
+  useEffect(() => {
+    if (activeGroupId) {
+      setIsStoryViewerOpen(true);
+    }
+  }, [activeGroupId]);
   if (!authUser) return <CenterLoading />;
 
   return (
@@ -110,7 +132,7 @@ export default function FeedPage() {
                     <div className="relative w-14 h-14 flex items-center justify-center">
                       {hasAuthStory && (
                         <svg
-                          className="absolute inset-0 w-full h-full -rotate-90"
+                          className="absolute pointer-events-none inset-0 w-full h-full -rotate-90"
                           viewBox="0 0 100 100"
                         >
                           <circle
@@ -144,25 +166,8 @@ export default function FeedPage() {
                       <div
                         onClick={() => {
                           if (!hasAuthStory) return;
-
-                          const myStories =
-                            authUserStoryGroups?.stories?.map((story: any) => ({
-                              id: story._id,
-                              user: {
-                                _id: authUserStoryGroups.user._id,
-                                userName: authUserStoryGroups.user.userName,
-                                profilePic: authUserStoryGroups.user.profilePic,
-                              },
-                              media: story.media,
-                              createdAt: story.createdAt,
-                              likes: story.likes?.length ?? 0,
-                              viewers: story.viewers?.length ?? 0,
-                              isOwn: true,
-                            })) ?? [];
-
-                          setViewerStories(myStories);
+                          setActiveGroupId(authUserStoryGroups!.user._id);
                           setSelectedStoryIndex(0);
-                          setIsStoryViewerOpen(true);
                         }}
                         className="w-12 h-12 rounded-full overflow-hidden bg-card"
                       >
@@ -198,23 +203,8 @@ export default function FeedPage() {
                     >
                       <div
                         onClick={() => {
-                          const mappedStories =
-                            group.stories?.map((story: any) => ({
-                              _id: story._id,
-                              user: {
-                                _id: group.user._id,
-                                userName: group.user.userName,
-                                profilePic: group.user.profilePic,
-                              },
-                              media: story.media,
-                              createdAt: story.createdAt,
-                              likes: story.likes?.length ?? 0,
-                              viewers: story.viewers?.length ?? 0,
-                            })) ?? [];
-
-                          setViewerStories(mappedStories);
+                          setActiveGroupId(group.user._id);
                           setSelectedStoryIndex(0);
-                          setIsStoryViewerOpen(true);
                         }}
                         className="flex flex-col items-center gap-1 cursor-pointer"
                       >
@@ -354,10 +344,11 @@ export default function FeedPage() {
       {
         <StoryViewerModal
           open={isStoryViewerOpen}
-          onClose={() => setIsStoryViewerOpen(false)}
+          onClose={handleCloseStoryViewer}
           stories={viewerStories}
+          authUserId={authUser._id}
           initialIndex={selectedStoryIndex}
-          isStoryOwner={viewerStories[0]?.user._id === authUser?._id}
+          isStoryOwner={activeGroup?.user._id === authUser?._id}
         />
       }
     </div>

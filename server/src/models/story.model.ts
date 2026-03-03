@@ -23,10 +23,7 @@ export interface IStory extends Document {
     },
   ];
 
-  likes: {
-    user: Types.ObjectId;
-    likedAt: Date;
-  }[];
+  likes: Types.ObjectId[];
 
   createdAt: Date;
   expiresAt: Date;
@@ -78,19 +75,7 @@ const storySchema = new Schema<IStory>(
         viewedAt: { type: Date, default: Date.now },
       },
     ],
-    likes: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        likedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    likes: [{ type: Types.ObjectId, ref: "User" }],
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h

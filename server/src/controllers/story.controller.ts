@@ -83,7 +83,7 @@ export async function getStories(req: Request, res: Response) {
     })
       .populate("user", "userName profilePic") // populate user info
       .sort({ createdAt: -1 });
-
+    console.log("stories", stories);
     if (!stories.length) {
       return res.status(200).json({ success: true, stories: [] }); // empty array
     }
@@ -283,13 +283,13 @@ export async function likeStory(req: Request, res: Response) {
     }
 
     const alreadyLiked = story.likes.some(
-      (like: any) => like.user.toString() === user._id.toString(),
+      (id) => id.toString() === user._id.toString(),
     );
 
     if (alreadyLiked) {
       //  UNLIKE
       story.likes = story.likes.filter(
-        (like: any) => like.user.toString() !== user._id.toString(),
+        (id) => id.toString() !== user._id.toString(),
       );
 
       await story.save();
@@ -302,10 +302,7 @@ export async function likeStory(req: Request, res: Response) {
       });
     } else {
       //  LIKE
-      story.likes.push({
-        user: user._id,
-        likedAt: new Date(),
-      });
+      story.likes.push(user._id);
 
       await story.save();
       //realtime notification

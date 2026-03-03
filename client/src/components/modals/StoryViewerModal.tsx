@@ -4,6 +4,7 @@ import UserAvatar from "../UserAvatar";
 import StoryViewsPanel from "../panels/StoryViewPanel";
 import { StoryViewsModal } from "./StoryViewsModal";
 import { formatTimeAgo } from "../../utils/timeFormatter";
+import { useLikeStoryMutation } from "../../services/storyApi";
 
 interface Story {
   _id: string;
@@ -18,7 +19,7 @@ interface Story {
     publicId: string;
   };
   createdAt: string;
-  likes: number;
+  likes: string[];
   isLiked?: boolean;
   viewers: number;
 }
@@ -29,6 +30,7 @@ interface Props {
   stories: Story[];
   isStoryOwner?: boolean;
   initialIndex: number;
+  authUserId: string;
 }
 
 const viewersList = [
@@ -64,12 +66,12 @@ export default function StoryViewerModal({
   stories,
   isStoryOwner,
   initialIndex,
+  authUserId,
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [storyList, setStoryList] = useState<Story[]>(stories);
-  const [viewsOpen, setViewsOpen] = useState(false);
 
-  console.log("stories in modal:", stories);
+  const [viewsOpen, setViewsOpen] = useState(false);
+  const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
 
   const goNext = () => {
     if (viewsOpen) return; // prevent navigation when modal open
@@ -87,28 +89,32 @@ export default function StoryViewerModal({
     }
   };
 
-  const toggleLike = () => {
-    setStoryList((prev) =>
-      prev.map((s, i) =>
-        i === currentIndex
-          ? {
-              ...s,
-              isLiked: !s.isLiked,
-              likes: s.isLiked ? s.likes - 1 : s.likes + 1,
-            }
-          : s,
-      ),
-    );
+  const handleLike = async () => {
+    if (isLiking) return;
+
+    try {
+      await likeStory({
+        storyId: story._id,
+        userId: authUserId,
+      }).unwrap();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const resetState = () => {
+    setCurrentIndex(initialIndex); // go back to starting story
+    setViewsOpen(false); // close viewers panel
   };
 
   useEffect(() => {
-    setStoryList(stories);
     setCurrentIndex(initialIndex);
-  }, [stories, initialIndex]);
-
+  }, [initialIndex]);
   if (!open || !stories || stories.length === 0) return null;
-  const story = storyList[currentIndex] ?? storyList[0];
-  if (!story) return null;
+  const currentStory = stories[currentIndex];
+  console.log("stories in modal :12312", stories);
+  const story = stories[currentIndex] ?? stories[0];
+  console.log("story", story);
+  const isLiked = story.likes.includes(authUserId);
   return (
     <div className="fixed inset-0 bg-primary-foreground z-50 flex flex-col">
       {/* Header */}
@@ -124,7 +130,11 @@ export default function StoryViewerModal({
           </div>
         </div>
 
-        <button onClick={onClose}>
+        <button
+          onClick={() => {
+            onClose();
+          }}
+        >
           <X />
         </button>
       </div>
@@ -150,7 +160,7 @@ export default function StoryViewerModal({
               transform: `translateX(-${currentIndex * 100}%)`,
             }}
           >
-            {storyList.map((s, index) => (
+            {stories.map((s, index) => (
               <div
                 key={s._id} // ✅ FIXED
                 className="min-w-full h-full flex items-center justify-center"
@@ -189,18 +199,19 @@ export default function StoryViewerModal({
 
                 <div className="flex items-center gap-1">
                   <Heart size={19} />
-                  <span>{story.likes}</span>
+                  <span>{story.likes.length}</span>
                 </div>
               </div>
             ) : (
               <button
-                onClick={toggleLike}
+                onClick={handleLike}
+                disabled={isLiking}
                 className="flex ml-auto active:scale-90 transition"
               >
                 <Heart
                   size={22}
                   className={
-                    story.isLiked ? "fill-red-500 text-red-500" : "text-white"
+                    isLiked ? "fill-red-500 text-red-500" : "text-white"
                   }
                 />
               </button>
