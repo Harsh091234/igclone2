@@ -57,6 +57,13 @@ const storyApi = api.injectEndpoints({
         }
       },
     }),
+
+    viewStory: builder.mutation({
+      query: ({ storyId }) => ({
+        url: `/story/view/${storyId}`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -64,4 +71,5 @@ export const {
   useCreateStoryMutation,
   useGetAllUsersStoryQuery,
   useLikeStoryMutation,
+  useViewStoryMutation,
 } = storyApi;

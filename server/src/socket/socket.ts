@@ -31,7 +31,7 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = { socketId: socket.id, lastActive: Date.now() };
     console.log(`User connected: ${userId} with socket ID: ${socket.id}`);
   }
-   emitOnlineUsers();
+  emitOnlineUsers();
 
   socket.on("disconnect", () => {
     if (typeof userId === "string") {
@@ -41,10 +41,9 @@ io.on("connection", (socket) => {
         delete userSocketMap[userId];
       }
     }
-   
-       emitOnlineUsers();
+
+    emitOnlineUsers();
   });
-  
 });
 
 function emitOnlineUsers() {

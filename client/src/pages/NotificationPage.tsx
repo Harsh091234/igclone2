@@ -20,7 +20,7 @@ const NotificationPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data: notificationData, isLoading: isNotificationLoading } =
     useGetNotificationsQuery(undefined);
-      const navigate = useNavigate();
+  const navigate = useNavigate();
   const notifications = notificationData?.notifications;
 
   console.log("data", notifications);
@@ -63,10 +63,12 @@ const NotificationPage = () => {
       type,
       sender,
       post,
-      comment
+      comment,
+      story,
     }: {
       type: string;
       sender: string;
+      story: string;
       post: string;
       comment: string;
     }) => {
@@ -84,6 +86,7 @@ const NotificationPage = () => {
                   n.type === type &&
                   n.sender._id === sender &&
                   n.post?._id === post &&
+                  n.story?._id === story &&
                   n.comment?._id === comment
                 ),
             );
@@ -118,7 +121,7 @@ const NotificationPage = () => {
       {/* Notifications list */}
       <div className="max-w-xl space-y-3 mb-15 sm:mb-0">
         {isNotificationLoading ? (
-         <NotificationsSkeleton />
+          <NotificationsSkeleton />
         ) : notifications && notifications.length > 0 ? (
           /* Notifications list */
           notifications.map((n: any) => (
@@ -168,21 +171,36 @@ const NotificationPage = () => {
                   </span>
                 </div>
 
-                {/* Post Media Preview */}
-                {n.post?.media?.length > 0 && (
+                {/* Media Preview */}
+                {(n.post?.media?.length > 0 || n.story?.media) && (
                   <div className="shrink-0 h-10 w-10 rounded overflow-hidden">
-                    {n.post.media[0].type === "image" ? (
+                    {/* Post Media */}
+                    {n.post?.media?.length > 0 ? (
+                      n.post.media[0].type === "image" ? (
+                        <img
+                          src={n.post.media[0].url}
+                          alt="post"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={n.post.media[0].url}
+                          className="w-full h-full object-cover"
+                          muted
+                        />
+                      )
+                    ) : /* Story Media */
+                    n.story?.media?.type === "image" ? (
                       <img
-                        src={n.post.media[0].url}
-                        alt="post"
+                        src={n.story.media.url}
+                        alt="story"
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <video
-                        src={n.post.media[0].url}
+                        src={n.story.media.url}
                         className="w-full h-full object-cover"
                         muted
-                        preload="metadata"
                       />
                     )}
                   </div>

@@ -6,6 +6,8 @@ import sharp from "sharp";
 import { convertToBase64 } from "../config/convertToBase64.js";
 import { uploadBase64Image } from "../config/uploadPic.js";
 import Story from "../models/story.model.js";
+import Notification from "../models/notification.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export async function createStory(req: Request, res: Response) {
   try {
@@ -183,19 +185,20 @@ export async function viewStory(req: Request, res: Response) {
         viewsCount: story.views.length,
       });
     }
-    // check if already viewed
-    const alreadyViewed = story.views.some(
-      (view: any) => view.user.toString() === user._id.toString(),
+    await Story.updateOne(
+      {
+        _id: storyId,
+        "views.user": { $ne: user._id },
+      },
+      {
+        $push: {
+          views: {
+            user: user._id,
+            viewedAt: new Date(),
+          },
+        },
+      },
     );
-
-    if (!alreadyViewed) {
-      story.views.push({
-        user: user._id,
-        viewedAt: new Date(),
-      });
-
-      await story.save();
-    }
 
     return res.status(200).json({
       success: true,
@@ -294,6 +297,23 @@ export async function likeStory(req: Request, res: Response) {
 
       await story.save();
 
+      if (story.user.toString() !== user._id.toString()) {
+        await Notification.deleteOne({
+          type: "like",
+          sender: user._id,
+          receiver: story.user._id,
+          story: story._id,
+        });
+
+        const postOwnerSocketId = getReceiverSocketId(
+          story.user._id.toString(),
+        );
+        io.to(postOwnerSocketId).emit("notification:remove", {
+          type: "like",
+          sender: user._id.toString(),
+          story: story._id.toString(),
+        });
+      }
       return res.status(200).json({
         success: true,
         message: "Story unliked",
@@ -306,6 +326,28 @@ export async function likeStory(req: Request, res: Response) {
 
       await story.save();
       //realtime notification
+      if (story.user.toString() !== user._id.toString()) {
+        const notification = await Notification.create({
+          receiver: story.user._id,
+          sender: user._id,
+          type: "like",
+          message: "liked your story",
+          story: story._id,
+        });
+        await notification.populate([
+          {
+            path: "sender",
+            select: "userName profilePic",
+          },
+          {
+            path: "story",
+            select: "media",
+          },
+        ]);
+        const receiverSocketId = getReceiverSocketId(story.user._id.toString());
+
+        io.to(receiverSocketId).emit("notification", notification);
+      }
 
       return res.status(200).json({
         success: true,

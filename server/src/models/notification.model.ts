@@ -6,6 +6,7 @@ export interface INotification extends Document {
   type: "like" | "comment" | "follow";
   post?: mongoose.Types.ObjectId;
   comment?: mongoose.Types.ObjectId;
+  story?: mongoose.Types.ObjectId;
   message: string;
   isRead: boolean;
   createdAt: Date;
@@ -35,6 +36,10 @@ const notificationSchema = new Schema<INotification>(
     comment: {
       type: Schema.Types.ObjectId,
       ref: "Comment",
+    },
+    story: {
+      type: Schema.Types.ObjectId,
+      ref: "Story",
     },
     message: {
       type: String,

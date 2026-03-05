@@ -169,7 +169,7 @@ export default function FeedPage() {
                           setActiveGroupId(authUserStoryGroups!.user._id);
                           setSelectedStoryIndex(0);
                         }}
-                        className="w-12 h-12 rounded-full overflow-hidden bg-card"
+                        className="w-12 cursor-pointer h-12 rounded-full overflow-hidden bg-card"
                       >
                         <img
                           src={authUser.profilePic || "/user avatar.png"}

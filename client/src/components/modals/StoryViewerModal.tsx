@@ -4,7 +4,10 @@ import UserAvatar from "../UserAvatar";
 import StoryViewsPanel from "../panels/StoryViewPanel";
 import { StoryViewsModal } from "./StoryViewsModal";
 import { formatTimeAgo } from "../../utils/timeFormatter";
-import { useLikeStoryMutation } from "../../services/storyApi";
+import {
+  useLikeStoryMutation,
+  useViewStoryMutation,
+} from "../../services/storyApi";
 
 interface Story {
   _id: string;
@@ -72,7 +75,7 @@ export default function StoryViewerModal({
 
   const [viewsOpen, setViewsOpen] = useState(false);
   const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
-
+  const [viewStory, { isLoading: viewersLoading }] = useViewStoryMutation();
   const goNext = () => {
     if (viewsOpen) return; // prevent navigation when modal open
     if (currentIndex < stories.length - 1) {
@@ -109,6 +112,13 @@ export default function StoryViewerModal({
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
+
+  useEffect(() => {
+    const story = stories[currentIndex];
+    if (!story) return;
+
+    viewStory({ storyId: story._id }).catch(() => {});
+  }, [currentIndex, stories, viewStory]);
   if (!open || !stories || stories.length === 0) return null;
   const currentStory = stories[currentIndex];
   console.log("stories in modal :12312", stories);
