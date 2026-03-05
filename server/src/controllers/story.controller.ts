@@ -79,34 +79,44 @@ export async function getStories(req: Request, res: Response) {
     const followingIds = user.following;
     const mergedIds = [...followingIds, user._id];
 
+    // Fetch stories and populate user info
     const stories = await Story.find({
       user: { $in: mergedIds },
       expiresAt: { $gt: new Date() },
     })
       .populate("user", "userName profilePic") // populate user info
       .sort({ createdAt: -1 });
-    console.log("stories", stories);
+
     if (!stories.length) {
-      return res.status(200).json({ success: true, stories: [] }); // empty array
+      return res.status(200).json({ success: true, stories: [] });
     }
 
     // Group stories by user
-    const groupedStories = stories.reduce((acc: any[], story: any) => {
-      const storyObj = story.toObject(); // convert Mongoose doc to plain object
+    const groupedStories = stories.reduce(
+      (acc: Array<{ user: any; stories: any[] }>, story: any) => {
+        const storyObj = story.toObject();
+        // Safely compute viewers count
+        storyObj.viewersCount = Array.isArray(storyObj.views)
+          ? storyObj.views.length
+          : 0;
 
-      const existingUser = acc.find(
-        (item) => item.user._id.toString() === storyObj.user._id.toString(),
-      );
+        // Remove views array from response if not needed
+        delete storyObj.views;
 
-      if (existingUser) {
-        existingUser.stories.push(storyObj);
-      } else {
-        acc.push({ user: storyObj.user, stories: [storyObj] });
-      }
-      return acc;
-    }, []);
+        const existingUser = acc.find(
+          (item) => item.user._id.toString() === storyObj.user._id.toString(),
+        );
 
-    // Send as proper JSON
+        if (existingUser) {
+          existingUser.stories.push(storyObj);
+        } else {
+          acc.push({ user: storyObj.user, stories: [storyObj] });
+        }
+        return acc;
+      },
+      [],
+    );
+
     res.status(200).json({ success: true, stories: groupedStories });
   } catch (error) {
     console.error(error);

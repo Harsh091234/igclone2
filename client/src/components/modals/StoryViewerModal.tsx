@@ -5,6 +5,7 @@ import StoryViewsPanel from "../panels/StoryViewPanel";
 import { StoryViewsModal } from "./StoryViewsModal";
 import { formatTimeAgo } from "../../utils/timeFormatter";
 import {
+  useLazyGetStoryViewsQuery,
   useLikeStoryMutation,
   useViewStoryMutation,
 } from "../../services/storyApi";
@@ -24,7 +25,7 @@ interface Story {
   createdAt: string;
   likes: string[];
   isLiked?: boolean;
-  viewers: number;
+  viewersCount?: number;
 }
 
 interface Props {
@@ -72,7 +73,16 @@ export default function StoryViewerModal({
   authUserId,
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-
+  const [fetchStoryViews, { data: viewsData, isLoading: viewsLoading }] =
+    useLazyGetStoryViewsQuery();
+  const [currentStory, setCurrentStory] = useState(stories[currentIndex]);
+  const viewers =
+    viewsData?.viewers?.map((view: any) => ({
+      id: view.user._id,
+      userName: view.user.userName,
+      profilePic: view.user.profilePic,
+      liked: view.liked,
+    })) || [];
   const [viewsOpen, setViewsOpen] = useState(false);
   const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
   const [viewStory, { isLoading: viewersLoading }] = useViewStoryMutation();
@@ -92,12 +102,20 @@ export default function StoryViewerModal({
     }
   };
 
+  const handleViewsOpen = async () => {
+    try {
+      await fetchStoryViews(currentStory._id).unwrap();
+      setViewsOpen(true);
+    } catch (error: any) {
+      console.error(error);
+    }
+  };
   const handleLike = async () => {
     if (isLiking) return;
 
     try {
       await likeStory({
-        storyId: story._id,
+        storyId: currentStory._id,
         userId: authUserId,
       }).unwrap();
     } catch (err) {
@@ -108,34 +126,44 @@ export default function StoryViewerModal({
     setCurrentIndex(initialIndex); // go back to starting story
     setViewsOpen(false); // close viewers panel
   };
-
+  useEffect(() => {
+    if (currentStory) {
+      viewStory({ storyId: currentStory._id, userId: authUserId });
+    }
+  }, [currentStory, viewStory, authUserId]);
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
-
   useEffect(() => {
-    const story = stories[currentIndex];
-    if (!story) return;
-
-    viewStory({ storyId: story._id }).catch(() => {});
-  }, [currentIndex, stories, viewStory]);
+    setCurrentStory(stories[currentIndex]);
+  }, [currentIndex, stories]);
+  useEffect(() => {
+    if (viewsData?.viewers) {
+      setCurrentStory(
+        (prev) =>
+          prev && {
+            ...prev,
+            viewersCount: viewsData.viewers.length,
+          },
+      );
+    }
+  }, [viewsData]);
   if (!open || !stories || stories.length === 0) return null;
-  const currentStory = stories[currentIndex];
-  console.log("stories in modal :12312", stories);
-  const story = stories[currentIndex] ?? stories[0];
-  console.log("story", story);
-  const isLiked = story.likes.includes(authUserId);
+
+  const isLiked = currentStory.likes?.includes(authUserId);
   return (
     <div className="fixed inset-0 bg-primary-foreground z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 text-primary">
         <div className="flex items-center gap-3">
-          <UserAvatar user={story.user} classes="w-10 h-10" />
+          <UserAvatar user={currentStory.user} classes="w-10 h-10" />
           <div>
-            <p className="text-sm font-semibold">{story.user.userName}</p>
+            <p className="text-sm font-semibold">
+              {currentStory.user.userName}
+            </p>
             <p className="text-xs text-secondary-foreground">
               {" "}
-              {`${formatTimeAgo(story.createdAt)}   `}
+              {`${formatTimeAgo(currentStory.createdAt)}   `}
             </p>
           </div>
         </div>
@@ -201,15 +229,15 @@ export default function StoryViewerModal({
               <div className="flex items-center justify-between">
                 <div
                   className="flex items-center gap-1 cursor-pointer"
-                  onClick={() => setViewsOpen(true)}
+                  onClick={handleViewsOpen}
                 >
                   <Eye size={19} />
-                  <span>{story.viewers}</span>
+                  <span>{currentStory.viewersCount ?? 0}</span>
                 </div>
 
                 <div className="flex items-center gap-1">
                   <Heart size={19} />
-                  <span>{story.likes.length}</span>
+                  <span>{currentStory.likes.length}</span>
                 </div>
               </div>
             ) : (
@@ -233,7 +261,8 @@ export default function StoryViewerModal({
             <StoryViewsPanel
               open={viewsOpen}
               onClose={() => setViewsOpen(false)}
-              viewers={viewersList}
+              viewers={viewers}
+              loading={viewsLoading}
             />
           </div>
 
@@ -242,7 +271,8 @@ export default function StoryViewerModal({
             <StoryViewsModal
               open={viewsOpen}
               onClose={() => setViewsOpen(false)}
-              viewers={viewersList}
+              viewers={viewers}
+              loading={viewsLoading}
             />
           </div>
         </div>

@@ -82,7 +82,7 @@ export default function FeedPage() {
       media: story.media,
       createdAt: story.createdAt,
       likes: story.likes,
-      viewers: story.viewers?.length ?? 0,
+      viewersCount: story.viewersCount ?? 0,
     })) ?? [];
   console.log("story groups", storyGroups);
   const authUserStoryGroups = storyGroups.find(

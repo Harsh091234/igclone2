@@ -64,6 +64,14 @@ const storyApi = api.injectEndpoints({
         method: "POST",
       }),
     }),
+
+    getStoryViews: builder.query({
+      query: (storyId: string) => ({
+        url: `story/get-views/${storyId}`,
+        method: "GET",
+      }),
+      providesTags: ["UserStory"],
+    }),
   }),
 });
 
@@ -72,4 +80,5 @@ export const {
   useGetAllUsersStoryQuery,
   useLikeStoryMutation,
   useViewStoryMutation,
+  useLazyGetStoryViewsQuery,
 } = storyApi;

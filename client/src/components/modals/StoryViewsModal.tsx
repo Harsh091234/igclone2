@@ -1,5 +1,6 @@
 import { X, Heart } from "lucide-react";
 import UserAvatar from "../UserAvatar";
+import { ViewerSkeleton } from "../Skeletons/StoryViewsSkeleton";
 
 interface Viewer {
   id: string;
@@ -12,9 +13,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   viewers: Viewer[];
+  loading: boolean;
 }
 
-export function StoryViewsModal({ open, onClose, viewers }: Props) {
+export function StoryViewsModal({ open, onClose, loading, viewers }: Props) {
   if (!open) return null;
 
   return (
@@ -35,20 +37,35 @@ export function StoryViewsModal({ open, onClose, viewers }: Props) {
 
           {/* List */}
           <div className="overflow-y-auto max-h-[60vh]">
-            {viewers.map((viewer) => (
-              <div
-                key={viewer.id}
-                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <UserAvatar classes="w-9 h-9" />
-                  <span className="font-medium text-sm">{viewer.userName}</span>
+            {loading ? (
+              <ViewerSkeleton count={5} />
+            ) : viewers.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">No views yet</div>
+            ) : (
+              viewers.map((viewer) => (
+                <div
+                  key={viewer.id}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      user={{
+                        _id: viewer.id,
+                        userName: viewer.userName,
+                        profilePic: viewer.profilePic,
+                      }}
+                      classes="w-9 h-9"
+                    />
+                    <span className="font-medium text-sm">
+                      {viewer.userName}
+                    </span>
+                  </div>
+                  {viewer.liked && (
+                    <Heart size={18} className="text-red-500 fill-red-500" />
+                  )}
                 </div>
-                {viewer.liked && (
-                  <Heart size={18} className="text-red-500 fill-red-500" />
-                )}
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
