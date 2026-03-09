@@ -95,7 +95,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
             className="cursor-pointer w-6.5 h-6.5 sm:w-8 sm:h-8 rounded-full overflow-hidden "
           >
             <img
-              src={post.author.profilePic}
+              src={post.author?.profilePic}
               className="w-full h-full object-cover"
               alt=""
             />
@@ -105,7 +105,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
               onClick={handleRouteToProfile}
               className=" cursor-pointer font-semibold text-xs sm:text-sm text-foreground"
             >
-              {post.author.userName}
+              {post.author?.userName}
             </p>
             {/* {post.location && (
               <p className="text-xs text-muted-foreground">{post.location}</p>
@@ -120,7 +120,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
 
       <PostMenuModal
         postId={post._id}
-        postOwnerName={post.author.userName}
+        postOwnerName={post.author?.userName}
         isOpen={isPostMenuOpen}
         onClose={() => setIsPostMenuOpen(false)}
       />
@@ -209,7 +209,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
 
         {post.caption && (
           <p className="text-xs wrap-break-word sm:text-sm mb-0 sm:mb-1 text-foreground">
-            <span className="font-semibold mr-1">{post.author.userName}</span>
+            <span className="font-semibold mr-1">{post.author?.userName}</span>
             {post.caption}
           </p>
         )}

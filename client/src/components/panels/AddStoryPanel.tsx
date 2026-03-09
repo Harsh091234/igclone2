@@ -146,9 +146,9 @@ export default function AddStoryPanel({
             </button>
 
             <div className="flex gap-3">
-              <button onClick={handleAddText}>
+              {/* <button onClick={handleAddText}>
                 <Type className="hover:text-primary/60" />
-              </button>
+              </button> */}
 
               {activeTextId && (
                 <button onClick={handleDeleteText}>
@@ -160,8 +160,9 @@ export default function AddStoryPanel({
             <CustomButton
               loading={isCreating}
               onClick={handleSubmit}
+              loaderClasses={"w-5 h-5"}
               text={"Share"}
-              className="w-20 font-semibold rounded-md text-sm py-1"
+              className="w-20 mr-8 font-semibold rounded-md text-sm py-1"
             />
           </div>
 

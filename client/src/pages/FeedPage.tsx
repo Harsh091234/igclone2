@@ -35,6 +35,14 @@ interface StoryCircle {
   isOwn?: boolean;
 }
 
+interface TextLayer {
+  _id: string;
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
 interface StoryViewer {
   _id: string;
   user: {
@@ -50,6 +58,7 @@ interface StoryViewer {
   createdAt: string;
   likes: string[];
   viewers: number;
+  textLayers: TextLayer[];
   isOwn?: boolean;
 }
 export default function FeedPage() {
@@ -77,14 +86,10 @@ export default function FeedPage() {
 
   const viewerStories =
     activeGroup?.stories?.map((story: any) => ({
-      _id: story._id,
+      ...story,
       user: activeGroup.user,
-      media: story.media,
-      createdAt: story.createdAt,
-      likes: story.likes,
-      viewersCount: story.viewersCount ?? 0,
     })) ?? [];
-  console.log("story groups", storyGroups);
+  console.log("viewers story", viewerStories);
   const authUserStoryGroups = storyGroups.find(
     (group: any) => group.user._id === authUser?._id,
   );

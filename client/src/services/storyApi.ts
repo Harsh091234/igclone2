@@ -72,6 +72,14 @@ const storyApi = api.injectEndpoints({
       }),
       providesTags: ["UserStory"],
     }),
+
+    deleteStory: builder.mutation({
+      query: (storyId: string) => ({
+        url: `story/delete/${storyId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["UserStory"],
+    }),
   }),
 });
 
@@ -81,4 +89,5 @@ export const {
   useLikeStoryMutation,
   useViewStoryMutation,
   useLazyGetStoryViewsQuery,
+  useDeleteStoryMutation,
 } = storyApi;

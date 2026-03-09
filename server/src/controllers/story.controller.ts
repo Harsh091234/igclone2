@@ -12,7 +12,19 @@ import { getReceiverSocketId, io } from "../socket/socket.js";
 export async function createStory(req: Request, res: Response) {
   try {
     const { textLayers: textLayersString } = req.body;
-    const textLayers = JSON.parse(textLayersString || "[]");
+    let textLayers = [];
+
+    if (textLayersString) {
+      const parsed = JSON.parse(textLayersString);
+
+      textLayers = parsed.map((layer: any) => ({
+        text: layer.text,
+        x: Math.max(0, Math.min(layer.x, 100)),
+        y: Math.max(0, Math.min(layer.y, 100)),
+        color: layer.color || "#fff",
+        fontSize: layer.fontSize || 18,
+      }));
+    }
     // const { userId: clerkId } = req.body;
     const { userId: clerkId } = req.auth!();
     const file = req.file;
@@ -377,6 +389,7 @@ export async function likeStory(req: Request, res: Response) {
 
 export async function deleteStory(req: Request, res: Response) {
   try {
+    console.log("hello from delete story ");
     const { storyId } = req.params;
     // const { clerkId } = req.body;
     const { userId: clerkId } = req.auth!();
