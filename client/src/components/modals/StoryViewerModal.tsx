@@ -85,6 +85,7 @@ export default function StoryViewerModal({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [fetchStoryViews, { data: viewsData, isLoading: viewsLoading }] =
     useLazyGetStoryViewsQuery();
+  const [progress, setProgress] = useState(0);
   const [deleteStory, { isLoading: deletingStory }] = useDeleteStoryMutation();
   const [currentStory, setCurrentStory] = useState(stories[currentIndex]);
   const viewers =
@@ -171,6 +172,32 @@ export default function StoryViewerModal({
       );
     }
   }, [viewsData]);
+  useEffect(() => {
+    setProgress(0);
+  }, [currentIndex]);
+  useEffect(() => {
+    if (!currentStory || currentStory.media.type !== "image") return;
+
+    setProgress(0);
+
+    const duration = 15000; // 15 sec
+    const interval = 100;
+
+    const step = 100 / (duration / interval);
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev + step >= 100) {
+          clearInterval(timer);
+          goNext();
+          return 100;
+        }
+        return prev + step;
+      });
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, [currentIndex, currentStory]);
   if (!open || !stories || stories.length === 0) return null;
 
   const isLiked = currentStory.likes?.includes(authUserId);
@@ -225,6 +252,27 @@ export default function StoryViewerModal({
               )}
             </button>
           )}
+
+          <div className="absolute top-2 left-2 right-2 flex gap-1 z-50">
+            {stories.map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 h-1 bg-white/30 rounded overflow-hidden"
+              >
+                <div
+                  className="h-full bg-white"
+                  style={{
+                    width:
+                      i < currentIndex
+                        ? "100%"
+                        : i === currentIndex
+                          ? `${progress}%`
+                          : "0%",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
           {/* Click Areas */}
           <div className="absolute inset-0 z-40 pointer-events-none">
             <div
@@ -258,7 +306,18 @@ export default function StoryViewerModal({
                     className="h-full w-full object-cover"
                     autoPlay={index === currentIndex}
                     muted
+                    onTimeUpdate={(e) => {
+                      if (index !== currentIndex) return;
+
+                      const video = e.currentTarget;
+                      const percent =
+                        (video.currentTime / video.duration) * 100;
+                      setProgress(percent);
+                    }}
                     playsInline
+                    onEnded={() => {
+                      if (index === currentIndex) goNext();
+                    }}
                   />
                 )}
 
