@@ -30,6 +30,7 @@ export default function DraggableText({
       position={{ x: layer.x, y: layer.y }}
       bounds="parent"
       onStop={(e, data) => {
+        e.preventDefault();
         updatePosition(layer.id, data.x, data.y);
       }}
     >

@@ -17,7 +17,7 @@ import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
-import { Group, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { User } from "../types/user.types";
 import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -25,42 +25,9 @@ import UserAvatar from "../components/UserAvatar";
 import AddStoryPanel from "../components/panels/AddStoryPanel";
 import StoryViewerModal from "../components/modals/StoryViewerModal";
 import { useGetAllUsersStoryQuery } from "../services/storyApi";
-import type { Story } from "../types/story.types";
+
 import { StoriesSkeleton } from "../components/Skeletons/StoriesSkeleton";
 
-interface StoryCircle {
-  id: string;
-  userName: string;
-  avatar: string;
-  isOwn?: boolean;
-}
-
-interface TextLayer {
-  _id: string;
-  text: string;
-  x: number;
-  y: number;
-  color: string;
-}
-
-interface StoryViewer {
-  _id: string;
-  user: {
-    _id: string;
-    userName: string;
-    profilePic: string;
-  };
-  media: {
-    type: "image" | "video";
-    url: string;
-    publicId: string;
-  };
-  createdAt: string;
-  likes: string[];
-  viewers: number;
-  textLayers: TextLayer[];
-  isOwn?: boolean;
-}
 export default function FeedPage() {
   const [visibleCount, setVisibleCount] = useState<number>(5);
   const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
@@ -201,7 +168,7 @@ export default function FeedPage() {
                 {isStoryLoading ? (
                   <StoriesSkeleton />
                 ) : (
-                  otherUsersStories.map((group: any, index: number) => (
+                  otherUsersStories.map((group: any) => (
                     <CarouselItem
                       key={group.user._id}
                       className="basis-[70px] sm:basis-[80px]"
