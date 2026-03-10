@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
-import { Trash2, Type, X } from "lucide-react";
-import { Button } from "../ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { Trash2, X } from "lucide-react";
+
+import { Sheet, SheetContent } from "../ui/sheet";
 import { useEffect } from "react";
 
-import Draggable from "react-draggable";
+// import Draggable from "react-draggable";
 import DraggableText from "../DraggableText";
 import CustomButton from "../CustomButton";
 import { useCreateStoryMutation } from "../../services/storyApi";
@@ -56,18 +56,18 @@ export default function AddStoryPanel({
     else if (file.type.startsWith("video")) setMediaType("video");
   };
 
-  const handleAddText = () => {
-    const newText: TextLayer = {
-      id: crypto.randomUUID(),
-      text: "New Text",
-      x: 100,
-      y: 100,
-      color: "#ffffff", // 👈 default color
-    };
+  // const handleAddText = () => {
+  //   const newText: TextLayer = {
+  //     id: crypto.randomUUID(),
+  //     text: "New Text",
+  //     x: 100,
+  //     y: 100,
+  //     color: "#ffffff", // 👈 default color
+  //   };
 
-    setTextLayers((prev) => [...prev, newText]);
-    setActiveTextId(newText.id);
-  };
+  //   setTextLayers((prev) => [...prev, newText]);
+  //   setActiveTextId(newText.id);
+  // };
   const handleTextChange = (value: string) => {
     setTextLayers((prev) =>
       prev.map((layer) =>

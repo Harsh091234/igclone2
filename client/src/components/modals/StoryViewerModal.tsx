@@ -47,33 +47,6 @@ interface Props {
   authUserId: string;
 }
 
-const viewersList = [
-  {
-    id: "1",
-    userName: "john_doe",
-    profilePic: "https://randomuser.me/api/portraits/men/32.jpg",
-    liked: true,
-  },
-  {
-    id: "2",
-    userName: "sarah_99",
-    profilePic: "https://randomuser.me/api/portraits/women/44.jpg",
-    liked: false,
-  },
-  {
-    id: "3",
-    userName: "alex_lee",
-    profilePic: "https://randomuser.me/api/portraits/men/75.jpg",
-    liked: true,
-  },
-  {
-    id: "4",
-    userName: "emma_wat",
-    profilePic: "https://randomuser.me/api/portraits/women/68.jpg",
-    liked: false,
-  },
-];
-
 export default function StoryViewerModal({
   open,
   onClose,
@@ -97,7 +70,7 @@ export default function StoryViewerModal({
     })) || [];
   const [viewsOpen, setViewsOpen] = useState(false);
   const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
-  const [viewStory, { isLoading: viewersLoading }] = useViewStoryMutation();
+  const [viewStory] = useViewStoryMutation();
   const goNext = () => {
     if (viewsOpen) return; // prevent navigation when modal open
     if (currentIndex < stories.length - 1) {
@@ -143,10 +116,7 @@ export default function StoryViewerModal({
       console.error(err);
     }
   };
-  const resetState = () => {
-    setCurrentIndex(initialIndex); // go back to starting story
-    setViewsOpen(false); // close viewers panel
-  };
+
   useEffect(() => {
     console.log("stories in modal tsxddd:", stories);
   });

@@ -2,7 +2,7 @@ import { X, Calendar, MapPin } from "lucide-react";
 import UserAvatar from "../UserAvatar";
 import type { User } from "../../types/user.types";
 import AccountInfoModalSkeleton from "../Skeletons/AccountInfoSkeleton";
-import { formatTimeAgo } from "../../utils/timeFormatter";
+
 interface AccountInfoModalProps {
   user?: User | null;
   onClose: () => void;
