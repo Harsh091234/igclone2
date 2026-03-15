@@ -104,7 +104,7 @@ const App = () => {
       </SignedOut>
 
       <SignedIn>
-        <div className="flex h-screen   flex-col sm:flex-row overflow-hidden ">
+        <div className=" h-screen grid grid-cols-1    lg:grid-cols-[60px_1fr] xl:grid-cols-[90px_1fr] overflow-hidden ">
           <button
             onClick={handleTheme}
             className="
@@ -131,10 +131,10 @@ const App = () => {
             )}
           </button>
 
-          <div className="sm:w-[7%] order-2 sm:order-1  h-0 sm:h-full w-full">
+          <div className="h-full   w-full">
             <LeftSideBar />
           </div>
-          <div className="w-full order-1 sm:order-2 sm:w-[93%] h-full sm:h-full">
+          <div className="h-full w-full overflow-y-auto ">
             <Routes>
               <Route
                 path="/sign-in/*"

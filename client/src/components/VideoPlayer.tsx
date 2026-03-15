@@ -5,7 +5,7 @@ import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 interface VideoPlayerProps {
   src: string;
-  className: string
+  className: string;
 }
 
 export default function VideoPlayer({ src, className }: VideoPlayerProps) {

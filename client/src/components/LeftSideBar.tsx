@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import {
   Home,
   Search,
@@ -17,24 +17,26 @@ import CreatePostModal from "./modals/CreatePostModal";
 
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
-    const [isCreatePostModelOpen, setIsCreatePostModelOpen] = useState<boolean>(false);
-  const {data} = useGetAuthUserQuery();
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
+  const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
+    useState<boolean>(false);
+  const { data } = useGetAuthUserQuery();
   const authUser = data?.user;
-  if(!authUser) return;
+  if (!authUser) return;
 
   return (
     <aside
       className="
- w-full bg-primary-foreground h-full
-"
+  w-full
+  bg-primary-foreground
+  "
     >
       {/* desktop navbar */}
       <div
-        className="hidden h-full  sm:flex flex-col items-center py-6 gap-6 select-none
- 
-  border-r border-primary/20
-  "
+        className="hidden h-screen  lg:flex flex-col items-center py-6 gap-6 select-none
+  
+    border-r border-primary/20
+    "
       >
         {/* Instagram Logo */}
         <Link to="/" className="cursor-pointer">
@@ -119,10 +121,10 @@ const LeftSideBar = () => {
 
       {/* mobile navbar */}
       <div
-        className="sm:hidden bg-primary-foreground fixed w-full bottom-0 right-0 left-0 z-40  flex items-center justify-between
-  px-4 py-2 
-  border-t border-border
-"
+        className="lg:hidden bg-primary-foreground fixed w-full bottom-0 right-0 left-0 z-40  flex items-center justify-between
+    px-4 py-2 
+    border-t border-border
+  "
       >
         <Link to="/" className="flex items-center justify-center p-2">
           <Home className="w-5 h-5" />

@@ -87,8 +87,13 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5 w-full min-[430px]:w-sm sm:w-full">
-      <div className="flex items-center justify-between px-3 py-2">
+    <article className="bg-card border border-border rounded-lg mb-5  sm  :w-lg lg:w-md xl:w-full   max-w-2xl">
+      <div
+        className="flex 
+      
+      
+      items-center justify-between px-3 py-2"
+      >
         <div className="flex items-center gap-2">
           <div
             onClick={handleRouteToProfile}
@@ -130,18 +135,15 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
           <CarouselContent>
             {post.media.map((item, index) => (
               <CarouselItem key={index}>
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-center aspect-video">
                   {item.type === "image" ? (
                     <img
                       src={item.url}
                       alt={`post-media-${index}`}
-                      className="w-full h-[250px] sm:h-[280px] md:h-[310px] object-cover "
+                      className=" h-full w-full object-cover"
                     />
                   ) : (
-                    <VideoPlayer
-                      src={item.url}
-                      className="w-full h-[250px] sm:h-[280px] md:h-[310px] "
-                    />
+                    <VideoPlayer src={item.url} className="h-full w-full" />
                   )}
                 </div>
               </CarouselItem>
