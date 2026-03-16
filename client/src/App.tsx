@@ -103,7 +103,7 @@ const App = () => {
         <RedirectToSignIn />
       </SignedOut>
       <SignedIn>
-        <div className="  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[90px_1fr] overflow-hidden">
+        <div className="  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
           {/* <button
             onClick={handleTheme}
             className="
@@ -132,7 +132,7 @@ const App = () => {
 
           <LeftSideBar />
 
-          <div className="h-full ">
+          <div className="h-full">
             <Routes>
               <Route
                 path="/sign-in/*"

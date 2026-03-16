@@ -131,33 +131,42 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
       />
 
       <div className="w-full overflow-hidden">
-        <Carousel className="w-full bg-black">
-          <CarouselContent>
-            {post.media.map((item, index) => (
-              <CarouselItem key={index}>
-                <div className="flex justify-center items-center aspect-video">
-                  {item.type === "image" ? (
-                    <img
-                      src={item.url}
-                      alt={`post-media-${index}`}
-                      className=" h-full w-full object-cover"
-                    />
-                  ) : (
-                    <VideoPlayer src={item.url} className="h-full w-full" />
-                  )}
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
+        {post.media.length === 1 ? (
+          <div className="flex justify-center items-center aspect-video">
+            {post.media[0].type === "image" ? (
+              <img
+                src={post.media[0].url}
+                alt="post-media"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <VideoPlayer src={post.media[0].url} className="h-full w-full" />
+            )}
+          </div>
+        ) : (
+          <Carousel className="w-full bg-base-200">
+            <CarouselContent>
+              {post.media.map((item, index) => (
+                <CarouselItem key={index} className="p-0">
+                  <div className="flex justify-center items-center aspect-video">
+                    {item.type === "image" ? (
+                      <img
+                        src={item.url}
+                        alt={`post-media-${index}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <VideoPlayer src={item.url} className="h-full w-full" />
+                    )}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
 
-          {/* Show arrows only if more than one media */}
-          {post.media.length > 1 && (
-            <>
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-            </>
-          )}
-        </Carousel>
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+          </Carousel>
+        )}
       </div>
 
       <div className="px-3 py-2">

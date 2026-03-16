@@ -87,12 +87,12 @@ export default function FeedPage() {
     // <div>
     //   <UserButton />
     // </div>
-    <div className="min-h-screen pt-0 ">
+    <div className="min-h-screen pt-0">
       {/* Main wrapper */}
       <div className="h-full px-4    mx-auto w-full ">
         <div className=" grid grid-cols-1   h-full lg:grid-cols-[1fr_450px]  ">
           {/* Feed */}
-          <div className="w-full  pt-0  flex flex-col  mx-auto max-w-4xl h-screen my-scroll px-4 sm:px-0 overflow-y-auto">
+          <div className="w-full  pt-0  flex flex-col  mx-auto max-w-4xl h-screen pb-12 my-scroll px-4 sm:px-0 overflow-y-auto">
             {/* Stories */}
             <div className="bg-card w-full border border-border rounded-lg mt-3 sm:mt-5  py-5 sm:py-7 mb-6">
               <Carousel opts={{ align: "start" }} className="w-full   relative">

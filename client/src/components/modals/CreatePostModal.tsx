@@ -1,11 +1,17 @@
 import React, { useRef, useState } from "react";
-import {  ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useGetAuthUserQuery } from "../../services/userApi";
 import UserAvatar from "../UserAvatar";
 import { ImagePlus } from "lucide-react";
 import { useCreatePostMutation } from "../../services/postApi";
 import toast from "react-hot-toast";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 export interface CreatePostModalProps {
   isOpen: boolean;
@@ -22,20 +28,16 @@ export interface CreatePostPayload {
   caption: string;
 }
 
-
 export type CreatePostStep = "SELECT" | "PREVIEW" | "CAPTION";
 
-const CreatePostModal  = ({
-  isOpen,
-  onClose,
-}: CreatePostModalProps) => {
+const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
   const [step, setStep] = useState<CreatePostStep>("SELECT");
   const [media, setMedia] = useState<SelectedMedia[]>([]);
   const [caption, setCaption] = useState<string>("");
-    const {data} = useGetAuthUserQuery();
-    const authUser = data?.user;
+  const { data } = useGetAuthUserQuery();
+  const authUser = data?.user;
   const fileRef = useRef<HTMLInputElement | null>(null);
-    const [createPost, {isLoading}] = useCreatePostMutation();
+  const [createPost, { isLoading }] = useCreatePostMutation();
   if (!isOpen) return null;
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,12 +45,14 @@ const CreatePostModal  = ({
     if (!files) return;
 
     const selected = files.map((file) => ({
-        file,
-        previewUrl: URL.createObjectURL(file),
-        type: file.type.startsWith("image")? "image" : "video" as "image" | "video"
-    }))
+      file,
+      previewUrl: URL.createObjectURL(file),
+      type: file.type.startsWith("image")
+        ? "image"
+        : ("video" as "image" | "video"),
+    }));
 
-   setMedia(selected)
+    setMedia(selected);
 
     setStep("PREVIEW");
   };
@@ -63,9 +67,9 @@ const CreatePostModal  = ({
   const handleImageShare = async () => {
     const formData = new FormData();
     media.forEach((item) => {
-        formData.append("media", item.file)
-    })
-    formData.append("caption", caption)
+      formData.append("media", item.file);
+    });
+    formData.append("caption", caption);
 
     const res = await createPost(formData).unwrap();
     console.log("post:", res.post);
@@ -73,9 +77,9 @@ const CreatePostModal  = ({
     setMedia([]);
     setStep("SELECT");
     onClose();
-  }
+  };
 
-  if(!authUser) return
+  if (!authUser) return;
   return (
     <div
       className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center"
@@ -178,13 +182,13 @@ const CreatePostModal  = ({
                         <img
                           src={item.previewUrl}
                           alt={`preview-${index}`}
-                          className="h-full w-full  object-cover "
+                          className="aspect-square  rounded-md"
                         />
                       ) : (
                         <video
                           src={item.previewUrl}
                           controls
-                          className="h-full w-full object-cover  "
+                          className="aspect-video  rounded-md "
                         />
                       )}
                     </CarouselItem>
@@ -204,24 +208,27 @@ const CreatePostModal  = ({
 
           {/* CAPTION */}
           {step === "CAPTION" && media.length > 0 && (
-            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-[75vh] gap-0 sm:gap-4">
+            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-[70vh] sm:h-[60vh] gap-0 sm:gap-4">
               {/* LEFT: MEDIA */}
-              <div className="relative w-full bg-black flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden ">
-                <Carousel className="flex h-full">
+              <div className="relative w-full flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden">
+                <Carousel className="flex h-full w-full">
                   <CarouselContent className="h-full">
                     {media.map((item, index) => (
-                      <CarouselItem key={index} className="h-full">
+                      <CarouselItem
+                        key={index}
+                        className="flex h-full items-center overflow-hidden rounded-md "
+                      >
                         {item.type === "image" ? (
                           <img
                             src={item.previewUrl}
                             alt={`preview-${index}`}
-                            className="w-full h-full object-cover"
+                            className="aspect-square h-full w-full rounded-md object-cover"
                           />
                         ) : (
                           <video
                             src={item.previewUrl}
                             controls
-                            className="w-full h-full object-cover"
+                            className="aspect-video rounded-md"
                           />
                         )}
                       </CarouselItem>
@@ -230,15 +237,15 @@ const CreatePostModal  = ({
 
                   {media.length > 1 && (
                     <>
-                      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10" />
-                      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10" />
+                      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
+                      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
                     </>
                   )}
                 </Carousel>
               </div>
 
               {/* RIGHT: CAPTION */}
-              <div className="flex flex-col  w-full  sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
+              <div className="flex  flex-col px-2 w-full  sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
                 <div className="flex items-center  gap-2">
                   <UserAvatar
                     classes="h-8 w-8 sm:h-10 sm:w-10"
