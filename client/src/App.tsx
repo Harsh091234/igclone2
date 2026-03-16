@@ -13,8 +13,8 @@ import UserSetupPage from "./pages/UserSetupPage";
 import SettingsPage from "./pages/SettingsPage";
 import EditProfilePage from "./pages/SettingPages/EditProfilePage";
 import LeftSideBar from "./components/LeftSideBar";
-import { useTheme } from "./utils/ThemeProvider";
-import { Moon, Sun } from "lucide-react";
+// import { useTheme } from "./utils/ThemeProvider";
+// import { Moon, Sun } from "lucide-react";
 import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
 // import CenterLoading from "./components/CenterLoading";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -39,7 +39,7 @@ const App = () => {
   const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   });
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
   const authUser = data?.user;
 
   useEffect(() => {
@@ -88,13 +88,13 @@ const App = () => {
     };
   }, [authUser?._id, dispatch]);
 
-  const handleTheme = () => {
-    if (theme === "light") {
-      setTheme("dark");
-    } else {
-      setTheme("light");
-    }
-  };
+  // const handleTheme = () => {
+  //   if (theme === "light") {
+  //     setTheme("dark");
+  //   } else {
+  //     setTheme("light");
+  //   }
+  // };
 
   if (!isLoaded || isLoading || syncUserLoading) return <CenterLoading />;
   return (
