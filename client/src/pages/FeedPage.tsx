@@ -87,12 +87,12 @@ export default function FeedPage() {
     // <div>
     //   <UserButton />
     // </div>
-    <div className="h-full ">
+    <div className="min-h-screen pt-0 ">
       {/* Main wrapper */}
-      <div className="h-full px-4   mx-auto w-full ">
-        <div className=" grid grid-cols-1 h-full lg:grid-cols-[1fr_450px] ">
+      <div className="h-full px-4    mx-auto w-full ">
+        <div className=" grid grid-cols-1   h-full lg:grid-cols-[1fr_450px]  ">
           {/* Feed */}
-          <div className="w-full  flex flex-col items-center mx-auto max-w-4xl h-full my-scroll px-4 sm:px-0 overflow-y-auto">
+          <div className="w-full  pt-0  flex flex-col  mx-auto max-w-4xl h-screen my-scroll px-4 sm:px-0 overflow-y-auto">
             {/* Stories */}
             <div className="bg-card w-full border border-border rounded-lg mt-3 sm:mt-5  py-5 sm:py-7 mb-6">
               <Carousel opts={{ align: "start" }} className="w-full   relative">
@@ -197,9 +197,9 @@ export default function FeedPage() {
                   )}
                 </CarouselContent>
                 {/* 
-               
-                <CarouselPrevious className="hidden sm:flex -left-3 top-7 bg-background/80 border-border shadow-sm" />
-                <CarouselNext className="hidden sm:flex -right-3 top-7 bg-background/80 border-border shadow-sm" /> */}
+                
+                  <CarouselPrevious className="hidden sm:flex -left-3 top-7 bg-background/80 border-border shadow-sm" />
+                  <CarouselNext className="hidden sm:flex -right-3 top-7 bg-background/80 border-border shadow-sm" /> */}
               </Carousel>
             </div>
 
@@ -243,8 +243,8 @@ export default function FeedPage() {
                   </p>
                 </div>
                 {/* <button className="text-accent text-xs font-semibold hover:underline transition">
-                Switch
-              </button> */}
+                  Switch
+                </button> */}
               </div>
 
               {/* Suggestions */}
@@ -283,8 +283,8 @@ export default function FeedPage() {
                         </div>
                         <button
                           className="text-foreground/70 text-xs font-semibold
-             hover:text-foreground hover:underline
-             transition-colors"
+              hover:text-foreground hover:underline
+              transition-colors"
                         >
                           Follow
                         </button>

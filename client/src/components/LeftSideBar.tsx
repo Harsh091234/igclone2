@@ -25,12 +25,7 @@ const LeftSideBar = () => {
   if (!authUser) return;
 
   return (
-    <aside
-      className="
-  w-full
-  bg-primary-foreground
-  "
-    >
+    <aside className="w-full bg-primary-foreground lg:h-screen h-0">
       {/* desktop navbar */}
       <div
         className="hidden h-screen  lg:flex flex-col items-center py-6 gap-6 select-none

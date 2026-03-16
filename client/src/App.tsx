@@ -98,14 +98,13 @@ const App = () => {
 
   if (!isLoaded || isLoading || syncUserLoading) return <CenterLoading />;
   return (
-    <div className="">
+    <div className="h-screen ">
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
-
       <SignedIn>
-        <div className=" h-screen grid grid-cols-1    lg:grid-cols-[60px_1fr] xl:grid-cols-[90px_1fr] overflow-hidden ">
-          <button
+        <div className="  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[90px_1fr] overflow-hidden">
+          {/* <button
             onClick={handleTheme}
             className="
     flex absolute bottom-10 right-10 z-50
@@ -129,12 +128,11 @@ const App = () => {
             ) : (
               <Moon className="w-5 h-5" />
             )}
-          </button>
+          </button> */}
 
-          <div className="h-full   w-full">
-            <LeftSideBar />
-          </div>
-          <div className="h-full w-full overflow-y-auto ">
+          <LeftSideBar />
+
+          <div className="h-full ">
             <Routes>
               <Route
                 path="/sign-in/*"
