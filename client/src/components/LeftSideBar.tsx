@@ -25,7 +25,7 @@ const LeftSideBar = () => {
   if (!authUser) return;
 
   return (
-    <aside className="w-full bg-primary-foreground lg:h-screen h-0">
+    <aside className="w-full bg-card lg:h-screen h-0">
       {/* desktop navbar */}
       <div
         className="hidden h-screen  lg:flex flex-col items-center py-6 gap-6 select-none
@@ -116,7 +116,7 @@ const LeftSideBar = () => {
 
       {/* mobile navbar */}
       <div
-        className="lg:hidden bg-primary-foreground fixed w-full bottom-0 right-0 left-0 z-40  flex items-center justify-between
+        className="lg:hidden bg-card fixed w-full bottom-0 right-0 left-0 z-40  flex items-center justify-between
     px-4 py-2 
     border-t border-border
   "

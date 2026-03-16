@@ -145,10 +145,10 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
         ) : (
           <Carousel className="w-full bg-base-200">
-            <CarouselContent>
+            <CarouselContent className="-ml-0">
               {post.media.map((item, index) => (
-                <CarouselItem key={index} className="p-0">
-                  <div className="flex justify-center items-center aspect-video">
+                <CarouselItem key={index} className="pl-0">
+                  <div className="flex justify-center  items-center aspect-video">
                     {item.type === "image" ? (
                       <img
                         src={item.url}
@@ -156,7 +156,10 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <VideoPlayer src={item.url} className="h-full w-full" />
+                      <VideoPlayer
+                        src={item.url}
+                        className="h-full w-full object-cover"
+                      />
                     )}
                   </div>
                 </CarouselItem>
