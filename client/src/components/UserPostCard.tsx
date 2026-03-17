@@ -144,7 +144,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
             )}
           </div>
         ) : (
-          <Carousel className="w-full bg-base-200">
+          <Carousel className="w-full ">
             <CarouselContent className="-ml-0">
               {post.media.map((item, index) => (
                 <CarouselItem key={index} className="pl-0">
