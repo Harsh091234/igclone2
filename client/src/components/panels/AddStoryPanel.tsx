@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Trash2, X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Sheet, SheetContent } from "../ui/sheet";
 import { useEffect } from "react";
@@ -138,13 +138,9 @@ export default function AddStoryPanel({
         side="bottom"
         className="h-[70vh] p-0 bg-primary-foreground"
       >
-        <div className="flex flex-col h-full text-primary">
+        <div className="flex flex-col  h-full text-primary">
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b border-white/10">
-            <button onClick={() => onOpenChange(false)}>
-              <X className="hover:text-primary/60" />
-            </button>
-
+          <div className="flex justify-between items-center p-4 border-b border-b-border border-white/10">
             <div className="flex gap-3">
               {/* <button onClick={handleAddText}>
                 <Type className="hover:text-primary/60" />
@@ -166,43 +162,48 @@ export default function AddStoryPanel({
             />
           </div>
 
-          {/* Media Preview */}
-          <div className="relative flex-1 overflow-hidden flex items-center justify-center">
-            {media ? (
-              <>
-                {mediaType === "image" ? (
-                  <img src={media} className="w-full h-full object-contain" />
-                ) : (
-                  <video
-                    src={media}
-                    className="w-full h-full object-contain"
-                    controls
-                  />
-                )}
+          <div className="relative h-full flex-1 flex items-center justify-center p-2">
+            <div className="relative   w-full max-w-2xl h-98  md:h-110 overflow-hidden rounded-xl   flex items-center justify-center">
+              {media ? (
+                <div className="relative flex items-center justify-center w-full h-full ">
+                  {/* MEDIA */}
+                  {mediaType === "image" ? (
+                    <img
+                      src={media}
+                      className="object-cover h-full w-full rounded-xl"
+                    />
+                  ) : (
+                    <video
+                      src={media}
+                      className="max-h-full  max-w-full object-contain rounded-xl"
+                      controls
+                    />
+                  )}
 
-                {/* MULTIPLE TEXT LAYERS */}
-                {textLayers.map((layer) => (
-                  <DraggableText
-                    key={layer.id}
-                    layer={layer}
-                    activeTextId={activeTextId}
-                    setActiveTextId={setActiveTextId}
-                    updatePosition={(id, x, y) => {
-                      setTextLayers((prev) =>
-                        prev.map((l) => (l.id === id ? { ...l, x, y } : l)),
-                      );
-                    }}
-                  />
-                ))}
-              </>
-            ) : (
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="border border-white/30 px-4 py-2 rounded-md"
-              >
-                Upload Image / Video
-              </button>
-            )}
+                  {/* TEXT LAYERS */}
+                  {textLayers.map((layer) => (
+                    <DraggableText
+                      key={layer.id}
+                      layer={layer}
+                      activeTextId={activeTextId}
+                      setActiveTextId={setActiveTextId}
+                      updatePosition={(id, x, y) => {
+                        setTextLayers((prev) =>
+                          prev.map((l) => (l.id === id ? { ...l, x, y } : l)),
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="border border-white/30 px-4 py-2 rounded-md"
+                >
+                  Upload Image / Video
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Edit Active Text */}

@@ -7,7 +7,6 @@ import {
 import { useDeletePostMutation } from "../../services/postApi";
 import AccountInfoModal from "./AccountInfoModal";
 import { useState } from "react";
-import { DialogOverlay } from "@radix-ui/react-dialog";
 
 const PostActionDivider = () => <div className="h-px bg-border" />;
 

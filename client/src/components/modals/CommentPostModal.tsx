@@ -67,7 +67,7 @@ const CommentPostModal = ({
   const { isLoading: isCommentsLoading, data: commentData } =
     useGetAllCommentsQuery(post._id);
   const comments = commentData?.comments;
-  const demo = true;
+
   const handleComment = async () => {
     try {
       if (!text.trim()) {
