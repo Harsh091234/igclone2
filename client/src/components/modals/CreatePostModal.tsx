@@ -188,7 +188,7 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
                         <video
                           src={item.previewUrl}
                           controls
-                          className="aspect-video  rounded-md "
+                          className="aspect-video bg-black rounded-md "
                         />
                       )}
                     </CarouselItem>
@@ -228,7 +228,7 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
                           <video
                             src={item.previewUrl}
                             controls
-                            className="aspect-video rounded-md"
+                            className="aspect-video bg-black rounded-md"
                           />
                         )}
                       </CarouselItem>
