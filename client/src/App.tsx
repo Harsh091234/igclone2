@@ -103,7 +103,7 @@ const App = () => {
         <RedirectToSignIn />
       </SignedOut>
       <SignedIn>
-        <div className="bg-base-200  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
+        <div className="bg-muted  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
           {/* <button
             onClick={handleTheme}
             className="
