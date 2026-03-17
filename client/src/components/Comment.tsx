@@ -1,8 +1,6 @@
-
-import { Loader, Trash2 } from 'lucide-react';
-import { formatTimeAgo } from '../utils/timeFormatter';
-import { useGetAuthUserQuery } from '../services/userApi';
-
+import { Loader, Trash2 } from "lucide-react";
+import { formatTimeAgo } from "../utils/timeFormatter";
+import { useGetAuthUserQuery } from "../services/userApi";
 
 export interface CommentProps {
   text: string;
@@ -18,58 +16,65 @@ export interface CommentProps {
   isDeleting?: boolean;
 }
 
-const Comment = ({text, author, createdAt, handleRouteToProfile, onDelete, isDeleting }: CommentProps) => {
-    const {data: authData} = useGetAuthUserQuery();
-    const authUser = authData?.user;
-    console.log("auth", authData)
-    const isAuthUserComment = author._id === authUser?._id;
-   return (
-     <div className="flex gap-3 items-center">
-       <img
-         onClick={handleRouteToProfile}
-         src={author.profilePic}
-         alt={author.userName}
-         className="h-6 w-6 sm:h-7 sm:w-7 cursor-pointer   rounded-full object-cover"
-       />
+const Comment = ({
+  text,
+  author,
+  createdAt,
+  handleRouteToProfile,
+  onDelete,
+  isDeleting,
+}: CommentProps) => {
+  const { data: authData } = useGetAuthUserQuery();
+  const authUser = authData?.user;
+  console.log("auth", authData);
+  const isAuthUserComment = author._id === authUser?._id;
+  return (
+    <div className="flex gap-3 items-center">
+      <img
+        onClick={handleRouteToProfile}
+        src={author.profilePic}
+        alt={author.userName}
+        className="h-6 w-6 sm:h-7 sm:w-7 cursor-pointer   rounded-full object-cover"
+      />
 
-       <div className="flex-1">
-         <p className="text-xs sm:text-sm text-foreground wrap-break-word">
-           <span
-             onClick={handleRouteToProfile}
-             className="
-    font-semibold mr-1 cursor-pointer relative
-    after:absolute after:left-0 after:-bottom-[1px]
-    after:h-[1px] after:w-0 after:bg-current
-    after:transition-all after:duration-200
-    hover:after:w-full 
-  "
-           >
-             {author.userName}
-           </span>
-           <span className="wrap-anywhere">{text}</span>
-         </p>
+      <div className="flex-1">
+        <p className="text-xs sm:text-sm text-foreground wrap-break-word">
+          <span
+            onClick={handleRouteToProfile}
+            className="
+      font-semibold mr-1 cursor-pointer relative
+      after:absolute after:left-0 after:-bottom-[1px]
+      after:h-[1px] after:w-0 after:bg-current
+      after:transition-all after:duration-200
+      hover:after:w-full 
+    "
+          >
+            {author.userName}
+          </span>
+          <span className="wrap-anywhere">{text}</span>
+        </p>
 
-         <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground ">
-           <span>{formatTimeAgo(createdAt)}</span>
-           {/* <span>{likes.length} likes</span> */}
-           {/* <button className="font-semibold hover:text-foreground">
-             Reply
-           </button> */}
-           {isAuthUserComment && (
-             <button onClick={onDelete} className="ml-auto ">
-               {isDeleting ? (
-                 <Loader className="h-3.5 w-3.5 animate-spin " />
-               ) : (
-                 <Trash2 className="h-3.5 w-3.5 hover:text-foreground" />
-               )}
-             </button>
-           )}
-         </div>
-       </div>
+        <div className="flex items-center gap-3 mt-0.5 sm:mt-1 text-[0.65rem] sm:text-xs text-muted-foreground ">
+          <span>{formatTimeAgo(createdAt)}</span>
+          {/* <span>{likes.length} likes</span> */}
+          {/* <button className="font-semibold hover:text-foreground">
+              Reply
+            </button> */}
+          {isAuthUserComment && (
+            <button onClick={onDelete} className="ml-auto ">
+              {isDeleting ? (
+                <Loader className="h-3.5 w-3.5 animate-spin " />
+              ) : (
+                <Trash2 className="h-3.5 w-3.5 hover:text-foreground" />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
 
-       {/* <Heart className="w-4 h-4 text-muted-foreground cursor-pointer" /> */}
-     </div>
-   );
-}
+      {/* <Heart className="w-4 h-4 text-muted-foreground cursor-pointer" /> */}
+    </div>
+  );
+};
 
-export default Comment
+export default Comment;

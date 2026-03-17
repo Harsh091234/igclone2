@@ -166,8 +166,8 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
               ))}
             </CarouselContent>
 
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+            <CarouselPrevious className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+            <CarouselNext className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
           </Carousel>
         )}
       </div>

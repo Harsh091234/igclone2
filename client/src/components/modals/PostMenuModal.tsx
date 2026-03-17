@@ -1,10 +1,13 @@
-
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
-import { useGetAuthUserQuery, useGetProfileUserQuery } from "../../services/userApi";
+import {
+  useGetAuthUserQuery,
+  useGetProfileUserQuery,
+} from "../../services/userApi";
 import { useDeletePostMutation } from "../../services/postApi";
 import AccountInfoModal from "./AccountInfoModal";
 import { useState } from "react";
+import { DialogOverlay } from "@radix-ui/react-dialog";
 
 const PostActionDivider = () => <div className="h-px bg-border" />;
 
@@ -54,16 +57,15 @@ export const PostMenuModal = ({
   const { data: userData } = useGetAuthUserQuery();
   const authUser = userData?.user;
   const isOwner = postOwnerName === authUser?.userName;
- const [isAccountInfoOpen, setIsAccountInfoOpen] = useState<boolean>(false);
-  const {isLoading: isProfileLoading, data: profileData} = useGetProfileUserQuery(postOwnerName!)
+  const [isAccountInfoOpen, setIsAccountInfoOpen] = useState<boolean>(false);
+  const { isLoading: isProfileLoading, data: profileData } =
+    useGetProfileUserQuery(postOwnerName!);
   const user = profileData?.user;
-  
 
   return (
-    <>
+    <div className="px-5">
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <div></div>
-        <DialogContent className="p-0 gap-0  max-w-[400px] rounded-2xl overflow-hidden">
+        <DialogContent className="p-0 gap-0  sm:max-w-[400px] rounded-2xl overflow-hidden">
           {isOwner ? (
             <>
               <PostActionButton
@@ -152,6 +154,6 @@ export const PostMenuModal = ({
           onClose={() => setIsAccountInfoOpen(false)}
         />
       )}
-    </>
+    </div>
   );
 };

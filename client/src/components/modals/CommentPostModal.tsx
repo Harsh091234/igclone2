@@ -21,7 +21,7 @@ import {
 import toast from "react-hot-toast";
 import VideoPlayer from "../VideoPlayer";
 import CustomConfirmModal from "./CustomConfirmModal";
-
+import CommentSkeleton from "../Skeletons/CommentSkeleton";
 
 interface PostDialogProps {
   isOpen: boolean;
@@ -59,15 +59,15 @@ const CommentPostModal = ({
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
     null,
   );
-  const [deleteComment] = useDeleteCommentMutation()
+  const [deleteComment] = useDeleteCommentMutation();
 
-   const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [commentPost, { isLoading: isCommentPostLoading }] =
     useCommentPostMutation();
   const { isLoading: isCommentsLoading, data: commentData } =
     useGetAllCommentsQuery(post._id);
   const comments = commentData?.comments;
-
+  const demo = true;
   const handleComment = async () => {
     try {
       if (!text.trim()) {
@@ -143,7 +143,7 @@ const CommentPostModal = ({
       <div
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
-        className="bg-card w-full max-w-[45rem] h-[90vh] sm:h-[60vh] flex flex-col sm:flex-row relative overflow-hidden rounded-lg shadow-lg"
+        className="bg-card w-full max-w-[45rem] h-auto max-h-[78vh] sm:h-[60vh] flex flex-col sm:flex-row relative overflow-hidden rounded-lg shadow-lg"
       >
         {/* LEFT: Carousel */}
         <div className="w-full sm:w-1/2 h-60 sm:h-full flex items-center justify-center p-2">
@@ -172,11 +172,11 @@ const CommentPostModal = ({
 
             {mediaList.length > 1 && (
               <>
-                <CarouselPrevious className="absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
+                <CarouselPrevious className="hidden md:flex absolute top-1/2 left-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
                   ‹
                 </CarouselPrevious>
 
-                <CarouselNext className="absolute top-1/2 right-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
+                <CarouselNext className="hidden md:flex absolute top-1/2 right-2 -translate-y-1/2 bg-accent/30 text-accent-foreground rounded-full p-3 hover:bg-accent/50 z-10 shadow-sm">
                   ›
                 </CarouselNext>
               </>
@@ -222,8 +222,12 @@ const CommentPostModal = ({
 
           {/* Comments List */}
           <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-2">
-            {isCommentsLoading ? (
-              <p className="text-muted-foreground">Loading comments...</p>
+            {!demo ? (
+              <CommentSkeleton />
+            ) : comments?.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-4">
+                No comments yet
+              </p>
             ) : (
               comments?.map((comment: CommentT) => (
                 <Comment
