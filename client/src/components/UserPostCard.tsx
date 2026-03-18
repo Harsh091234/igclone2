@@ -87,7 +87,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5  sm  :w-lg lg:w-md xl:w-full   max-w-2xl">
+    <article className="bg-card border border-border rounded-lg mb-5  sm:w-lg lg:w-md xl:w-full   max-w-2xl">
       <div
         className="flex 
       

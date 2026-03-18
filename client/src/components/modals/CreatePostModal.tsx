@@ -170,59 +170,36 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
 
           {/* PREVIEW */}
           {step === "PREVIEW" && media.length > 0 && (
-            <div className="h-[70vh] mt-1 flex items-center justify-center w-full sm:w-md rounded-lg overflow-hidden">
-              <Carousel className="flex h-full">
-                <CarouselContent className="h-full">
-                  {media.map((item, index) => (
-                    <CarouselItem
-                      key={index}
-                      className=" flex items-center justify-center"
-                    >
-                      {item.type === "image" ? (
-                        <img
-                          src={item.previewUrl}
-                          alt={`preview-${index}`}
-                          className="aspect-square  rounded-md"
-                        />
-                      ) : (
-                        <video
-                          src={item.previewUrl}
-                          controls
-                          className="aspect-video bg-black rounded-md "
-                        />
-                      )}
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-
-                {/* Navigation */}
-                {media.length > 1 && (
-                  <>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
-                  </>
-                )}
-              </Carousel>
-            </div>
-          )}
-
-          {/* CAPTION */}
-          {step === "CAPTION" && media.length > 0 && (
-            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-[70vh] sm:h-[60vh] gap-0 sm:gap-4">
-              {/* LEFT: MEDIA */}
-              <div className="relative w-full flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden">
-                <Carousel className="flex h-full w-full">
+            <div className="max-h-[70vh] h-auto mt-1 flex items-center justify-center w-full sm:w-md rounded-lg overflow-hidden">
+              {media.length === 1 ? (
+                // 🔥 Single media (NO carousel)
+                media[0].type === "image" ? (
+                  <img
+                    src={media[0].previewUrl}
+                    alt="preview"
+                    className="aspect-square rounded-md"
+                  />
+                ) : (
+                  <video
+                    src={media[0].previewUrl}
+                    controls
+                    className="aspect-video bg-black rounded-md"
+                  />
+                )
+              ) : (
+                // 🔥 Multiple media (USE carousel)
+                <Carousel className="flex h-full">
                   <CarouselContent className="h-full">
                     {media.map((item, index) => (
                       <CarouselItem
                         key={index}
-                        className="flex h-full items-center overflow-hidden rounded-md "
+                        className="flex items-center justify-center"
                       >
                         {item.type === "image" ? (
                           <img
                             src={item.previewUrl}
                             alt={`preview-${index}`}
-                            className="aspect-square h-full w-full rounded-md object-cover"
+                            className="aspect-square rounded-md"
                           />
                         ) : (
                           <video
@@ -235,18 +212,66 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
                     ))}
                   </CarouselContent>
 
-                  {media.length > 1 && (
-                    <>
-                      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
-                      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
-                    </>
-                  )}
+                  <CarouselPrevious className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
+                  <CarouselNext className="hidden sm:flex  absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
                 </Carousel>
+              )}
+            </div>
+          )}
+
+          {/* CAPTION */}
+          {step === "CAPTION" && media.length > 0 && (
+            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-auto max-h-[70vh] sm:h-[60vh] gap-0 sm:gap-4">
+              {/* LEFT: MEDIA */}
+              <div className="relative w-full flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden">
+                {media.length === 1 ? (
+                  media[0].type === "image" ? (
+                    <img
+                      src={media[0].previewUrl}
+                      alt="preview"
+                      className="aspect-square h-full w-full rounded-md object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={media[0].previewUrl}
+                      controls
+                      className="aspect-video bg-black rounded-md"
+                    />
+                  )
+                ) : (
+                  <Carousel className="flex h-full w-full">
+                    <CarouselContent className="h-full">
+                      {media.map((item, index) => (
+                        <CarouselItem
+                          key={index}
+                          className="flex h-full items-center overflow-hidden rounded-md"
+                        >
+                          {item.type === "image" ? (
+                            <img
+                              src={item.previewUrl}
+                              alt={`preview-${index}`}
+                              className="aspect-square h-full w-full rounded-md object-cover"
+                            />
+                          ) : (
+                            <video
+                              src={item.previewUrl}
+                              controls
+                              className="aspect-video bg-black rounded-md"
+                            />
+                          )}
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+
+                    <CarouselPrevious className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
+                    <CarouselNext className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
+                  </Carousel>
+                )}
               </div>
 
               {/* RIGHT: CAPTION */}
-              <div className="flex  flex-col px-2 w-full  sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
-                <div className="flex items-center  gap-2">
+              <div className="flex flex-col px-2 w-full sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
+                <div className="flex items-center gap-2">
                   <UserAvatar
                     classes="h-8 w-8 sm:h-10 sm:w-10"
                     user={authUser}

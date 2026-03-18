@@ -150,7 +150,7 @@ export default function StoryViewerModal({
 
     setProgress(0);
 
-    const duration = 15000; // 15 sec
+    const duration = 15000000; // 15 sec
     const interval = 100;
 
     const step = 100 / (duration / interval);
@@ -174,8 +174,8 @@ export default function StoryViewerModal({
   return (
     <div className="fixed inset-0 bg-primary-foreground z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 text-primary">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between  p-2 text-primary">
+        <div className="flex items-center gap-3 ">
           <UserAvatar user={currentStory.user} classes="w-10 h-10" />
           <div>
             <p className="text-sm font-semibold">
@@ -198,11 +198,11 @@ export default function StoryViewerModal({
       </div>
 
       {/* Story Content */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1  flex items-center justify-center">
         {/* IMPORTANT: relative stays HERE */}
 
         <div
-          className="relative w-full max-w-screen sm:max-w-sm h-[85vh] bg-black overflow-hidden sm:rounded-xl
+          className="relative w-full max-w-screen sm:max-w-sm h-full max-h-full md:max-h-[43rem] bg-black overflow-hidden sm:rounded-xl
         "
         >
           {isStoryOwner && (
@@ -223,14 +223,14 @@ export default function StoryViewerModal({
             </button>
           )}
 
-          <div className="absolute top-2 left-2 right-2 flex gap-1 z-50">
+          <div className="absolute top-2 left-0 right-0 px-2 flex items-center gap-1 z-50">
             {stories.map((_, i) => (
               <div
                 key={i}
-                className="flex-1 h-1 bg-white/30 rounded overflow-hidden"
+                className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden"
               >
                 <div
-                  className="h-full bg-white"
+                  className="h-full bg-white transition-all duration-150 ease-linear"
                   style={{
                     width:
                       i < currentIndex
@@ -270,25 +270,27 @@ export default function StoryViewerModal({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <video
-                    key={index === currentIndex ? "active" : "inactive"}
-                    src={s.media.url}
-                    className="h-full w-full object-cover"
-                    autoPlay={index === currentIndex}
-                    muted
-                    onTimeUpdate={(e) => {
-                      if (index !== currentIndex) return;
+                  <div className="h-full w-full flex items-center">
+                    <video
+                      key={index === currentIndex ? "active" : "inactive"}
+                      src={s.media.url}
+                      className=" aspect-video bg-black"
+                      autoPlay={index === currentIndex}
+                      muted
+                      onTimeUpdate={(e) => {
+                        if (index !== currentIndex) return;
 
-                      const video = e.currentTarget;
-                      const percent =
-                        (video.currentTime / video.duration) * 100;
-                      setProgress(percent);
-                    }}
-                    playsInline
-                    onEnded={() => {
-                      if (index === currentIndex) goNext();
-                    }}
-                  />
+                        const video = e.currentTarget;
+                        const percent =
+                          (video.currentTime / video.duration) * 100;
+                        setProgress(percent);
+                      }}
+                      playsInline
+                      onEnded={() => {
+                        if (index === currentIndex) goNext();
+                      }}
+                    />
+                  </div>
                 )}
 
                 {/* Text Layers */}

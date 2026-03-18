@@ -26,7 +26,7 @@ export function StoryViewsModal({ open, onClose, loading, viewers }: Props) {
 
       {/* Modal */}
       <div className="absolute inset-0 flex items-center justify-center z-50">
-        <div className="bg-white w-[400px] rounded-2xl max-h-[70vh] overflow-hidden shadow-2xl">
+        <div className="bg-white w-full sm:w-[350px] rounded-2xl max-h-[70vh] overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <p className="font-semibold text-lg">Views ({viewers.length})</p>

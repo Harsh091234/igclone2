@@ -34,7 +34,7 @@ export default function FeedPage() {
   const [animateRing, setAnimateRing] = useState(false);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data } = useGetAuthUserQuery();
-
+  const demo = true;
   const authUser = data?.user;
   const { isLoading: isPostLoading, data: postData } =
     useGetAllPostsQuery(undefined);
