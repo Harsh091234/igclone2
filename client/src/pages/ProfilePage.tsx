@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Grid, PlaySquare,  SettingsIcon, Tag } from "lucide-react";
-import Highlights from "../components/Highlights";
+import { Grid, PlaySquare, SettingsIcon, Tag } from "lucide-react";
+// import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
 
 import {
@@ -10,9 +10,8 @@ import {
   useGetProfileUserQuery,
 } from "../services/userApi";
 
-
 import { Button } from "../components/ui/button";
-import { Separator } from "@radix-ui/react-separator";
+// import { Separator } from "@radix-ui/react-separator";
 import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
 import NoUserFound from "../components/NoUserFound";
 import {
@@ -27,7 +26,7 @@ import CommentPostModal from "../components/modals/CommentPostModal";
 import toast from "react-hot-toast";
 import FollowingModal from "../components/modals/FollowingModal";
 import FollowersModal from "../components/modals/FollowersModal";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
+// import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
@@ -50,11 +49,10 @@ const ProfilePage = () => {
   );
   const [isFollowingModalOpen, setIsFollowingModalOpen] =
     useState<boolean>(false);
-    const [isFollowerModalOpen, setIsFollowerModalOpen] =
-      useState<boolean>(false);
+  const [isFollowerModalOpen, setIsFollowerModalOpen] =
+    useState<boolean>(false);
   const userPosts = postData?.posts;
   const activePost = userPosts?.find((p: Post) => p._id === activePostId);
-
 
   const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
     "posts",
@@ -73,7 +71,7 @@ const ProfilePage = () => {
   const isAuthUser = authUser?._id === user?._id;
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
+  const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
   const handleRouteToProfile = () => {
     navigate(`/profile/${user?.userName}`);
   };
@@ -82,46 +80,45 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     await toggleFollow(targetUserId).unwrap();
   };
 
-  const handleClick = (url:string) => {
+  const handleClick = (url: string) => {
     navigate(`/settings/${url}`);
   };
 
-  const highlightsData = [
-    {
-      title: "Travel",
-      img: "https://picsum.photos/200?1",
-    },
-    {
-      title: "Travel",
-      img: "https://picsum.photos/200?1",
-    },
-    {
-      title: "Travel",
-      img: "https://picsum.photos/200?1",
-    },
-    {
-      title: "Travel",
-      img: "https://picsum.photos/200?1",
-    },
+  // const highlightsData = [
+  //   {
+  //     title: "Travel",
+  //     img: "https://picsum.photos/200?1",
+  //   },
+  //   {
+  //     title: "Travel",
+  //     img: "https://picsum.photos/200?1",
+  //   },
+  //   {
+  //     title: "Travel",
+  //     img: "https://picsum.photos/200?1",
+  //   },
+  //   {
+  //     title: "Travel",
+  //     img: "https://picsum.photos/200?1",
+  //   },
 
-    {
-      title: "Food",
-      img: "https://picsum.photos/200?2",
-    },
-    {
-      title: "Art",
-      img: "https://picsum.photos/200?3",
-    },
-    {
-      title: "Friends",
-      img: "https://picsum.photos/200?4",
-    },
-    {
-      title: "Pets",
-      img: "https://picsum.photos/200?5",
-    },
-  ];
-
+  //   {
+  //     title: "Food",
+  //     img: "https://picsum.photos/200?2",
+  //   },
+  //   {
+  //     title: "Art",
+  //     img: "https://picsum.photos/200?3",
+  //   },
+  //   {
+  //     title: "Friends",
+  //     img: "https://picsum.photos/200?4",
+  //   },
+  //   {
+  //     title: "Pets",
+  //     img: "https://picsum.photos/200?5",
+  //   },
+  // ];
 
   const handleBookmark = async (postId: string) => {
     const isBookmarked = authUser?.bookmarks?.some(
@@ -133,17 +130,15 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
- 
-
   if (isLoading) return <ProfilePageSkeleton />;
   if (!user) return <NoUserFound />;
 
   return (
     <div
-      className="h-full overflow-y-auto 
-     flex justify-center px-0 sm:px-30 py-3  sm:py-0"
+      className="h-[100dvh] overflow-y-auto my-scroll
+     flex justify-center px-3 sm:px-30  py-3   sm:py-0"
     >
-      <div className=" w-full max-w-full  sm:max-w-4xl mt-7 sm:mt-13 ">
+      <div className=" w-full max-w-full h-full   sm:max-w-4xl mt-7   sm:mt-13 ">
         {/* TOP SECTION */}
 
         <div className="flex flex-col  sm:flex-row sm:items-center gap-3 sm:gap-30  mb-4 sm:mb-8">
@@ -184,9 +179,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
       transition-all duration-200 sm:hidden
     "
                     >
-                    
-                        <SettingsIcon className="h-4 w-4" />
-                     
+                      <SettingsIcon className="h-4 w-4" />
                     </button>
 
                     {/* <button
@@ -282,8 +275,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
           </div>
         </div>
 
-        {/* HIGHLIGHTS */}
-        <div className="relative">
+        {/* <div className="relative">
           <Carousel
             opts={{ align: "start", dragFree: true }}
             className="w-full relative"
@@ -296,13 +288,13 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
               ))}
             </CarouselContent>
 
-            {/* shadcn scroll buttons */}
+          
             <CarouselPrevious className="hidden md:flex -left-3 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur border-border shadow-sm" />
             <CarouselNext className="hidden md:flex -right-3 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur border-border shadow-sm" />
           </Carousel>
-        </div>
+        </div> */}
 
-        <Separator className="my-4 bg-muted-foreground/20 h-0.5 rounded-full" />
+        {/* <Separator className="my-4 bg-muted-foreground/20 h-0.5 rounded-full" /> */}
 
         {/* TABS */}
         <div className="relative flex justify-around mb-4 border-b">
@@ -353,7 +345,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
         </div>
 
         {/* POSTS GRID */}
-        <div className="grid grid-cols-3 gap-1 mt-2 pb-4">
+        <div className="grid grid-cols-3 gap-1 mt-2 pb-18 sm:pb-8 ">
           {isPostsLoading ? (
             <UserPostsSkeleton />
           ) : filteredPosts?.length ? (

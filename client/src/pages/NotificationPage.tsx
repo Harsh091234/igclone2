@@ -106,9 +106,9 @@ const NotificationPage = () => {
   });
 
   return (
-    <div className="h-full overflow-y-auto px-4 sm:px-45 py-4 sm:py-6 w-full  flex flex-col">
+    <div className="min-h-screen  overflow-y-auto px-4 sm:px-45 py-4 sm:py-6 w-full  flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mt-5 mb-6">
+      <div className="flex items-center justify-between mt-5  mb-6">
         <h1 className="text-xl font-semibold flex items-center gap-2">
           <Bell className="w-5 h-5" /> Notifications
         </h1>
@@ -119,7 +119,7 @@ const NotificationPage = () => {
           Mark all as read
         </button> */}
       {/* Notifications list */}
-      <div className="max-w-xl space-y-3 mb-15 sm:mb-0">
+      <div className=" max-w-xl xl:max-w-2xl space-y-3 mb-15 sm:mb-0">
         {isNotificationLoading ? (
           <NotificationsSkeleton />
         ) : notifications && notifications.length > 0 ? (

@@ -4,28 +4,29 @@ import { Outlet, useLocation } from "react-router-dom";
 
 const SettingsPage = () => {
   const location = useLocation();
-   const isRoot = location.pathname === "/settings" || location.pathname === "/settings/";
+  const isRoot =
+    location.pathname === "/settings" || location.pathname === "/settings/";
   useEffect(() => console.log("is root:", isRoot), []);
   const [isClicked, setIsClicked] = useState(false);
-  console.log(isClicked)
+  console.log(isClicked);
   return (
-    <div className="flex w-full h-full">
-     
-        <div
-          className={`
-          w-full sm:w-[30%]  sm:block
-          ${isRoot ? "block" : "hidden"}
-        `}
-        >
-          <SettingsMenu onClose={() => setIsClicked(true)} />
-        </div>
-   
+    <div className="grid h-[100dvh] w-full sm:grid-cols-[300px_1fr]">
+      {/* LEFT PANEL */}
+      <div
+        className={`md:border-r md:border-border
+      ${isRoot ? "block" : "hidden"} 
+      sm:block
+    `}
+      >
+        <SettingsMenu onClose={() => setIsClicked(true)} />
+      </div>
 
+      {/* RIGHT PANEL */}
       <div
         className={`
-          w-full sm:w-[70%]
-          ${isRoot ? "hidden sm:block" : "block"}
-        `}
+      ${isRoot ? "hidden" : "block"} 
+      sm:block overflow-y-auto
+    `}
       >
         <Outlet />
       </div>

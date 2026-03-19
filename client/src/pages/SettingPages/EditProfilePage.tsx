@@ -1,36 +1,32 @@
-
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 
 import CustomButton from "../../components/CustomButton";
 
-
 import { useNavigate } from "react-router-dom";
-import { useEditProfileMutation, useGetAuthUserQuery } from "../../services/userApi";
+import {
+  useEditProfileMutation,
+  useGetAuthUserQuery,
+} from "../../services/userApi";
 import { useForm } from "react-hook-form";
-import { editProfileSchema, type EditProfileInput } from "../../schemas/user.validator";
+import {
+  editProfileSchema,
+  type EditProfileInput,
+} from "../../schemas/user.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { EditProfileData} from "../../types/user.types";
+import type { EditProfileData } from "../../types/user.types";
 import { ChevronLeft } from "lucide-react";
 
-
 const EditProfilePage = () => {
- 
-  const {data} = useGetAuthUserQuery();
-  const [editProfile, {isLoading}] = useEditProfileMutation();
-   const [preview, setPreview] = useState<string>("");
-   const [file, setFile] = useState<File | null>(null);
- 
-  
-    const authUser = data?.user;
-  
-  if(!authUser) return;
+  const { data } = useGetAuthUserQuery();
+  const [editProfile, { isLoading }] = useEditProfileMutation();
+  const [preview, setPreview] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    
-  } = useForm<EditProfileInput>({
+  const authUser = data?.user;
+
+  if (!authUser) return;
+
+  const { register, handleSubmit, watch } = useForm<EditProfileInput>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: authUser.fullName,
@@ -43,47 +39,45 @@ const EditProfilePage = () => {
       bio: authUser.bio,
     },
   });
- 
 
   const navigate = useNavigate();
 
   useEffect(() => {
-     if (file) {
-       const url = URL.createObjectURL(file); // ✅ File
-       setPreview(url);
-  
-       return () => URL.revokeObjectURL(url);
-     }
-   }, [file]);
+    if (file) {
+      const url = URL.createObjectURL(file); // ✅ File
+      setPreview(url);
 
-   const handleSave = async(data: EditProfileData) => {
-     try {
-       const formData = new FormData();
-       formData.append("fullName", data.fullName || "");
-       formData.append("userName", data.userName);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [file]);
 
-       const finalGender =
-         data.gender === "other" ? data.customGender : data.gender;
-       if (finalGender) {
-         formData.append("gender", finalGender);
-       }
+  const handleSave = async (data: EditProfileData) => {
+    try {
+      const formData = new FormData();
+      formData.append("fullName", data.fullName || "");
+      formData.append("userName", data.userName);
 
-       formData.append("bio", data.bio || "");
+      const finalGender =
+        data.gender === "other" ? data.customGender : data.gender;
+      if (finalGender) {
+        formData.append("gender", finalGender);
+      }
 
-       if (file) {
-         formData.append("profilePic", file); // Always a File
-       }
+      formData.append("bio", data.bio || "");
 
-       await editProfile(formData).unwrap(); // send FormData
-       navigate("/");
-     } catch (error: any) {
-       console.log("error", error);
-     }
-   }
+      if (file) {
+        formData.append("profilePic", file); // Always a File
+      }
 
+      await editProfile(formData).unwrap(); // send FormData
+      navigate("/");
+    } catch (error: any) {
+      console.log("error", error);
+    }
+  };
 
   return (
-    <div className="mx-auto py-6 px-13 h-full overflow-y-auto">
+    <div className="mx-auto max-w-3xl py-6 px-13 h-full overflow-y-auto">
       <h1 className="text-xl flex justify-between  font-semibold mb-8 text-foreground">
         Edit Profile
         <button
@@ -249,7 +243,7 @@ const EditProfilePage = () => {
           <div className="flex justify-end mb-6">
             <CustomButton
               text="Submit"
-              className="text-xs sm:text-sm font-medium py-1.5 sm:py-2 px-1.5 sm:px-2 w-24"
+              className="text-xs sm:text-sm font-medium py-1.5 sm:py-2 px-1.5 sm:px-2 w-full sm:w-24"
               type="submit"
               loading={isLoading}
               loaderClasses="h-4 w-4 sm:h-5 sm:w-5"
