@@ -57,7 +57,7 @@ const ReelsPage = () => {
     { skip: !activeReel },
   );
   const user = userData?.user;
-console.log("user in reels", user)
+  console.log("user in reels", user);
   const handleRouteToProfile = (userName: string) => {
     navigate(`/profile/${userName}`);
   };
@@ -82,12 +82,12 @@ console.log("user in reels", user)
   };
 
   return (
-    <div className="flex justify-center pb-10 sm:pb-0 items-center text-foreground h-full bg-primary-foreground">
+    <div className="flex justify-center pb-10 sm:pb-0 items-start sm:items-center text-foreground min-h-screen    bg-primary-foreground">
       <Carousel
         orientation="vertical"
-        className="w-full min-[350px]:w-[300px] sm:w-[400px] "
+        className="w-full  bg  sm:w-[300px] lg:w-[420px] "
       >
-        <CarouselContent className="h-[80vh] sm:h-[94vh]">
+        <CarouselContent className=" h-[94.6vh]  sm:h-[80vh] lg:h-[89vh] ">
           {isReelLoading &&
             Array.from({ length: 6 }).map((_, i) => (
               <CarouselItem key={i} className="h-full w-full">
@@ -106,8 +106,11 @@ console.log("user in reels", user)
                 reel.author.followers?.some((id) => id === authUser?._id) ??
                 false;
               return (
-                <CarouselItem key={reel._id} className="h-full w-full">
-                  <Card className="border-0 bg-primary-foreground min-[350px]:bg-card min-[350px]:border relative flex items-center h-full w-full rounded-none min-[350px]:rounded-xl overflow-hidden">
+                <CarouselItem
+                  key={reel._id}
+                  className="h-full w-full  items-center flex max-sm:pt-0"
+                >
+                  <Card className="border-0 bg-black sm:bg-card sm:border relative flex items-center h-full w-full rounded-none sm:rounded-xl overflow-hidden">
                     {/* Video */}
                     <video
                       src={reel.video.url}
@@ -115,11 +118,11 @@ console.log("user in reels", user)
                       loop
                       muted
                       playsInline
-                      className="h-full w-full object-fill"
+                      className="h-full w-full sm:bg-black object-contain"
                     />
 
                     {/* Right Actions */}
-                    <div className="absolute right-3 bottom-24 flex flex-col items-center gap-2 sm:gap-2.5">
+                    <div className="absolute right-3 bottom-6 sm:bottom-13 z-60 flex flex-col items-center gap-2 sm:gap-2.5">
                       {/* Like Button */}
                       <button
                         onClick={() => handleLike(reel._id)}
@@ -176,7 +179,7 @@ console.log("user in reels", user)
                     </div>
 
                     {/* Bottom Info */}
-                    <div className="absolute bottom-6 sm:bottom-5.5 w-full p-4 bg-gradient-to-t from-black/70 to-transparent text-white flex flex-col gap-1 sm:gap-2">
+                    <div className="absolute bottom-0 sm:bottom-5.5 w-full p-4 bg-gradient-to-t from-black/70 to-transparent text-white flex flex-col gap-1 sm:gap-2">
                       <div className="flex gap-2 sm:gap-5 items-center flex-wrap">
                         <div className="flex gap-1 sm:gap-2 items-center">
                           <UserAvatar
