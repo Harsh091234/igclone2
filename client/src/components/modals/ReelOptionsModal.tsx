@@ -21,7 +21,7 @@ export default function ReelOptionsModal({
   return (
     <div
       onClick={onClose}
-      className="fixed bg-black/24  inset-0 w-screen h-screen z-50 flex items-center justify-center"
+      className="fixed bg-black/24 px-5 sm:px-0  inset-0 w-screen h-screen z-50 flex items-center justify-center"
     >
       {/* Backdrop */}
       <div className="absolute inset-0" />
@@ -29,7 +29,7 @@ export default function ReelOptionsModal({
       {/* Modal */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full min-[340px]:w-sm sm:w-md rounded-xl bg-background shadow-xl border border-border overflow-hidden"
+        className="relative w-full  sm:w-sm  rounded-xl bg-background shadow-xl border border-border overflow-hidden"
       >
         {/* Close */}
         <button onClick={onClose} className="absolute right-2 top-2">
@@ -90,11 +90,12 @@ export default function ReelOptionsModal({
           <Separator /> */}
 
           <button
-          onClick={() => {
-            onClose();
-            onAboutThisAccount()
-          }}
-          className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition">
+            onClick={() => {
+              onClose();
+              onAboutThisAccount();
+            }}
+            className="px-4 py-2.5 sm:py-3.5 text-center font-medium hover:bg-muted transition"
+          >
             About this account
           </button>
         </div>

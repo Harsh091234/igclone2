@@ -82,7 +82,7 @@ const ReelsPage = () => {
   };
 
   return (
-    <div className="flex justify-center pb-10 sm:pb-0 items-start sm:items-center text-foreground min-h-screen    bg-primary-foreground">
+    <div className="flex justify-center pb-10 sm:pb-0 px-2 items-start sm:items-center text-foreground h-[108dvh] sm:min-h-screen   bg-primary-foreground">
       <Carousel
         orientation="vertical"
         className="w-full  bg  sm:w-[300px] lg:w-[420px] "
