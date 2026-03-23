@@ -1,20 +1,22 @@
 import mongoose, { Schema, Document, model } from "mongoose";
 
 export interface IPost extends Document {
-    author: mongoose.Types.ObjectId;
+  author: mongoose.Types.ObjectId;
   caption: string;
   media: {
     url: string;
     type: "image" | "video";
     publicId: string;
+    height: number;
+    width: number;
+    aspectRatio: number;
   }[];
   likes: mongoose.Types.ObjectId[];
   comments: mongoose.Types.ObjectId[];
-    
+
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 const postSchema = new Schema<IPost>(
   {
@@ -30,7 +32,6 @@ const postSchema = new Schema<IPost>(
       maxlength: [300, "Caption cannot exceed 300 characters"],
     },
 
-    
     media: [
       {
         url: { type: String, required: true },
@@ -40,10 +41,12 @@ const postSchema = new Schema<IPost>(
           enum: ["image", "video"],
           required: true,
         },
+        height: Number,
+        width: Number,
+        aspectRatio: Number,
       },
     ],
 
-    
     likes: [
       {
         type: Schema.Types.ObjectId,
@@ -51,13 +54,14 @@ const postSchema = new Schema<IPost>(
       },
     ],
 
-    
-    comments: [{
+    comments: [
+      {
         type: Schema.Types.ObjectId,
-        ref: "Comment"
-    }]
+        ref: "Comment",
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Post = model<IPost>("Post", postSchema);

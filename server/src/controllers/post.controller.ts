@@ -34,16 +34,21 @@ export const createPost = async (req: Request, res: Response) => {
           file.buffer,
           CLOUDINARY_FOLDERS.POST_VIDEOS,
         );
-
+        const aspectRatio = cloudResponse.width / cloudResponse.height;
         media.push({
           url: cloudResponse.secure_url,
           publicId: cloudResponse.public_id,
           type: "video",
+          height: cloudResponse.height,
+          width: cloudResponse.width,
+          aspectRatio,
         });
         continue;
       }
-
-      const optimizedBuffer = await sharp(file.buffer)
+      const image = sharp(file.buffer);
+      const metadata = await image.metadata();
+      const aspectRatio = metadata.width / metadata.height;
+      const optimizedBuffer = await image
         .resize({ width: 800, height: 800, fit: "inside" })
         .jpeg({ quality: 80 })
         .toBuffer();
@@ -63,6 +68,9 @@ export const createPost = async (req: Request, res: Response) => {
         url: cloudResponse.secure_url,
         publicId: cloudResponse.public_id,
         type: "image",
+        height: metadata.height,
+        width: metadata.width,
+        aspectRatio,
       });
     }
 
