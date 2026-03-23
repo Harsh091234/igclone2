@@ -26,12 +26,11 @@ const MessagePage = () => {
 
   const { isLoading: isLastChatsLoading, data: lastChatData } =
     useGetLastMessagesQuery(undefined);
-    const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
   const [activeChatUser, setActiveChatUser] = useState<SearchUser | null>(null);
 
   const conversations = lastChatData?.conversations;
-  
-  
+
   const { onlineUsers } = useAppSelector((state) => state.socket);
   const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
@@ -100,19 +99,20 @@ const MessagePage = () => {
     };
 
     socket.on("newMessage", handleNewMessage);
-    return () => {socket.off("newMessage", handleNewMessage)};
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
   }, [authUserId, dispatch]);
 
- const filteredConversations = useMemo(() => {
-   if (!conversations) return [];
+  const filteredConversations = useMemo(() => {
+    if (!conversations) return [];
 
-   if (!search.trim()) return conversations;
+    if (!search.trim()) return conversations;
 
-   return conversations.filter((conv: any) =>
-     conv.receiver.userName.toLowerCase().includes(search.toLowerCase()),
-   );
- }, [search, conversations]);
-
+    return conversations.filter((conv: any) =>
+      conv.receiver.userName.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [search, conversations]);
 
   return (
     <div className="h-screen w-full  text-foreground flex">

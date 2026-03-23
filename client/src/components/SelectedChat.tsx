@@ -1,9 +1,8 @@
-
 import { Input } from "./ui/input";
 import { useRef } from "react";
 import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import type { SearchUser } from "../types/user.types";
 import {
   conversationApi,
@@ -17,6 +16,7 @@ import { getSocket } from "../utils/socket";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
 import type { Message } from "../types/conversation.types";
+import MessageSkeleton from "./Skeletons/MessageSkeleton";
 
 interface SelectedChatProps {
   onClose: () => void;
@@ -37,7 +37,12 @@ const getPreviewType = (file: File): PreviewItem["type"] => {
   return "file";
 };
 
-const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps) => {
+const SelectedChat = ({
+  onClose,
+  user,
+  statusText,
+  isOnline,
+}: SelectedChatProps) => {
   const [text, setText] = useState<string>("");
   const [media, setMedia] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -46,7 +51,7 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
     useCreateMessageMutation();
   const { isLoading: isMessagesLoading, data: messagesData } =
     useGetAllMessagesQuery(user._id);
- const messages = messagesData?.messages ?? [];
+  const messages = messagesData?.messages ?? [];
 
   const { data: authData } = useGetAuthUserQuery();
   const authUserId = authData?.user?._id;
@@ -63,11 +68,11 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
 
     const handleNewMessage = (message: any) => {
       console.log("📩 NEW MESSAGE RECEIVED (socket):", message);
-      const senderId = message.senderId._id ;
-      const receiverId = message.receiverId._id ;
-     const isBetweenTheseUsers =
-       (senderId === authUserId && receiverId === user._id) ||
-       (senderId === user._id && receiverId === authUserId);
+      const senderId = message.senderId._id;
+      const receiverId = message.receiverId._id;
+      const isBetweenTheseUsers =
+        (senderId === authUserId && receiverId === user._id) ||
+        (senderId === user._id && receiverId === authUserId);
       if (!isBetweenTheseUsers) return;
 
       // 🔥 Update RTK Query cache
@@ -82,7 +87,7 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
           },
         ),
       );
-    };;
+    };
 
     socket.on("newMessage", handleNewMessage);
 
@@ -112,11 +117,11 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
         formData.append("media", file);
       });
 
-       await createMessage({
+      await createMessage({
         receiverId: user._id,
         formData,
       }).unwrap();
- 
+
       setText("");
       setMedia([]);
       setPreviews([]);
@@ -150,11 +155,10 @@ const SelectedChat = ({ onClose, user, statusText, isOnline }: SelectedChatProps
       </div>
 
       <div className="flex-1 text-xs sm:text-sm overflow-y-auto p-4 space-y-2.5 sm:space-y-5 bg-muted/30">
-        {isMessagesLoading ? (
-          <>loading..</>
+        {!isMessagesLoading ? (
+          <MessageSkeleton />
         ) : (
           messages.map((message: Message) => {
-          
             const isSender = message.senderId._id === authUserId;
 
             return (

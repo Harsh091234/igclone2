@@ -29,6 +29,7 @@ import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import { useAppSelector } from "./utils/hooks";
 import NotificationPage from "./pages/NotificationPage";
+import ExplorePage from "./pages/ExplorePage";
 
 const App = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -192,6 +193,14 @@ const App = () => {
                 }
               />
 
+              <Route
+                path="/explore"
+                element={
+                  <ProtectedRoutes>
+                    <ExplorePage />
+                  </ProtectedRoutes>
+                }
+              />
               <Route
                 path="/settings"
                 element={
