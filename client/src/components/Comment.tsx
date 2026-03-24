@@ -26,7 +26,7 @@ const Comment = ({
 }: CommentProps) => {
   const { data: authData } = useGetAuthUserQuery();
   const authUser = authData?.user;
-  console.log("auth", authData);
+
   const isAuthUserComment = author._id === authUser?._id;
   return (
     <div className="flex gap-3 items-center">

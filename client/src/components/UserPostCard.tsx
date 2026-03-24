@@ -29,7 +29,7 @@ interface PostCardProps {
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetAuthUserQuery();
-  console.log(post);
+
   const authUser = authData?.user;
   const navigate = useNavigate();
   const [deleteComment] = useDeleteCommentMutation();

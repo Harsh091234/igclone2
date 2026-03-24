@@ -117,9 +117,9 @@ export default function StoryViewerModal({
     }
   };
 
-  useEffect(() => {
-    console.log("stories in modal tsxddd:", stories);
-  });
+  // useEffect(() => {
+  //    console.log("stories in modal tsxddd:", stories);
+  // });
   useEffect(() => {
     if (currentStory) {
       viewStory({ storyId: currentStory._id, userId: authUserId });

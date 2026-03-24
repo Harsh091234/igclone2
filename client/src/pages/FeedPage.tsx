@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -34,10 +34,15 @@ export default function FeedPage() {
   const [animateRing, setAnimateRing] = useState(false);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data } = useGetAuthUserQuery();
+  const [page, setPage] = useState<number>(1);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const feedRef = useRef<HTMLDivElement | null>(null);
+  const isFetchingRef = useRef(false);
 
   const authUser = data?.user;
-  const { isLoading: isPostLoading, data: postData } =
-    useGetAllPostsQuery(undefined);
+  const { isFetching: isPostsFetching, data: postData } =
+    useGetAllPostsQuery(page);
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
@@ -54,20 +59,18 @@ export default function FeedPage() {
       ...story,
       user: activeGroup.user,
     })) ?? [];
-  console.log("viewers story", viewerStories);
+  // console.log("viewers story", viewerStories);
   const authUserStoryGroups = storyGroups.find(
     (group: any) => group.user._id === authUser?._id,
   );
   const hasAuthStory = authUserStoryGroups?.stories?.length > 0;
-  console.log("auth user story:", authUserStoryGroups);
+  // console.log("auth user story:", authUserStoryGroups);
   const otherUsersStories = storyGroups.filter(
     (group: any) => group.user._id !== authUser?._id,
   );
 
-  console.log("storyies", storyGroups);
   const navigate = useNavigate();
 
-  const posts = postData?.posts;
   const handleCloseStoryViewer = () => {
     setActiveGroupId(null); // reset active story group
     setSelectedStoryIndex(0); // reset selected story index
@@ -76,6 +79,52 @@ export default function FeedPage() {
   const handleVisibleCount = () => {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
   };
+
+  // append posts logic
+  useEffect(() => {
+    if (postData?.posts) {
+      setAllPosts((prev) => {
+        const newPosts = postData.posts.filter(
+          (p: Post) => !prev.some((prevPost) => prevPost._id === p._id),
+        );
+
+        return [...prev, ...newPosts];
+      });
+
+      setHasMore(postData.hasMore);
+    }
+  }, [postData]);
+
+  // scroll logic
+  useEffect(() => {
+    const container = feedRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (
+        container.scrollTop + container.clientHeight >=
+          container.scrollHeight - 200 &&
+        hasMore &&
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true;
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [hasMore]);
+
+  // reset fetching lock
+  useEffect(() => {
+    if (!isPostsFetching) {
+      isFetchingRef.current = false;
+    }
+  }, [isPostsFetching]);
+
   useEffect(() => {
     if (activeGroupId) {
       setIsStoryViewerOpen(true);
@@ -92,7 +141,10 @@ export default function FeedPage() {
       <div className="h-full px-0 md:px-4    mx-auto w-full ">
         <div className=" grid grid-cols-1   h-full lg:grid-cols-[1fr_450px]  ">
           {/* Feed */}
-          <div className="w-full  pt-0  flex flex-col  mx-auto max-w-4xl h-screen pb-12 my-scroll px-3.5 sm:px-0 overflow-y-auto">
+          <div
+            ref={feedRef}
+            className="w-full  pt-0  flex flex-col  mx-auto max-w-4xl h-screen pb-12 my-scroll px-3.5 sm:px-0 overflow-y-auto"
+          >
             {/* Stories */}
             <div className="bg-card w-full border border-border rounded-lg mt-3 sm:mt-5  py-5 sm:py-7 mb-6">
               <Carousel opts={{ align: "start" }} className="w-full   relative">
@@ -204,18 +256,18 @@ export default function FeedPage() {
             </div>
 
             {/* Posts */}
-            {isPostLoading ? (
+            {isPostsFetching && allPosts.length === 0 ? (
               <FullPostSkeleton />
-            ) : posts && posts.length > 0 ? (
-              <div className="">
-                {posts.map((post: Post) => (
+            ) : allPosts.length > 0 ? (
+              <div>
+                {allPosts.map((post: Post) => (
                   <UserPostCard key={post._id} post={post} />
                 ))}
+
+                {isPostsFetching && <FullPostSkeleton />}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-                <p className="text-sm">No posts present on feed</p>
-              </div>
+              <div>No posts are present</div>
             )}
           </div>
 
