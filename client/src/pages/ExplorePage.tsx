@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ExploreItem from "../components/ExploreItem";
 import { SkeletonCard } from "../components/Skeletons/ExploreSkeleton";
 import {
@@ -12,20 +12,22 @@ import { useNavigate } from "react-router-dom";
 import { useGetAuthUserQuery } from "../services/userApi";
 import toast from "react-hot-toast";
 const ExplorePage = () => {
-  const { isLoading: isPostsLoading, data: postData } =
-    useGetAllPostsQuery(undefined);
   const [bookmarkPost, { isLoading: isBookmarking }] =
     useToggleBookmarkPostMutation();
-
+  const [page, setPage] = useState<number>(1);
+  const [allPosts, setAllPosts] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   // const demo = true;
-  console.log("data", postData);
+
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [currentAuthorName, setCurrentAuthorName] = useState<string>("");
   const [likePost, { isLoading: isLikeLoading }] = useToggleLikePostMutation();
   const { data: authData } = useGetAuthUserQuery();
-  const posts = postData?.posts;
+
+  const { isFetching, data: postData } = useGetAllPostsQuery(page);
+  const isFetchingRef = useRef(false);
 
   const authUser = authData?.user;
   const breakpoints = {
@@ -40,7 +42,8 @@ const ExplorePage = () => {
     (id: any) => id.toString() === selectedPost?._id.toString(),
   );
   const navigate = useNavigate();
-
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const hasMounted = useRef(false);
   const handleLike = async () => {
     if (!selectedPost || !authUser?._id) return;
 
@@ -83,6 +86,56 @@ const ExplorePage = () => {
       });
     }
   };
+  useEffect(() => {
+    if (!isFetching) {
+      isFetchingRef.current = false;
+    }
+  }, [isFetching]);
+  useEffect(() => {
+    if (postData?.posts) {
+      console.log("adding 10 more items");
+      setAllPosts((prev) => {
+        const newPosts = postData.posts.filter(
+          (newPost: any) => !prev.some((p) => p._id === newPost._id),
+        );
+
+        return [...prev, ...newPosts];
+      });
+
+      setHasMore(postData.hasMore);
+    }
+  }, [postData]);
+
+  const lastPageRef = useRef(1);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !isFetchingRef.current &&
+          hasMounted.current &&
+          lastPageRef.current === page
+        ) {
+          isFetchingRef.current = true;
+          lastPageRef.current = page + 1;
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.2 },
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+
+    return () => {
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, [hasMore, page]);
+
+  useEffect(() => {
+    hasMounted.current = true;
+  }, []);
 
   useEffect(() => {
     if (authUser?.bookmarks) {
@@ -123,34 +176,36 @@ const ExplorePage = () => {
   };
 
   return (
-    <div className="h-screen overflow-y-auto px-5 pt-7">
+    <div className="h-screen overflow-y-auto px-5 pb-15 sm:pb-0 pt-7">
       <Masonry
         breakpointCols={breakpoints}
         className="my-masonry-grid"
         columnClassName="my-masonry-grid_column"
       >
-        {isPostsLoading
-          ? Array.from({ length: 15 }).map((_, i) => {
-              const types = ["portrait", "square", "landscape"] as const;
-              const randomType = types[i % types.length];
+        {allPosts?.flatMap(
+          (post: any) =>
+            post.media?.map((item: any, i: number) => (
+              <ExploreItem
+                key={`${post._id}-${i}`}
+                item={item}
+                onClick={() => {
+                  setSelectedPost(post);
+                  setCurrentAuthorName(post.author.userName);
+                  setIsModalOpen(true);
+                }}
+              />
+            )) || [],
+        )}
+        {isFetching &&
+          allPosts.length > 0 &&
+          Array.from({ length: 6 }).map((_, i) => {
+            const types = ["portrait", "square", "landscape"] as const;
+            const randomType = types[i % types.length];
 
-              return <SkeletonCard key={i} type={randomType} />;
-            })
-          : posts?.flatMap(
-              (post: any) =>
-                post.media?.map((item: any, i: number) => (
-                  <ExploreItem
-                    key={`${post._id}-${i}`}
-                    item={item}
-                    onClick={() => {
-                      setSelectedPost(post);
-                      setCurrentAuthorName(post.author.userName);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                )) || [],
-            )}
+            return <SkeletonCard key={i} type={randomType} />;
+          })}
       </Masonry>
+      {hasMore && <div ref={loaderRef} className="h-10 bg-green-500" />}
       {selectedPost && (
         <CommentPostModal
           isOpen={isModalOpen}

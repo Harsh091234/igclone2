@@ -12,7 +12,7 @@ export const SkeletonCard = ({
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden bg-primary/10">
+    <div className="rounded-2xl overflow-hidden bg-primary/15">
       <Skeleton className={`w-full ${aspectClasses[type]}`} />
     </div>
   );

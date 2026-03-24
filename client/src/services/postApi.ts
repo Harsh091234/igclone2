@@ -1,4 +1,3 @@
-
 import type { Post, Reel } from "../types/post.types";
 import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
@@ -24,7 +23,7 @@ export const postApi = api.injectEndpoints({
     }),
 
     getAllPosts: builder.query({
-      query: () => "/post/get-all-posts",
+      query: (page) => `/post/get-all-posts?page=${page}`,
       providesTags: ["UserPosts", "UserComments"],
     }),
 
@@ -180,5 +179,5 @@ export const {
   useCommentPostMutation,
   useDeleteCommentMutation,
   useGetAllCommentsQuery,
-  useGetAllReelsQuery
+  useGetAllReelsQuery,
 } = postApi;

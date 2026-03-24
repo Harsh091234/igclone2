@@ -10,6 +10,7 @@ import { Request, Response } from "express";
 
 import sharp from "sharp";
 import Notification from "../models/notification.model.js";
+import { parse } from "node:path";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -358,8 +359,13 @@ export const deleteComment = async (req: Request, res: Response) => {
 //get post + top 2 comments
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
     const posts = await Post.find()
       .sort({ createdAt: -1 }) // latest posts first
+      .skip(skip)
+      .limit(limit)
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
@@ -370,6 +376,8 @@ export const getAllPosts = async (req: Request, res: Response) => {
         },
       });
 
+    const totalPosts = await Post.countDocuments();
+
     if (!posts)
       return res.status(400).json({
         success: false,
@@ -379,6 +387,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       posts,
+      hasMore: skip + posts.length < totalPosts,
     });
   } catch (error: any) {
     console.log("Error in getAllPosts:", error.message);
