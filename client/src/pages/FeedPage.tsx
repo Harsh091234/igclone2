@@ -53,6 +53,9 @@ export default function FeedPage() {
   const activeGroup = activeGroupId
     ? storyGroups.find((group: any) => group.user._id === activeGroupId)
     : null;
+  const activeGroupIndex = storyGroups.findIndex(
+    (group: any) => group.user._id === activeGroupId,
+  );
 
   const viewerStories =
     activeGroup?.stories?.map((story: any) => ({
@@ -80,6 +83,36 @@ export default function FeedPage() {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
   };
 
+  const goToPrevGroup = () => {
+    if (activeGroupIndex === -1) return;
+
+    const prevIndex = activeGroupIndex - 1;
+
+    if (prevIndex >= 0) {
+      const prevGroup = storyGroups[prevIndex];
+
+      setActiveGroupId(prevGroup.user._id);
+
+      // 🔥 IMPORTANT: go to LAST story of previous user
+      setSelectedStoryIndex(prevGroup.stories.length - 1);
+    }
+  };
+
+  const goToNextGroup = () => {
+    if (activeGroupIndex === -1) return;
+
+    const nextIndex = activeGroupIndex + 1;
+
+    if (nextIndex < storyGroups.length) {
+      const nextGroup = storyGroups[nextIndex];
+
+      setActiveGroupId(nextGroup.user._id);
+      setSelectedStoryIndex(0);
+    } else {
+      // 🔥 no more users → close viewer
+      handleCloseStoryViewer();
+    }
+  };
   // append posts logic
   useEffect(() => {
     if (postData?.posts) {
@@ -375,6 +408,8 @@ export default function FeedPage() {
           authUserId={authUser._id}
           initialIndex={selectedStoryIndex}
           isStoryOwner={activeGroup?.user._id === authUser?._id}
+          onPrevGroup={goToPrevGroup}
+          onAllStoriesEnd={goToNextGroup}
         />
       }
     </div>

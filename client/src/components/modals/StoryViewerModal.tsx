@@ -45,6 +45,8 @@ interface Props {
   isStoryOwner?: boolean;
   initialIndex: number;
   authUserId: string;
+  onPrevGroup?: () => void;
+  onAllStoriesEnd?: () => void;
 }
 
 export default function StoryViewerModal({
@@ -54,13 +56,18 @@ export default function StoryViewerModal({
   isStoryOwner,
   initialIndex,
   authUserId,
+  onPrevGroup,
+  onAllStoriesEnd,
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [fetchStoryViews, { data: viewsData, isLoading: viewsLoading }] =
     useLazyGetStoryViewsQuery();
   const [progress, setProgress] = useState(0);
+  const currentStory = stories[currentIndex];
+  const viewersCount =
+    viewsData?.viewers?.length ?? currentStory?.viewersCount ?? 0;
   const [deleteStory, { isLoading: deletingStory }] = useDeleteStoryMutation();
-  const [currentStory, setCurrentStory] = useState(stories[currentIndex]);
+
   const viewers =
     viewsData?.viewers?.map((view: any) => ({
       id: view.user._id,
@@ -68,6 +75,7 @@ export default function StoryViewerModal({
       profilePic: view.user.profilePic,
       liked: view.liked,
     })) || [];
+  const [isAnimating, setIsAnimating] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
   const [viewStory] = useViewStoryMutation();
@@ -76,7 +84,11 @@ export default function StoryViewerModal({
     if (currentIndex < stories.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      onClose();
+      if (onAllStoriesEnd) {
+        onAllStoriesEnd(); // 🔥 go to next user
+      } else {
+        onClose(); // fallback
+      }
     }
   };
 
@@ -84,6 +96,11 @@ export default function StoryViewerModal({
     if (viewsOpen) return;
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
+    } else {
+      // 🔥 first story → go to previous user
+      if (onPrevGroup) {
+        onPrevGroup();
+      }
     }
   };
 
@@ -98,7 +115,7 @@ export default function StoryViewerModal({
   const handleDelete = async () => {
     try {
       const res = await deleteStory(currentStory._id).unwrap();
-      console.log("delete res", res);
+
       onClose();
     } catch (error: any) {
       console.error(error);
@@ -121,27 +138,30 @@ export default function StoryViewerModal({
   //    console.log("stories in modal tsxddd:", stories);
   // });
   useEffect(() => {
+    setIsAnimating(true);
+
+    const timeout = setTimeout(() => {
+      setIsAnimating(false);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [stories]);
+
+  useEffect(() => {
     if (currentStory) {
       viewStory({ storyId: currentStory._id, userId: authUserId });
     }
   }, [currentStory, viewStory, authUserId]);
+
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
+
   useEffect(() => {
-    setCurrentStory(stories[currentIndex]);
-  }, [currentIndex, stories]);
-  useEffect(() => {
-    if (viewsData?.viewers) {
-      setCurrentStory(
-        (prev) =>
-          prev && {
-            ...prev,
-            viewersCount: viewsData.viewers.length,
-          },
-      );
-    }
-  }, [viewsData]);
+    setCurrentIndex(0);
+    setProgress(0);
+  }, [stories]);
+
   useEffect(() => {
     setProgress(0);
   }, [currentIndex]);
@@ -150,7 +170,7 @@ export default function StoryViewerModal({
 
     setProgress(0);
 
-    const duration = 15000000; // 15 sec
+    const duration = 10000; // 15 sec
     const interval = 100;
 
     const step = 100 / (duration / interval);
@@ -202,8 +222,10 @@ export default function StoryViewerModal({
         {/* IMPORTANT: relative stays HERE */}
 
         <div
-          className="relative w-full max-w-screen sm:max-w-sm h-full max-h-full md:max-h-[43rem] bg-black overflow-hidden sm:rounded-xl
-        "
+          className={`relative w-full max-w-screen sm:max-w-sm h-full max-h-full md:max-h-[43rem]
+  bg-black overflow-hidden sm:rounded-xl transition-all duration-300 ease-out
+  ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+`}
         >
           {isStoryOwner && (
             <button
@@ -321,7 +343,7 @@ export default function StoryViewerModal({
                   onClick={handleViewsOpen}
                 >
                   <Eye size={19} />
-                  <span>{currentStory.viewersCount ?? 0}</span>
+                  <span>{viewersCount || 0}</span>
                 </div>
 
                 <div className="flex items-center gap-1">
