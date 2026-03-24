@@ -205,7 +205,7 @@ const ExplorePage = () => {
             return <SkeletonCard key={i} type={randomType} />;
           })}
       </Masonry>
-      {hasMore && <div ref={loaderRef} className="h-10 bg-green-500" />}
+      {hasMore && <div ref={loaderRef} className="h-10" />}
       {selectedPost && (
         <CommentPostModal
           isOpen={isModalOpen}
