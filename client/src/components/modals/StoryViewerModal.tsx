@@ -114,7 +114,7 @@ export default function StoryViewerModal({
   };
   const handleDelete = async () => {
     try {
-      const res = await deleteStory(currentStory._id).unwrap();
+      await deleteStory(currentStory._id).unwrap();
 
       onClose();
     } catch (error: any) {
