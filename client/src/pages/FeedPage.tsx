@@ -292,12 +292,12 @@ export default function FeedPage() {
             {isPostsFetching && allPosts.length === 0 ? (
               <FullPostSkeleton />
             ) : allPosts.length > 0 ? (
-              <div>
+              <div className="">
                 {allPosts.map((post: Post) => (
                   <UserPostCard key={post._id} post={post} />
                 ))}
 
-                {isPostsFetching && <FullPostSkeleton />}
+                {!isPostsFetching && <FullPostSkeleton />}
               </div>
             ) : (
               <div>No posts are present</div>

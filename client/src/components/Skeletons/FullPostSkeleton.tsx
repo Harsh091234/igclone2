@@ -6,7 +6,7 @@ const FullPostSkeleton = ({ count = 5 }) => {
       {Array.from({ length: count }).map((_, i) => (
         <article
           key={i}
-          className="bg-card border border-border rounded-lg mb-3 w-full sm:w-[80%] max-w-2xl mx-auto p-3 animate-pulse"
+          className="bg-card border border-border rounded-lg mb-3 w-full sm:w-lg lg:w-md xl:w-full max-w-2xl  p-3 animate-pulse"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
