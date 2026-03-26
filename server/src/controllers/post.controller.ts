@@ -10,6 +10,8 @@ import { Request, Response } from "express";
 
 import sharp from "sharp";
 import Notification from "../models/notification.model.js";
+import { deleteCache, getCache, setCache } from "../config/cache.js";
+import redis from "../config/redis.js";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -25,47 +27,42 @@ export const createPost = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Media is required" });
     }
 
-    const media = [];
-    for (const file of files) {
-      const isVideo = file.mimetype.startsWith("video");
+    const media = await Promise.all(
+      files.map(async (file) => {
+        const isVideo = file.mimetype.startsWith("video");
 
-      if (isVideo) {
-        const cloudResponse = await uploadVideo(
-          file.buffer,
-          CLOUDINARY_FOLDERS.POST_VIDEOS,
+        if (isVideo) {
+          const cloudResponse = await uploadVideo(
+            file.buffer,
+            CLOUDINARY_FOLDERS.POST_VIDEOS,
+          );
+
+          return {
+            url: cloudResponse.secure_url,
+            publicId: cloudResponse.public_id,
+            type: "video",
+          };
+        }
+
+        const optimizedBuffer = await sharp(file.buffer)
+          .resize({ width: 800, height: 800, fit: "inside" })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString("base64")}`;
+
+        const cloudResponse = await uploadBase64Image(
+          base64Image,
+          CLOUDINARY_FOLDERS.POST_IMAGES,
         );
 
-        media.push({
+        return {
           url: cloudResponse.secure_url,
           publicId: cloudResponse.public_id,
-          type: "video",
-        });
-        continue;
-      }
-
-      const optimizedBuffer = await sharp(file.buffer)
-        .resize({ width: 800, height: 800, fit: "inside" })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-
-      // 🔹 convert to base64
-      const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString(
-        "base64",
-      )}`;
-
-      // 🔹 upload to cloudinary
-      const cloudResponse = await uploadBase64Image(
-        base64Image,
-        CLOUDINARY_FOLDERS.POST_IMAGES,
-      );
-
-      media.push({
-        url: cloudResponse.secure_url,
-        publicId: cloudResponse.public_id,
-        type: "image",
-      });
-    }
-
+          type: "image",
+        };
+      }),
+    );
     const post = new Post({
       caption,
       author: authUser?._id,
@@ -80,6 +77,8 @@ export const createPost = async (req: Request, res: Response) => {
       path: "author",
       select: "userName fullName profilePic",
     });
+
+    await deleteCache(`igclone2_user_posts:${authUser._id}`);
 
     return res
       .status(200)
@@ -382,27 +381,85 @@ export const getAllPosts = async (req: Request, res: Response) => {
   }
 };
 
-//get post + top 2 comments
 export const getUserPosts = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id)
+    return res.status(400).json({ success: false, message: "id is undefined" });
+
+  const cacheKey = `igclone2_user_posts:${id}`;
+  const lockKey = `lock:${cacheKey}`;
+
+  let lockAcquired = false;
+
   try {
-    const { id } = req.params; //author id
+    const cached = await getCache(cacheKey);
+
+    if (cached) {
+      console.log("Serving from redis");
+      return res.json({
+        success: true,
+        posts: typeof cached === "string" ? JSON.parse(cached) : cached,
+      });
+    }
+
+    // 🔒 Acquire lock
+    const lock =
+      process.env.NODE_ENV === "production"
+        ? await redis.set(lockKey, "locked", { nx: true, ex: 60 })
+        : await redis.set(lockKey, "locked", { NX: true, EX: 60 });
+
+    if (lock) {
+      lockAcquired = true;
+    }
+
+    // ❗ If lock NOT acquired → wait
+    if (!lock) {
+      let retries = 10;
+
+      while (retries--) {
+        await new Promise((res) => setTimeout(res, 2000));
+
+        const cachedRetry = await getCache(cacheKey);
+        if (cachedRetry) {
+          console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
+          return res.json({
+            success: true,
+            posts:
+              typeof cachedRetry === "string"
+                ? JSON.parse(cachedRetry)
+                : cachedRetry,
+          });
+        }
+      }
+
+      console.log(`[${id}] 💥 Fallback to DB after waiting`);
+    }
+
+    console.log(`[${id}] 🐢 Simulating slow DB...`);
+    await new Promise((res) => setTimeout(res, 15000)); // 15 sec delay
+
+    // 🔥 DB call (only one request ideally)
     const posts = await Post.find({ author: id })
-      .sort({ createdAt: -1 }) // latest posts first
+      .sort({ createdAt: -1 })
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
+        options: { sort: { createdAt: -1 }, limit: 2 },
         populate: {
           path: "author",
           select: "userName profilePic",
         },
-      });
+      })
+      .lean();
 
-    if (!posts)
-      return res.status(400).json({
-        success: false,
+    if (posts.length === 0) {
+      return res.status(200).json({
+        success: true,
         message: "No posts found",
       });
+    }
+
+    await setCache(cacheKey, posts, 300);
 
     return res.status(200).json({
       success: true,
@@ -415,6 +472,11 @@ export const getUserPosts = async (req: Request, res: Response) => {
       success: false,
       message: "Error in getUserPosts",
     });
+  } finally {
+    // 🔓 Release lock (CRITICAL)
+    if (lockAcquired) {
+      await redis.del(lockKey);
+    }
   }
 };
 
