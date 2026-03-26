@@ -15,8 +15,16 @@ export const postApi = api.injectEndpoints({
     }),
 
     getUserPosts: builder.query({
-      query: (id) => ({
-        url: `/post/get-user-posts/${id}`,
+      query: ({ id, page, limit }) => ({
+        url: `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["UserPosts", "UserComments"],
+    }),
+
+    getUserReels: builder.query({
+      query: ({ id, page, limit }) => ({
+        url: `/post/get-user-reels/${id}?page=${page}&limit=${limit}`,
         method: "GET",
       }),
       providesTags: ["UserPosts", "UserComments"],
@@ -180,4 +188,5 @@ export const {
   useDeleteCommentMutation,
   useGetAllCommentsQuery,
   useGetAllReelsQuery,
+  useGetUserReelsQuery,
 } = postApi;

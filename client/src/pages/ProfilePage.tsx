@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Grid, PlaySquare, SettingsIcon, Tag } from "lucide-react";
 // import Highlights from "../components/Highlights";
@@ -16,6 +16,7 @@ import ProfilePageSkeleton from "../components/Skeletons/ProfilePageSkeleton";
 import NoUserFound from "../components/NoUserFound";
 import {
   useGetUserPostsQuery,
+  useGetUserReelsQuery,
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
@@ -32,41 +33,66 @@ const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
   if (!name) return;
   const [activePostId, setActivePostId] = useState<string | null>(null);
-
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [reels, setReels] = useState<Post[]>([]);
+  const postBlockRef = useRef<HTMLDivElement | null>(null);
+  const isFetchingRef = useRef(false);
   const navigate = useNavigate();
   const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
   const { data: profileData, isLoading: isProfileLoading } =
     useGetProfileUserQuery(name);
-
+  const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
+    "posts",
+  );
   const authUser = authData?.user;
 
   const user = profileData?.user;
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
 
-  const { isLoading: isPostsLoading, data: postData } = useGetUserPostsQuery(
-    user?._id,
+  const { isFetching: isPostsFetching, data: postData } = useGetUserPostsQuery(
+    { id: user?._id, page, limit },
+    {
+      skip: !user?._id || activeTab !== "posts",
+      refetchOnMountOrArgChange: true,
+    },
   );
+
+  const { data: reelsData, isFetching: isReelsFetching } = useGetUserReelsQuery(
+    { id: user?._id, page, limit },
+    {
+      skip: !user?._id || activeTab !== "reels",
+      refetchOnMountOrArgChange: true,
+    },
+  );
+
+  const currentData = activeTab === "reels" ? reelsData : postData;
+  const currentList = activeTab === "reels" ? reels : posts;
+  const setCurrentList = activeTab === "reels" ? setReels : setPosts;
+
+  const isLoadingCurrent =
+    activeTab === "reels" ? isReelsFetching : isPostsFetching;
+
   const [isFollowingModalOpen, setIsFollowingModalOpen] =
     useState<boolean>(false);
   const [isFollowerModalOpen, setIsFollowerModalOpen] =
     useState<boolean>(false);
-  const userPosts = postData?.posts;
-  const activePost = userPosts?.find((p: Post) => p._id === activePostId);
 
-  const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
-    "posts",
-  );
+  const userPosts = postData?.posts;
+  console.log("postdata", postData);
+
+  const [hasMore, setHasMore] = useState(true);
+
   const [toggleFollow, { isLoading: followLoading }] =
     useFollowOrUnfollowUsersMutation();
   const isFollowing = user?.followers?.some(
     (follower) => follower._id.toString() === authUser?._id,
   );
   console.log("isfollowing", isFollowing, user);
-  const filteredPosts =
-    activeTab === "reels"
-      ? userPosts?.filter((p: Post) => p.media.some((m) => m.type === "video"))
-      : userPosts;
+  const displayPosts = activeTab === "reels" ? reels : posts;
+  const activePost = displayPosts.find((p: Post) => p._id === activePostId);
   const isLoading = isAuthLoading || isProfileLoading;
   const isAuthUser = authUser?._id === user?._id;
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
@@ -130,11 +156,97 @@ const ProfilePage = () => {
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
+  useEffect(() => {
+    if (
+      page === 1 &&
+      currentList.length === 0 &&
+      hasMore &&
+      !isLoadingCurrent
+    ) {
+      setPage(2);
+    }
+  }, [currentList.length, hasMore, isLoadingCurrent]);
+
+  useEffect(() => {
+    const container = postBlockRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (
+        container.scrollTop + container.clientHeight >=
+          container.scrollHeight - 200 &&
+        hasMore &&
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true;
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [hasMore, isLoadingCurrent, activeTab]);
+
+  useEffect(() => {
+    const container = postBlockRef.current;
+    if (!container) return;
+
+    const check = () => {
+      if (
+        container.scrollHeight <= container.clientHeight + 100 &&
+        hasMore &&
+        !isLoadingCurrent &&
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true;
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    // 🔥 run AFTER layout settles
+    requestAnimationFrame(() => {
+      requestAnimationFrame(check);
+    });
+  }, [currentList, isLoadingCurrent]);
+
+  useEffect(() => {
+    if (!isLoadingCurrent) {
+      isFetchingRef.current = false;
+    }
+  }, [isLoadingCurrent]);
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    isFetchingRef.current = false;
+
+    setPosts([]);
+    setReels([]);
+  }, [activeTab, user?._id]);
+
+  useEffect(() => {
+    if (!currentData) return;
+
+    const newItems =
+      activeTab === "reels" ? currentData.reels : currentData.posts;
+
+    setCurrentList((prev) => {
+      const filtered = newItems.filter(
+        (p: Post) => !prev.some((prevPost) => prevPost._id === p._id),
+      );
+
+      return [...prev, ...filtered];
+    });
+
+    setHasMore(currentData.hasMore);
+  }, [currentData, activeTab]);
+
   if (isLoading) return <ProfilePageSkeleton />;
   if (!user) return <NoUserFound />;
 
   return (
     <div
+      ref={postBlockRef}
       className="h-[100dvh] overflow-y-auto my-scroll
      flex justify-center px-3 sm:px-30  py-3   sm:py-0"
     >
@@ -179,6 +291,7 @@ const ProfilePage = () => {
       transition-all duration-200 sm:hidden
     "
                     >
+                      <SettingsIcon className="h-4 w-4" />
                       <SettingsIcon className="h-4 w-4" />
                     </button>
 
@@ -345,29 +458,37 @@ const ProfilePage = () => {
         </div>
 
         {/* POSTS GRID */}
-        <div className="grid grid-cols-3 gap-1 mt-2 pb-18 sm:pb-8 ">
-          {isPostsLoading ? (
+        <div className="grid grid-cols-3 gap-1 mt-2 pb-18 sm:pb-8">
+          {isLoadingCurrent && displayPosts.length === 0 ? (
+            // ✅ Initial loading
             <UserPostsSkeleton />
-          ) : filteredPosts?.length ? (
-            filteredPosts.map((post: Post) => {
-              const media =
-                activeTab === "reels"
-                  ? post.media.find((m) => m.type === "video")
-                  : post.media[0];
+          ) : displayPosts.length > 0 ? (
+            <>
+              {/* ✅ Posts */}
+              {displayPosts.map((post: Post) => {
+                const media =
+                  activeTab === "reels"
+                    ? post.media.find((m) => m.type === "video")
+                    : post.media[0];
 
-              if (!media) return null;
+                if (!media) return null;
 
-              return (
-                <PostCard
-                  key={post._id}
-                  onClick={() => setActivePostId(post._id)}
-                  url={media.url}
-                  type={media.type}
-                />
-              );
-            })
+                return (
+                  <PostCard
+                    key={post._id}
+                    onClick={() => setActivePostId(post._id)}
+                    url={media.url}
+                    type={media.type}
+                  />
+                );
+              })}
+
+              {/* ✅ Infinite scroll loading */}
+              {isLoadingCurrent && <UserPostsSkeleton />}
+            </>
           ) : (
-            <p className="col-span-full text-center text-sm text-muted-foreground ">
+            // ❌ Empty state
+            <p className="col-span-full text-center text-sm text-muted-foreground">
               {activeTab === "reels" ? "No reels yet" : "No posts found"}
             </p>
           )}
@@ -387,7 +508,9 @@ const ProfilePage = () => {
             }
             handleBookmark={() => handleBookmark(activePost._id)}
             isBookmarkLoading={isBookmarkLoading}
-            isLiked={activePost.likes.includes(authUser?._id)}
+            isLiked={
+              authUser?._id ? activePost.likes.includes(authUser._id) : false
+            }
             isBookmarked={authUser?.bookmarks?.some(
               (id) => id.toString() === activePost._id.toString(),
             )}

@@ -72,6 +72,7 @@ export default function FeedPage() {
     (group: any) => group.user._id !== authUser?._id,
   );
 
+  console.log("stories", storyGroups);
   const navigate = useNavigate();
 
   const handleCloseStoryViewer = () => {
