@@ -66,7 +66,7 @@ export default function FeedPage() {
     (group: any) => group.user._id !== authUser?._id,
   );
 
-  console.log("storyies", storyGroups);
+  console.log("stories", storyGroups);
   const navigate = useNavigate();
 
   const posts = postData?.posts;

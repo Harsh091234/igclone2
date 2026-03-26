@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Grid, PlaySquare,  SettingsIcon, Tag } from "lucide-react";
+import { Grid, PlaySquare, SettingsIcon, Tag } from "lucide-react";
 import Highlights from "../components/Highlights";
 import PostCard from "../components/PostCard";
 
@@ -9,7 +9,6 @@ import {
   useGetAuthUserQuery,
   useGetProfileUserQuery,
 } from "../services/userApi";
-
 
 import { Button } from "../components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
@@ -27,7 +26,13 @@ import CommentPostModal from "../components/modals/CommentPostModal";
 import toast from "react-hot-toast";
 import FollowingModal from "../components/modals/FollowingModal";
 import FollowersModal from "../components/modals/FollowersModal";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../components/ui/carousel";
 
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
@@ -47,14 +52,17 @@ const ProfilePage = () => {
 
   const { isLoading: isPostsLoading, data: postData } = useGetUserPostsQuery(
     user?._id,
+    {
+      skip: !user?._id,
+    },
   );
   const [isFollowingModalOpen, setIsFollowingModalOpen] =
     useState<boolean>(false);
-    const [isFollowerModalOpen, setIsFollowerModalOpen] =
-      useState<boolean>(false);
+  const [isFollowerModalOpen, setIsFollowerModalOpen] =
+    useState<boolean>(false);
   const userPosts = postData?.posts;
+  console.log("postdata", postData);
   const activePost = userPosts?.find((p: Post) => p._id === activePostId);
-
 
   const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
     "posts",
@@ -73,7 +81,7 @@ const ProfilePage = () => {
   const isAuthUser = authUser?._id === user?._id;
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
+  const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
   const handleRouteToProfile = () => {
     navigate(`/profile/${user?.userName}`);
   };
@@ -82,7 +90,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     await toggleFollow(targetUserId).unwrap();
   };
 
-  const handleClick = (url:string) => {
+  const handleClick = (url: string) => {
     navigate(`/settings/${url}`);
   };
 
@@ -122,7 +130,6 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
     },
   ];
 
-
   const handleBookmark = async (postId: string) => {
     const isBookmarked = authUser?.bookmarks?.some(
       (id) => id.toString() === postId.toString(),
@@ -132,8 +139,6 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
 
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
-
- 
 
   if (isLoading) return <ProfilePageSkeleton />;
   if (!user) return <NoUserFound />;
@@ -184,9 +189,7 @@ const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
       transition-all duration-200 sm:hidden
     "
                     >
-                    
-                        <SettingsIcon className="h-4 w-4" />
-                     
+                      <SettingsIcon className="h-4 w-4" />
                     </button>
 
                     {/* <button
