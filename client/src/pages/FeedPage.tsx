@@ -26,6 +26,14 @@ import { useGetAllUsersStoryQuery } from "../services/storyApi";
 
 import { StoriesSkeleton } from "../components/Skeletons/StoriesSkeleton";
 
+const getLimit = () => {
+  if (window.innerWidth < 640) {
+    return 2;
+  } else {
+    return 3;
+  }
+};
+
 export default function FeedPage() {
   const [visibleCount, setVisibleCount] = useState<number>(5);
   const [isStoryPanelOpen, setIsStoryPanelOpen] = useState<boolean>(false);
@@ -35,14 +43,16 @@ export default function FeedPage() {
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const { data } = useGetAuthUserQuery();
   const [page, setPage] = useState<number>(1);
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [hasMore, setHasMore] = useState(true);
+  const [limit, setLimit] = useState(getLimit());
+
   const feedRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
 
   const authUser = data?.user;
-  const { isFetching: isPostsFetching, data: postData } =
-    useGetAllPostsQuery(page);
+  const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery({
+    page,
+    limit,
+  });
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
@@ -114,20 +124,24 @@ export default function FeedPage() {
       handleCloseStoryViewer();
     }
   };
-  // append posts logic
+
   useEffect(() => {
-    if (postData?.posts) {
-      setAllPosts((prev) => {
-        const newPosts = postData.posts.filter(
-          (p: Post) => !prev.some((prevPost) => prevPost._id === p._id),
-        );
-
-        return [...prev, ...newPosts];
+    const handleResize = () => {
+      const newLimit = getLimit();
+      setLimit((prev) => {
+        if (prev !== newLimit) return newLimit;
+        return prev;
       });
+    };
 
-      setHasMore(postData.hasMore);
-    }
-  }, [postData]);
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [limit]);
 
   // scroll logic
   useEffect(() => {
@@ -139,7 +153,7 @@ export default function FeedPage() {
       if (
         container.scrollTop + container.clientHeight >=
           container.scrollHeight - 200 &&
-        hasMore &&
+        postData?.hasMore &&
         !isFetchingRef.current
       ) {
         isFetchingRef.current = true;
@@ -150,7 +164,7 @@ export default function FeedPage() {
     container.addEventListener("scroll", handleScroll);
 
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [hasMore]);
+  }, [postData?.hasMore]);
 
   // reset fetching lock
   useEffect(() => {
@@ -290,15 +304,15 @@ export default function FeedPage() {
             </div>
 
             {/* Posts */}
-            {isPostsFetching && allPosts.length === 0 ? (
+            {isPostsFetching && !postData?.posts?.length ? (
               <FullPostSkeleton />
-            ) : allPosts.length > 0 ? (
-              <div className="">
-                {allPosts.map((post: Post) => (
+            ) : postData?.posts?.length ? (
+              <div>
+                {postData.posts.map((post: Post) => (
                   <UserPostCard key={post._id} post={post} />
                 ))}
 
-                {!isPostsFetching && <FullPostSkeleton />}
+                {isPostsFetching && <FullPostSkeleton />}
               </div>
             ) : (
               <div>No posts are present</div>

@@ -11,7 +11,112 @@ export const postApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["UserPosts"],
+      async onQueryStarted(_, { dispatch, queryFulfilled, getState }) {
+        const patchResults: any[] = [];
+
+        try {
+          const { data } = await queryFulfilled;
+
+          const newPost = {
+            ...data.post,
+            likes: data.post.likes ?? [],
+            comments: data.post.comments ?? [],
+          };
+
+          const state: any = getState();
+
+          Object.values(state.api.queries).forEach((query: any) => {
+            const args = query.originalArgs;
+
+            // 🔥 FEED POSTS
+            if (query.endpointName === "getAllPosts") {
+              patchResults.push(
+                dispatch(
+                  postApi.util.updateQueryData("getAllPosts", args, (draft) => {
+                    if (!draft?.posts) return;
+
+                    draft.posts = [
+                      newPost,
+                      ...draft.posts.filter((p: Post) => p._id !== newPost._id),
+                    ];
+                  }),
+                ),
+              );
+            }
+
+            // 🔥 FEED REELS
+            if (
+              query.endpointName === "getAllReels" &&
+              newPost.media?.some((m: any) => m.type === "video")
+            ) {
+              patchResults.push(
+                dispatch(
+                  postApi.util.updateQueryData("getAllReels", args, (draft) => {
+                    if (!draft?.videos) return;
+
+                    draft.videos = [
+                      newPost,
+                      ...draft.videos.filter(
+                        (p: Reel) => p._id !== newPost._id,
+                      ),
+                    ];
+                  }),
+                ),
+              );
+            }
+
+            // 🔥 USER POSTS
+            if (query.endpointName === "getUserPosts" && args?.page === 1) {
+              patchResults.push(
+                dispatch(
+                  postApi.util.updateQueryData(
+                    "getUserPosts",
+                    args,
+                    (draft) => {
+                      if (!draft?.posts) return;
+
+                      draft.posts = [
+                        newPost,
+                        ...draft.posts.filter(
+                          (p: Post) => p._id !== newPost._id,
+                        ),
+                      ];
+
+                      draft.hasMore = true; // optional
+                    },
+                  ),
+                ),
+              );
+            }
+            // 🔥 USER REELS
+            if (
+              query.endpointName === "getUserReels" &&
+              newPost.media?.some((m: any) => m.type === "video")
+            ) {
+              patchResults.push(
+                dispatch(
+                  postApi.util.updateQueryData(
+                    "getUserReels",
+                    args,
+                    (draft) => {
+                      if (!draft?.reels) return;
+
+                      draft.reels = [
+                        newPost,
+                        ...draft.reels.filter(
+                          (p: Post) => p._id !== newPost._id,
+                        ),
+                      ];
+                    },
+                  ),
+                ),
+              );
+            }
+          });
+        } catch {
+          patchResults.forEach((p) => p.undo());
+        }
+      },
     }),
 
     getUserPosts: builder.query({
@@ -19,6 +124,23 @@ export const postApi = api.injectEndpoints({
         url: `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
         method: "GET",
       }),
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        return `${endpointName}-${queryArgs.id}`;
+      },
+
+      merge: (currentCache, newCache) => {
+        const newPosts = newCache.posts.filter(
+          (newPost: Post) =>
+            !currentCache.posts.some((p: Post) => p._id === newPost._id),
+        );
+
+        currentCache.posts.push(...newPosts);
+        currentCache.hasMore = newCache.hasMore;
+      },
+
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page;
+      },
       providesTags: ["UserPosts", "UserComments"],
     }),
 
@@ -27,11 +149,56 @@ export const postApi = api.injectEndpoints({
         url: `/post/get-user-reels/${id}?page=${page}&limit=${limit}`,
         method: "GET",
       }),
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        return `${endpointName}-${queryArgs.id}`;
+      },
+
+      // 🔥 MERGE PAGINATION
+      merge: (currentCache, newCache) => {
+        // ✅ ensure arrays exist
+        const currentReels = currentCache.reels ?? [];
+        const incomingReels = newCache?.reels ?? [];
+
+        // ✅ filter safely
+        const newItems = incomingReels.filter(
+          (newReel: Post) =>
+            !currentReels.some((p: Post) => p._id === newReel._id),
+        );
+
+        // ✅ assign properly (IMPORTANT)
+        currentCache.reels = [...currentReels, ...newItems];
+
+        // ✅ hasMore safe
+        currentCache.hasMore = newCache?.hasMore ?? false;
+      },
+
+      // 🔥 REFETCH ONLY WHEN PAGE CHANGES
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page;
+      },
       providesTags: ["UserPosts", "UserComments"],
     }),
 
     getAllPosts: builder.query({
-      query: (page) => `/post/get-all-posts?page=${page}`,
+      query: ({ page, limit }) =>
+        `/post/get-all-posts?page=${page}&limit=${limit}`,
+      // 🔥 single cache for all pages
+      serializeQueryArgs: ({ endpointName }) => endpointName,
+      // 🔥 merge paginated data
+      merge: (currentCache, newCache) => {
+        const newPosts = newCache.posts.filter(
+          (newPost: Post) =>
+            !currentCache.posts.some((p: Post) => p._id === newPost._id),
+        );
+
+        currentCache.posts.push(...newPosts);
+        currentCache.hasMore = newCache.hasMore;
+      },
+
+      // 🔥 refetch when page changes
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page;
+      },
       providesTags: ["UserPosts", "UserComments"],
     }),
 
@@ -40,6 +207,70 @@ export const postApi = api.injectEndpoints({
         url: `/post/delete-post/${id}`,
         method: "DELETE",
       }),
+      async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
+        const patchResults: any[] = [];
+        const state: any = getState();
+
+        Object.values(state.api.queries).forEach((query: any) => {
+          const args = query.originalArgs;
+
+          const remove = (list: Post[]) => list.filter((p) => p._id !== postId);
+
+          // FEED POSTS
+          if (query.endpointName === "getAllPosts") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getAllPosts", args, (draft) => {
+                  if (!draft?.posts) return;
+                  draft.posts = remove(draft.posts);
+                }),
+              ),
+            );
+          }
+
+          // FEED REELS
+          if (query.endpointName === "getAllReels") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getAllReels", args, (draft) => {
+                  if (!draft?.videos) return;
+                  draft.videos = remove(draft.videos);
+                }),
+              ),
+            );
+          }
+
+          // USER POSTS
+          if (query.endpointName === "getUserPosts") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getUserPosts", args, (draft) => {
+                  if (!draft?.posts) return;
+                  draft.posts = remove(draft.posts);
+                }),
+              ),
+            );
+          }
+
+          // USER REELS
+          if (query.endpointName === "getUserReels") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getUserReels", args, (draft) => {
+                  if (!draft?.reels) return;
+                  draft.reels = remove(draft.reels);
+                }),
+              ),
+            );
+          }
+        });
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResults.forEach((p) => p.undo());
+        }
+      },
       invalidatesTags: ["UserPosts"],
     }),
 
@@ -54,57 +285,75 @@ export const postApi = api.injectEndpoints({
         method: "POST",
       }),
 
-      //  OPTIMISTIC UPDATE
       async onQueryStarted(
-        { postId, userId, profileUserId },
-        { dispatch, queryFulfilled },
+        { postId, userId },
+        { dispatch, getState, queryFulfilled },
       ) {
-        //  update UserPosts cache
-        const patchResults = [];
+        const state: any = getState();
+        const patchResults: any[] = [];
 
-        // 🔹 update ALL POSTS (feed)
-        patchResults.push(
-          dispatch(
-            postApi.util.updateQueryData(
-              "getAllPosts",
-              undefined, // ✅ CORRECT CACHE KEY
-              (draft) => {
-                const post = draft.posts.find((p: Post) => p._id === postId);
-                if (!post) return;
-                toggleLike(post, userId);
-              },
-            ),
-          ),
-        );
+        const applyLike = (item: Post) => {
+          toggleLike(item, userId);
+        };
 
-        patchResults.push(
-          dispatch(
-            postApi.util.updateQueryData("getAllReels", undefined, (draft) => {
-              const reel = draft.videos.find((r: Reel) => r._id === postId);
-              if (reel) toggleLike(reel, userId);
-            }),
-          ),
-        );
+        Object.values(state.api.queries).forEach((query: any) => {
+          const args = query.originalArgs;
 
-        if (profileUserId) {
-          patchResults.push(
-            dispatch(
-              postApi.util.updateQueryData(
-                "getUserPosts",
-                profileUserId,
-                (draft) => {
-                  const post = draft.posts.find((p: Post) => p._id === postId);
-                  if (post) toggleLike(post, userId);
-                },
+          const updateList = (list: Post[] = []) => {
+            const post = list.find((p) => p._id === postId);
+            if (post) applyLike(post);
+          };
+
+          // 🔥 FEED POSTS
+          if (query.endpointName === "getAllPosts") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getAllPosts", args, (draft) => {
+                  updateList(draft.posts);
+                }),
               ),
-            ),
-          );
-        }
+            );
+          }
+
+          // 🔥 FEED REELS
+          if (query.endpointName === "getAllReels") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getAllReels", args, (draft) => {
+                  updateList(draft.videos);
+                }),
+              ),
+            );
+          }
+
+          // 🔥 PROFILE POSTS
+          if (query.endpointName === "getUserPosts") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getUserPosts", args, (draft) => {
+                  updateList(draft.posts);
+                }),
+              ),
+            );
+          }
+
+          // 🔥 PROFILE REELS
+          if (query.endpointName === "getUserReels") {
+            patchResults.push(
+              dispatch(
+                postApi.util.updateQueryData("getUserReels", args, (draft) => {
+                  updateList(draft.reels);
+                }),
+              ),
+            );
+          }
+        });
 
         try {
           await queryFulfilled;
-        } catch {
-          patchResults.forEach((p) => p.undo());
+        } catch (err) {
+          // ❌ rollback if API fails
+          patchResults.forEach((patch) => patch.undo());
         }
       },
     }),

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Bookmark, MoreHorizontal } from "lucide-react";
 import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
@@ -35,7 +35,8 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
@@ -85,6 +86,26 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
       setDeletingCommentId(null);
     }
   };
+  useEffect(() => {
+    const items = carouselRef.current?.querySelectorAll("[data-carousel-item]");
+    if (!items) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute("data-index"));
+            setCurrentSlide(index);
+          }
+        });
+      },
+      { threshold: 0.5 }, // 50% visible triggers
+    );
+
+    items.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, [post.media.length]);
 
   return (
     <article className="bg-card border border-border rounded-lg mb-5  sm:w-lg lg:w-md xl:w-full   max-w-2xl">
@@ -144,31 +165,50 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
             )}
           </div>
         ) : (
-          <Carousel className="w-full ">
-            <CarouselContent className="-ml-0">
-              {post.media.map((item, index) => (
-                <CarouselItem key={index} className="pl-0">
-                  <div className="flex justify-center  items-center aspect-video">
-                    {item.type === "image" ? (
-                      <img
-                        src={item.url}
-                        alt={`post-media-${index}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <VideoPlayer
-                        src={item.url}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
+          <>
+            <Carousel className="w-full ">
+              <CarouselContent ref={carouselRef} className="-ml-0">
+                {post.media.map((item, index) => (
+                  <CarouselItem
+                    key={index}
+                    data-carousel-item
+                    data-index={index}
+                    className="pl-0"
+                  >
+                    <div className="flex justify-center items-center aspect-video">
+                      {item.type === "image" ? (
+                        <img
+                          src={item.url}
+                          alt={`post-media-${index}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <VideoPlayer
+                          src={item.url}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-            <CarouselPrevious className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-            <CarouselNext className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-          </Carousel>
+              <CarouselPrevious className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+              <CarouselNext className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
+              <div className="flex absolute  bottom-3 sm:bottom-4 w-full justify-center   gap-1">
+                {post.media.map((_, index) => (
+                  <span
+                    key={index}
+                    className={`h-1.5 w-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
+                      index === currentSlide
+                        ? "bg-primary"
+                        : "bg-muted-foreground"
+                    }`}
+                  ></span>
+                ))}
+              </div>
+            </Carousel>
+          </>
         )}
       </div>
 

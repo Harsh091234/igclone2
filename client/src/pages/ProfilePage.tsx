@@ -43,8 +43,7 @@ const ProfilePage = () => {
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState(getLimit());
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [reels, setReels] = useState<Post[]>([]);
+
   const postBlockRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
   const navigate = useNavigate();
@@ -76,9 +75,7 @@ const ProfilePage = () => {
     },
   );
 
-  const currentData = activeTab === "reels" ? reelsData : postData;
-  const currentList = activeTab === "reels" ? reels : posts;
-  const setCurrentList = activeTab === "reels" ? setReels : setPosts;
+  console.log("reels:", reelsData);
 
   const isLoadingCurrent =
     activeTab === "reels" ? isReelsFetching : isPostsFetching;
@@ -90,15 +87,14 @@ const ProfilePage = () => {
 
   console.log("postdata", postData);
 
-  const [hasMore, setHasMore] = useState(true);
-
   const [toggleFollow, { isLoading: followLoading }] =
     useFollowOrUnfollowUsersMutation();
   const isFollowing = user?.followers?.some(
     (follower) => follower._id.toString() === authUser?._id,
   );
   console.log("isfollowing", isFollowing, user);
-  const displayPosts = activeTab === "reels" ? reels : posts;
+  const displayPosts =
+    activeTab === "reels" ? (reelsData?.reels ?? []) : (postData?.posts ?? []);
   const activePost = displayPosts.find((p: Post) => p._id === activePostId);
   const isLoading = isAuthLoading || isProfileLoading;
   const isAuthUser = authUser?._id === user?._id;
@@ -164,17 +160,6 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    if (
-      page === 1 &&
-      currentList.length === 0 &&
-      hasMore &&
-      !isLoadingCurrent
-    ) {
-      setPage(2);
-    }
-  }, [currentList.length, hasMore, isLoadingCurrent]);
-
-  useEffect(() => {
     const handleResize = () => {
       const newLimit = getLimit();
       setLimit((prev) => (prev !== newLimit ? newLimit : prev));
@@ -188,43 +173,25 @@ const ProfilePage = () => {
     const container = postBlockRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
+    const onScroll = () => {
+      const hasMore =
+        activeTab === "reels"
+          ? (reelsData?.hasMore ?? true)
+          : (postData?.hasMore ?? true);
+
+      if (!container || isLoadingCurrent || !hasMore) return;
+
       if (
         container.scrollTop + container.clientHeight >=
-          container.scrollHeight - 200 &&
-        hasMore &&
-        !isFetchingRef.current
+        container.scrollHeight - 200
       ) {
-        isFetchingRef.current = true;
         setPage((prev) => prev + 1);
       }
     };
 
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [hasMore, isLoadingCurrent, activeTab]);
-
-  useEffect(() => {
-    const container = postBlockRef.current;
-    if (!container) return;
-
-    const check = () => {
-      if (
-        container.scrollHeight <= container.clientHeight + 100 &&
-        hasMore &&
-        !isLoadingCurrent &&
-        !isFetchingRef.current
-      ) {
-        isFetchingRef.current = true;
-        setPage((prev) => prev + 1);
-      }
-    };
-
-    // 🔥 run AFTER layout settles
-    requestAnimationFrame(() => {
-      requestAnimationFrame(check);
-    });
-  }, [currentList, isLoadingCurrent]);
+    container.addEventListener("scroll", onScroll);
+    return () => container.removeEventListener("scroll", onScroll);
+  }, [activeTab, reelsData?.hasMore, postData?.hasMore, isLoadingCurrent]);
 
   useEffect(() => {
     if (!isLoadingCurrent) {
@@ -234,29 +201,9 @@ const ProfilePage = () => {
 
   useEffect(() => {
     setPage(1);
-    setHasMore(true);
+
     isFetchingRef.current = false;
-
-    setPosts([]);
-    setReels([]);
   }, [activeTab, user?._id, limit]);
-
-  useEffect(() => {
-    if (!currentData) return;
-
-    const newItems =
-      activeTab === "reels" ? currentData.reels : currentData.posts;
-
-    setCurrentList((prev) => {
-      const filtered = newItems.filter(
-        (p: Post) => !prev.some((prevPost) => prevPost._id === p._id),
-      );
-
-      return [...prev, ...filtered];
-    });
-
-    setHasMore(currentData.hasMore);
-  }, [currentData, activeTab]);
 
   if (isLoading) return <ProfilePageSkeleton />;
   if (!user) return <NoUserFound />;

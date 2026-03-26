@@ -100,7 +100,7 @@ export const createPost = async (req: Request, res: Response) => {
     });
 
     // 🧹 invalidate cache
-    await deleteCache(`igclone2_user_posts:${authUser._id}`);
+    await deleteCache(`igclone2_user_posts:${authUser._id}:*`);
 
     return res.status(200).json({
       success: true,
@@ -373,8 +373,13 @@ export const deleteComment = async (req: Request, res: Response) => {
 //get post + top 2 comments
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = 10;
+    const MAX_PAGE = 99;
+    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+    const MAX_LIMIT = 5;
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(2, Number(req.query.limit) || 2),
+    ); // values 2>=  and <= 5;
     const skip = (page - 1) * limit;
     const posts = await Post.find()
       .sort({ createdAt: -1 }) // latest posts first
@@ -546,7 +551,17 @@ export const getUserReels = async (req: Request, res: Response) => {
     })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate({ path: "author", select: "userName profilePic" })
+      .populate({
+        path: "comments",
+        options: { sort: { createdAt: -1 }, limit: 2 },
+        populate: {
+          path: "author",
+          select: "userName profilePic",
+        },
+      })
+      .lean();
 
     const total = await Post.countDocuments({
       author: id,

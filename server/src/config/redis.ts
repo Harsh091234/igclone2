@@ -5,9 +5,8 @@ let redis: any;
 
 if (process.env.NODE_ENV === "production") {
   redis = new Redis({
-    url: "https://cool-lemming-84350.upstash.io",
-    token:
-      "gQAAAAAAAUl-AAIncDIzZjcwZGY1NzI3YTI0MDgzOTYwMDdmYTA5MGRhNzJmNnAyODQzNTA",
+    url: process.env.REDIS_URL,
+    token: process.env.REDIS_TOKEN,
   });
 } else {
   redis = createClient({
