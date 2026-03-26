@@ -12,72 +12,83 @@ import sharp from "sharp";
 import Notification from "../models/notification.model.js";
 import { deleteCache, getCache, setCache } from "../config/cache.js";
 import redis from "../config/redis.js";
-import { parse } from "node:path";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { userId: clerkId } = req.auth!();
     const { caption } = req.body;
-    console.log("ji");
+
     const authUser = await User.findOne({ clerkId });
-    if (!authUser)
+    if (!authUser) {
       return res.status(401).json({ message: "No auth user found" });
+    }
+
     const files = req.files as Express.Multer.File[];
 
     if (!files || files.length === 0) {
       return res.status(400).json({ message: "Media is required" });
     }
 
+    // ✅ FIXED: return values instead of push
     const media = await Promise.all(
       files.map(async (file) => {
         const isVideo = file.mimetype.startsWith("video");
 
-      if (isVideo) {
-        const cloudResponse = await uploadVideo(
-          file.buffer,
-          CLOUDINARY_FOLDERS.POST_VIDEOS,
-        );
-        const aspectRatio = cloudResponse.width / cloudResponse.height;
-        media.push({
-          url: cloudResponse.secure_url,
-          publicId: cloudResponse.public_id,
-          type: "video",
-          height: cloudResponse.height,
-          width: cloudResponse.width,
-          aspectRatio,
-        });
-        continue;
-      }
-      const image = sharp(file.buffer);
-      const metadata = await image.metadata();
-      const aspectRatio = metadata.width / metadata.height;
-      const optimizedBuffer = await image
-        .resize({ width: 800, height: 800, fit: "inside" })
-        .jpeg({ quality: 80 })
-        .toBuffer();
+        if (isVideo) {
+          const cloudResponse = await uploadVideo(
+            file.buffer,
+            CLOUDINARY_FOLDERS.POST_VIDEOS,
+          );
 
-        const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString("base64")}`;
+          const aspectRatio = cloudResponse.width / cloudResponse.height;
+
+          return {
+            url: cloudResponse.secure_url,
+            publicId: cloudResponse.public_id,
+            type: "video",
+            height: cloudResponse.height,
+            width: cloudResponse.width,
+            aspectRatio,
+          };
+        }
+
+        // 🖼️ Image handling
+        const image = sharp(file.buffer);
+        const metadata = await image.metadata();
+
+        const aspectRatio = (metadata.width || 1) / (metadata.height || 1);
+
+        const optimizedBuffer = await image
+          .resize({ width: 800, height: 800, fit: "inside" })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString(
+          "base64",
+        )}`;
 
         const cloudResponse = await uploadBase64Image(
           base64Image,
           CLOUDINARY_FOLDERS.POST_IMAGES,
         );
 
-      media.push({
-        url: cloudResponse.secure_url,
-        publicId: cloudResponse.public_id,
-        type: "image",
-        height: metadata.height,
-        width: metadata.width,
-        aspectRatio,
-      });
-    }
+        return {
+          url: cloudResponse.secure_url,
+          publicId: cloudResponse.public_id,
+          type: "image",
+          height: metadata.height,
+          width: metadata.width,
+          aspectRatio,
+        };
+      }),
+    );
 
     const post = new Post({
       caption,
-      author: authUser?._id,
+      author: authUser._id,
       media,
     });
+
     await post.save();
 
     authUser.posts.push(post._id);
@@ -88,11 +99,14 @@ export const createPost = async (req: Request, res: Response) => {
       select: "userName fullName profilePic",
     });
 
+    // 🧹 invalidate cache
     await deleteCache(`igclone2_user_posts:${authUser._id}`);
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Post created success", post });
+    return res.status(200).json({
+      success: true,
+      message: "Post created success",
+      post,
+    });
   } catch (error: any) {
     console.log("Error in createPost:", error.message);
 
@@ -403,34 +417,41 @@ export const getUserPosts = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id)
     return res.status(400).json({ success: false, message: "id is undefined" });
+  const MAX_PAGE = 99;
+  const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+  const MAX_LIMIT = 15;
+  const limit = Math.min(MAX_LIMIT, Math.max(5, Number(req.query.limit) || 10)); // values >=5  and <= 15;
 
-  const cacheKey = `igclone2_user_posts:${id}`;
+  const cacheKey = `igclone2_user_posts:${id}:page:${page}:limit:${limit}`;
   const lockKey = `lock:${cacheKey}`;
 
   let lockAcquired = false;
 
   try {
+    const skip = (page - 1) * limit;
     const cached = await getCache(cacheKey);
 
     if (cached) {
       console.log("Serving from redis");
+      const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
       return res.json({
         success: true,
-        posts: typeof cached === "string" ? JSON.parse(cached) : cached,
+        posts: parsed.posts,
+        hasMore: parsed.hasMore,
       });
     }
 
     // 🔒 Acquire lock
     const lock =
       process.env.NODE_ENV === "production"
-        ? await redis.set(lockKey, "locked", { nx: true, ex: 60 })
-        : await redis.set(lockKey, "locked", { NX: true, EX: 60 });
+        ? await redis.set(lockKey, "locked", { nx: true, ex: 10 })
+        : await redis.set(lockKey, "locked", { NX: true, EX: 10 });
 
     if (lock) {
       lockAcquired = true;
     }
 
-    // ❗ If lock NOT acquired → wait
+    //  If lock NOT acquired → wait
     if (!lock) {
       let retries = 10;
 
@@ -453,12 +474,11 @@ export const getUserPosts = async (req: Request, res: Response) => {
       console.log(`[${id}] 💥 Fallback to DB after waiting`);
     }
 
-    console.log(`[${id}] 🐢 Simulating slow DB...`);
-    await new Promise((res) => setTimeout(res, 15000)); // 15 sec delay
-
     // 🔥 DB call (only one request ideally)
     const posts = await Post.find({ author: id })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
@@ -470,18 +490,26 @@ export const getUserPosts = async (req: Request, res: Response) => {
       })
       .lean();
 
+    const totalPosts = await Post.countDocuments({ author: id });
     if (posts.length === 0) {
       return res.status(200).json({
         success: true,
         message: "No posts found",
+        hasMore: false,
       });
     }
 
-    await setCache(cacheKey, posts, 300);
+    const response = {
+      posts,
+      hasMore: skip + posts.length < totalPosts,
+    };
+
+    await setCache(cacheKey, response, 300);
 
     return res.status(200).json({
       success: true,
       posts,
+      hasMore: skip + posts.length < totalPosts,
     });
   } catch (error: any) {
     console.log("Error in getUserPosts:", error.message);
@@ -495,6 +523,43 @@ export const getUserPosts = async (req: Request, res: Response) => {
     if (lockAcquired) {
       await redis.del(lockKey);
     }
+  }
+};
+
+export const getUserReels = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // user id
+    const MAX_PAGE = 99;
+    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+    const MAX_LIMIT = 15;
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(5, Number(req.query.limit) || 10),
+    ); // values >=5  and <= 15;
+
+    const skip = (page - 1) * limit;
+
+    // 🔥 ONLY VIDEO POSTS
+    const reels = await Post.find({
+      author: id,
+      "media.type": "video",
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Post.countDocuments({
+      author: id,
+      "media.type": "video",
+    });
+
+    res.status(200).json({
+      reels,
+      hasMore: skip + reels.length < total,
+    });
+  } catch (error) {
+    console.error("getUserReels error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

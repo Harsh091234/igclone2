@@ -12,6 +12,7 @@ import {
   getAllPosts,
   getAllReels,
   getUserPosts,
+  getUserReels,
   toggleBookmarkPost,
   toggleLikePost,
 } from "../controllers/post.controller.js";
@@ -39,6 +40,7 @@ router.post(
 router.delete("/:id/comment", requireAuth(), deleteComment);
 router.get("/get-all-posts", requireAuth(), getAllPosts);
 router.get("/get-user-posts/:id", requireAuth(), getUserPosts);
+router.get("/get-user-reels/:id", requireAuth(), getUserReels);
 router.get("/:id/get-all-comments", requireAuth(), getAllComments);
 router.get("/reels", requireAuth(), getAllReels);
 router.delete("/delete-post/:id", requireAuth(), deletePost);
