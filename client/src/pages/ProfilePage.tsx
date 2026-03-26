@@ -29,12 +29,20 @@ import FollowingModal from "../components/modals/FollowingModal";
 import FollowersModal from "../components/modals/FollowersModal";
 // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
+const getLimit = () => {
+  const width = window.innerWidth;
+
+  if (width < 640) return 9; // mobile
+  if (width < 1024) return 12; // tablet (sm/md)
+  return 7; // desktop (lg+)
+};
+
 const ProfilePage = () => {
   const { name } = useParams<{ name: string }>();
   if (!name) return;
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
+  const [limit, setLimit] = useState(getLimit());
   const [posts, setPosts] = useState<Post[]>([]);
   const [reels, setReels] = useState<Post[]>([]);
   const postBlockRef = useRef<HTMLDivElement | null>(null);
@@ -80,7 +88,6 @@ const ProfilePage = () => {
   const [isFollowerModalOpen, setIsFollowerModalOpen] =
     useState<boolean>(false);
 
-  const userPosts = postData?.posts;
   console.log("postdata", postData);
 
   const [hasMore, setHasMore] = useState(true);
@@ -168,6 +175,16 @@ const ProfilePage = () => {
   }, [currentList.length, hasMore, isLoadingCurrent]);
 
   useEffect(() => {
+    const handleResize = () => {
+      const newLimit = getLimit();
+      setLimit((prev) => (prev !== newLimit ? newLimit : prev));
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
     const container = postBlockRef.current;
     if (!container) return;
 
@@ -222,7 +239,7 @@ const ProfilePage = () => {
 
     setPosts([]);
     setReels([]);
-  }, [activeTab, user?._id]);
+  }, [activeTab, user?._id, limit]);
 
   useEffect(() => {
     if (!currentData) return;
@@ -291,7 +308,6 @@ const ProfilePage = () => {
       transition-all duration-200 sm:hidden
     "
                     >
-                      <SettingsIcon className="h-4 w-4" />
                       <SettingsIcon className="h-4 w-4" />
                     </button>
 
