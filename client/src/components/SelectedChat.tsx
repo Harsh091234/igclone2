@@ -155,7 +155,7 @@ const SelectedChat = ({
       </div>
 
       <div className="flex-1 text-xs sm:text-sm overflow-y-auto p-4 space-y-2.5 sm:space-y-5 bg-muted/30">
-        {!isMessagesLoading ? (
+        {isMessagesLoading ? (
           <MessageSkeleton />
         ) : (
           messages.map((message: Message) => {
