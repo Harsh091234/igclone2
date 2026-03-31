@@ -1,4 +1,4 @@
-import { getNotifications } from "../controllers/notication.controller.js";
+import { getNotifications } from "./notification.controller.js";
 import { requireAuth } from "@clerk/express";
 import { Router } from "express";
 

@@ -1,17 +1,15 @@
-import { getReceiverSocketId, io } from "../socket/socket.js";
-import { uploadBase64Image } from "../config/uploadPic.js";
-import { uploadVideo } from "../config/uploadVideo.js";
-
-import Comment from "../models/comment.model.js";
-import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
-import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
+import { getReceiverSocketId, io } from "../../socket/socket.js";
+import { uploadBase64Image } from "../../config/uploadPic.js";
+import { uploadVideo } from "../../config/uploadVideo.js";
+import Comment from "./comment.model.js";
+import Post from "./post.model.js";
+import User from "../user/user.model.js";
+import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
 import { Request, Response } from "express";
-
 import sharp from "sharp";
-import Notification from "../models/notification.model.js";
-import { deleteCache, getCache, setCache } from "../config/cache.js";
-import redis from "../config/redis.js";
+import Notification from "../notification/notification.model.js";
+import { deleteCache, getCache, setCache } from "../../config/cache.js";
+import redis from "../../config/redis.js";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -471,7 +469,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
     const MAX_LIMIT = 5;
     const limit = Math.min(
       MAX_LIMIT,
-      Math.max(2, Number(req.query.limit) || 2),
+      Math.max(5, Number(req.query.limit) || 5),
     ); // values 2>=  and <= 5;
     const skip = (page - 1) * limit;
     const posts = await Post.find()
@@ -505,13 +503,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
         ...post,
         comments: post.comments?.filter((comment: any) => comment.author),
       }));
-    if (validPosts.length === 0)
-      return res.status(200).json({
-        success: true,
-        message: "No valid  posts found",
-        hasMore: false,
-        posts: [],
-      });
+
     console.log(validPosts);
     return res.status(200).json({
       success: true,

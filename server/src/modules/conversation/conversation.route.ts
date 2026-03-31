@@ -1,11 +1,11 @@
-import { validate } from "../middlewares/validate.middleware.js";
-import { createMessageSchema } from "../config/validators/message.validator.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import { createMessageSchema } from "./message.validator.js";
 import {
   createMessage,
   getAllMessages,
   getLastMessages,
-} from "../controllers/conversation.controller.js";
-import { upload } from "../config/multer.js";
+} from "./conversation.controller.js";
+import { upload } from "../../config/multer.js";
 import { Router } from "express";
 import { requireAuth } from "@clerk/express";
 

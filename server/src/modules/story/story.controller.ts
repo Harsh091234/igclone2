@@ -1,13 +1,13 @@
-import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
-import { uploadVideo } from "../config/uploadVideo.js";
-import User from "../models/user.model.js";
+import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
+import { uploadVideo } from "../../config/uploadVideo.js";
+import User from "../user/user.model.js";
 import { type Request, type Response } from "express";
-import sharp from "sharp";
-import { convertToBase64 } from "../config/convertToBase64.js";
-import { uploadBase64Image } from "../config/uploadPic.js";
-import Story from "../models/story.model.js";
-import Notification from "../models/notification.model.js";
-import { getReceiverSocketId, io } from "../socket/socket.js";
+
+import { convertToBase64 } from "../../config/convertToBase64.js";
+import { uploadBase64Image } from "../../config/uploadPic.js";
+import Story from "./story.model.js";
+import Notification from "../notification/notification.model.js";
+import { getReceiverSocketId, io } from "../../socket/socket.js";
 
 export async function createStory(req: Request, res: Response) {
   try {

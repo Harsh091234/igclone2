@@ -1,14 +1,14 @@
-import cloudinary from "../config/cloudinary.js";
-import { uploadBase64Image } from "../config/uploadPic.js";
-import User from "../models/user.model.js";
+import cloudinary from "../../config/cloudinary.js";
+import { uploadBase64Image } from "../../config/uploadPic.js";
+import User from "./user.model.js";
 
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { clerkClient } from "@clerk/express";
-import { convertToBase64 } from "../config/convertToBase64.js";
-import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
-import { getReceiverSocketId, io } from "../socket/socket.js";
-import Notification from "../models/notification.model.js";
+import { convertToBase64 } from "../../config/convertToBase64.js";
+import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
+import { getReceiverSocketId, io } from "../../socket/socket.js";
+import Notification from "../notification/notification.model.js";
 
 export const syncUser = async (req: Request, res: Response) => {
   try {

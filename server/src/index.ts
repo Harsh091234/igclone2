@@ -1,16 +1,15 @@
 import express, { urlencoded } from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
-import userRoutes from "./routes/user.route.js";
-import postRoutes from "./routes/post.route.js";
-import conversationRoutes from "./routes/conversation.route.js"
-import notificationRoutes from "./routes/notification.route.js"
-import storyRoutes from "./routes/story.route.js";
+import userRoutes from "./modules/user/user.route.js";
+import postRoutes from "./modules/post/post.route.js";
+import conversationRoutes from "./modules/conversation/conversation.route.js";
+import notificationRoutes from "./modules/notification/notification.route.js";
+import storyRoutes from "./modules/story/story.route.js";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 import path from "node:path";
 import { app, server } from "./socket/socket.js";
-
 
 dotenv.config();
 const __dirname = path.resolve();
@@ -29,15 +28,14 @@ app.use(
 
 app.use(clerkMiddleware());
 
-app.use(express.json({limit: "10mb"}));
-app.use(urlencoded({limit: "10mb", extended: true}));
+app.use(express.json({ limit: "10mb" }));
+app.use(urlencoded({ limit: "10mb", extended: true }));
 
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/conversation", conversationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/story", storyRoutes);
-
 
 if (process.env.NODE_ENV === "production") {
   const a = app.use(express.static(path.join(__dirname, "../client/dist")));
@@ -52,8 +50,6 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-
 server.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
-

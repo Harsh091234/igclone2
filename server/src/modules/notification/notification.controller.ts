@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import Notification from "../models/notification.model.js";
-import User from "../models/user.model.js";
-
+import Notification from "./notification.model.js";
+import User from "../user/user.model.js";
 
 export const getNotifications = async (req: Request, res: Response) => {
   try {
@@ -22,16 +21,14 @@ export const getNotifications = async (req: Request, res: Response) => {
       return res
         .status(200)
         .json({ success: true, message: "No notifications present" });
-        console.log(notifications)
-    return res
-      .status(200)
-      .json({ success: true, notifications });
+    console.log(notifications);
+    return res.status(200).json({ success: true, notifications });
   } catch (error: any) {
-     console.log("Error in getNotifications:", error.message);
+    console.log("Error in getNotifications:", error.message);
 
-     return res.status(500).json({
-       success: false,
-       message: "Error in getNotifications",
-     });
+    return res.status(500).json({
+      success: false,
+      message: "Error in getNotifications",
+    });
   }
 };

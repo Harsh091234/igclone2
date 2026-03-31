@@ -2,15 +2,16 @@
 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import User from "../models/user.model.js"; // adjust path if needed
+import User from "../modules/user/user.model.js"; // adjust path if needed
 
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI as string;
 
-mongoose.connect(MONGO_URI)
-.then(() => console.log("MongoDB connected"))
-.catch((err) => console.log("MongoDB connection error:", err));
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("MongoDB connection error:", err));
 
 const demoUsers = [
   {
@@ -28,7 +29,8 @@ const demoUsers = [
     email: "bob@example.com",
     fullName: "Bob Smith",
     userName: "bob_smith",
-    profilePic: "https://plus.unsplash.com/premium_photo-1721779216858-23fdc076c308",
+    profilePic:
+      "https://plus.unsplash.com/premium_photo-1721779216858-23fdc076c308",
     bio: "Coffee lover and coder.",
     password: "password123",
     gender: "male",
@@ -81,8 +83,7 @@ const demoUsers = [
     email: "grace@example.com",
     fullName: "Grace Lee",
     userName: "grace_lee",
-    profilePic:
-      "https://images.unsplash.com/photo-1542305983-c4100e4b8cd2",
+    profilePic: "https://images.unsplash.com/photo-1542305983-c4100e4b8cd2",
     bio: "Nature photographer.",
     password: "password123",
     gender: "female",
@@ -92,8 +93,7 @@ const demoUsers = [
     email: "henry@example.com",
     fullName: "Henry Wilson",
     userName: "henry_w",
-    profilePic:
-      "https://images.unsplash.com/photo-1722328714912-667f731c1829",
+    profilePic: "https://images.unsplash.com/photo-1722328714912-667f731c1829",
     bio: "Guitarist and composer.",
     password: "password123",
     gender: "male",
@@ -103,8 +103,7 @@ const demoUsers = [
     email: "isabella@example.com",
     fullName: "Isabella Martinez",
     userName: "isabella_m",
-    profilePic:
-      "https://images.unsplash.com/photo-1673289202760-82cfba941b21",
+    profilePic: "https://images.unsplash.com/photo-1673289202760-82cfba941b21",
     bio: "Bookworm and writer.",
     password: "password123",
     gender: "female",
@@ -114,8 +113,7 @@ const demoUsers = [
     email: "jack@example.com",
     fullName: "Jack Taylor",
     userName: "jack_t",
-    profilePic:
-      "https://images.unsplash.com/photo-1542305983-c4100e4b8cd2",
+    profilePic: "https://images.unsplash.com/photo-1542305983-c4100e4b8cd2",
     bio: "Sports fan and blogger.",
     password: "password123",
     gender: "male",
@@ -125,8 +123,7 @@ const demoUsers = [
     email: "kate@example.com",
     fullName: "Kate Anderson",
     userName: "kate_a",
-    profilePic:
-      "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61",
+    profilePic: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61",
     bio: "Food blogger.",
     password: "password123",
     gender: "female",
@@ -136,8 +133,7 @@ const demoUsers = [
     email: "leo@example.com",
     fullName: "Leo Robinson",
     userName: "leo_r",
-    profilePic:
-      "https://images.unsplash.com/photo-1598777882245-c1535b4a2e62",
+    profilePic: "https://images.unsplash.com/photo-1598777882245-c1535b4a2e62",
     bio: "Movie lover and reviewer.",
     password: "password123",
     gender: "male",
@@ -169,8 +165,7 @@ const demoUsers = [
     email: "olivia@example.com",
     fullName: "Olivia Young",
     userName: "olivia_y",
-    profilePic:
-      "https://images.unsplash.com/photo-1580843420014-33eea1abeae6",
+    profilePic: "https://images.unsplash.com/photo-1580843420014-33eea1abeae6",
     bio: "Traveler and blogger.",
     password: "password123",
     gender: "female",
@@ -180,8 +175,7 @@ const demoUsers = [
     email: "peter@example.com",
     fullName: "Peter Hall",
     userName: "peter_h",
-    profilePic:
-      "https://images.unsplash.com/photo-1592214468571-0a38317ef79e",
+    profilePic: "https://images.unsplash.com/photo-1592214468571-0a38317ef79e",
     bio: "Cyclist and adventurer.",
     password: "password123",
     gender: "male",
@@ -191,8 +185,7 @@ const demoUsers = [
     email: "quinn@example.com",
     fullName: "Quinn Allen",
     userName: "quinn_a",
-    profilePic:
-      "https://images.unsplash.com/photo-1592214468571-0a38317ef79e",
+    profilePic: "https://images.unsplash.com/photo-1592214468571-0a38317ef79e",
     bio: "Photographer and artist.",
     password: "password123",
     gender: "other",
@@ -202,8 +195,7 @@ const demoUsers = [
     email: "rachel@example.com",
     fullName: "Rachel Scott",
     userName: "rachel_s",
-    profilePic:
-      "https://images.unsplash.com/photo-1586299485759-f62264d6b63f",
+    profilePic: "https://images.unsplash.com/photo-1586299485759-f62264d6b63f",
     bio: "Nature lover.",
     password: "password123",
     gender: "female",
@@ -213,8 +205,7 @@ const demoUsers = [
     email: "sam@example.com",
     fullName: "Sam Harris",
     userName: "sam_h",
-    profilePic:
-      "https://images.unsplash.com/photo-1665827139274-90f460a688b2",
+    profilePic: "https://images.unsplash.com/photo-1665827139274-90f460a688b2",
     bio: "Tech and gaming enthusiast.",
     password: "password123",
     gender: "male",
@@ -231,8 +222,6 @@ const demoUsers = [
     gender: "female",
   },
 ];
-
-
 
 const seedUsers = async () => {
   try {
