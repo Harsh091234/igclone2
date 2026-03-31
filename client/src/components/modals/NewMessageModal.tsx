@@ -6,32 +6,37 @@ import { useState } from "react";
 import { useSearchUsersQuery } from "../../services/userApi";
 import type { SearchUser } from "../../types/user.types";
 
-
 interface NewMessageModalProps {
   onClose: () => void;
   onStartChat: (users: SearchUser[]) => void;
   startChat: () => void;
+  authUserId?: string;
 }
 
-const NewMessageModal = ({ onClose, onStartChat , startChat}: NewMessageModalProps) => {
-    const [searchTerm, setSearchTerm] = useState("");
- const [selectedUsers, setSelectedUsers] = useState<SearchUser[]>([]);
-    const { data: searchData} = useSearchUsersQuery(searchTerm, {
-      skip: !searchTerm.trim()
-    })
- 
-    const users = searchData?.users;
+const NewMessageModal = ({
+  onClose,
+  onStartChat,
+  authUserId,
+  startChat,
+}: NewMessageModalProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<SearchUser[]>([]);
+  const { data: searchData } = useSearchUsersQuery(searchTerm, {
+    skip: !searchTerm.trim(),
+  });
 
-    const toggleUser = (user: SearchUser) => {
-      setSelectedUsers((prev) => {
-        const exists = prev.some((u) => u._id === user._id);
-        if (exists) {
-          return prev.filter((u) => u._id !== user._id);
-        }
-        return [...prev, user];
-      });
-    };
+  const users = searchData?.users;
 
+  const toggleUser = (user: SearchUser) => {
+    setSelectedUsers((prev) => {
+      const exists = prev.some((u) => u._id === user._id);
+      if (exists) {
+        return prev.filter((u) => u._id !== user._id);
+      }
+      return [...prev, user];
+    });
+  };
 
   return (
     <div
@@ -83,16 +88,14 @@ const NewMessageModal = ({ onClose, onStartChat , startChat}: NewMessageModalPro
             Suggested
           </p>
 
-        {users?.map((user: SearchUser) => {
-  const isSelected = selectedUsers.some(
-    (u) => u._id === user._id
-  );
+          {users?.map((user: SearchUser) => {
+            const isSelected = selectedUsers.some((u) => u._id === user._id);
 
-  return (
-    <div
-      key={user._id}
-      onClick={() => toggleUser(user)}  
-      className="
+            return (
+              <div
+                key={user._id}
+                onClick={() => toggleUser(user)}
+                className="
         flex items-center justify-between
         px-2 py-2
         rounded-md
@@ -102,21 +105,21 @@ const NewMessageModal = ({ onClose, onStartChat , startChat}: NewMessageModalPro
         duration-100
         cursor-pointer
       "
-    >
-      <div className="flex items-center gap-3">
-        <UserAvatar user={user} />
+              >
+                <div className="flex items-center gap-3">
+                  <UserAvatar user={user} />
 
-        <div>
-          <p className="text-sm font-medium">{user.userName}</p>
-          <p className="text-xs text-muted-foreground">
-            {user.fullName}
-          </p>
-        </div>
-      </div>
+                  <div>
+                    <p className="text-sm font-medium">{user.userName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.fullName}
+                    </p>
+                  </div>
+                </div>
 
-      {/* ✅ Circle selector */}
-      <div
-        className={`
+                {/* ✅ Circle selector */}
+                <div
+                  className={`
           h-4 w-4 rounded-full
           border flex items-center justify-center
           transition-all duration-150
@@ -126,21 +129,33 @@ const NewMessageModal = ({ onClose, onStartChat , startChat}: NewMessageModalPro
               : "border-muted-foreground bg-transparent"
           }
         `}
-      >
-        {isSelected && (
-          <div className="h-1.5 w-1.5 rounded-full bg-background" />
-        )}
-      </div>
-    </div>
-  );
-})}
+                >
+                  {isSelected && (
+                    <div className="h-1.5 w-1.5 rounded-full bg-background" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Footer */}
         <div className="p-3 sm:p-4">
+          {error && <p className="text-red-500 text-xs mb-2 px-1">{error}</p>}
           <button
             disabled={selectedUsers.length === 0}
             onClick={() => {
+              //  Check self selection
+              const isSelfSelected = selectedUsers.some(
+                (u) => u._id === authUserId,
+              );
+
+              if (isSelfSelected) {
+                setError("You cannot message yourself");
+                return;
+              }
+
+              setError("");
               onStartChat(selectedUsers);
               startChat();
               onClose();

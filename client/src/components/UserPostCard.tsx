@@ -40,7 +40,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
-  let isLiked = post.likes.some(
+  let isLiked = post.likes?.some(
     (id) => id.toString() === authUser?._id?.toString(),
   );
   const [open, setOpen] = useState(false);
@@ -275,7 +275,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
 
       {post.comments.length > 0 && (
         <div className="px-4 pb-1.5 sm:pb-3 space-y-0.5 sm:space-y-1.5">
-          {post.comments.map((comment) => (
+          {post?.comments?.map((comment) => (
             <Comment
               key={comment._id}
               isDeleting={deletingCommentId === comment._id}

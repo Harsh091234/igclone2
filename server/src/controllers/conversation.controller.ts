@@ -11,7 +11,6 @@ import mongoose from "mongoose";
 import { CLOUDINARY_FOLDERS } from "../paths/cloudinary.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 
-
 const getMediaType = (mimetype: string) => {
   if (mimetype.startsWith("image/")) return "image";
   if (mimetype.startsWith("video/")) return "video";
@@ -34,6 +33,12 @@ export const createMessage = async (req: Request, res: Response) => {
     const senderId = sender._id;
     const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
 
+    if (senderId.toString() === receiverId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot message yourself",
+      });
+    }
     const { text } = req.body;
 
     const files = req.files as Express.Multer.File[];
@@ -122,7 +127,8 @@ export const createMessage = async (req: Request, res: Response) => {
 
     const receiverSocketId = getReceiverSocketId(receiverId.toString());
     console.log("📤 Emitting newMessage to:", receiverSocketId);
-    if (receiverSocketId) io.to(receiverSocketId).emit("newMessage", populatedMessage);
+    if (receiverSocketId)
+      io.to(receiverSocketId).emit("newMessage", populatedMessage);
 
     res.status(201).json({
       success: true,

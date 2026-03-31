@@ -66,7 +66,7 @@ const CommentPostModal = ({
     useCommentPostMutation();
   const { isLoading: isCommentsLoading, data: commentData } =
     useGetAllCommentsQuery(post._id);
-  const comments = commentData?.comments;
+  const comments = commentData?.comments ?? [];
 
   const handleComment = async () => {
     try {
@@ -240,7 +240,7 @@ const CommentPostModal = ({
           <div className=" h-auto max-h-34 md:h-full md:max-h-full  overflow-y-auto px-4 py-2 flex flex-col gap-2">
             {isCommentsLoading ? (
               <CommentSkeleton />
-            ) : comments?.length === 0 ? (
+            ) : comments.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-4">
                 No comments yet
               </p>

@@ -35,19 +35,18 @@ export interface Author {
   _id: string;
   profilePic: string;
   followers?: string[];
-  fullName?: string
+  fullName?: string;
 }
 
 export interface Reel {
   _id: string;
   author: Author;
   caption?: string;
-  comments?: string[] | [];
+  comments: string[];
   likes: string[];
   createdAt: string; // ISO date string
   video: {
     publicId: string;
-    url: string
-  }
+    url: string;
+  };
 }
-

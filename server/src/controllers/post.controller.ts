@@ -370,242 +370,6 @@ export const deleteComment = async (req: Request, res: Response) => {
     });
   }
 };
-//get post + top 2 comments
-export const getAllPosts = async (req: Request, res: Response) => {
-  try {
-    const MAX_PAGE = 99;
-    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-    const MAX_LIMIT = 5;
-    const limit = Math.min(
-      MAX_LIMIT,
-      Math.max(2, Number(req.query.limit) || 2),
-    ); // values 2>=  and <= 5;
-    const skip = (page - 1) * limit;
-    const posts = await Post.find()
-      .sort({ createdAt: -1 }) // latest posts first
-      .skip(skip)
-      .limit(limit)
-      .populate({ path: "author", select: "userName profilePic" })
-      .populate({
-        path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
-        populate: {
-          path: "author",
-          select: "userName profilePic",
-        },
-      });
-
-    const totalPosts = await Post.countDocuments();
-
-    if (!posts)
-      return res.status(400).json({
-        success: false,
-        message: "No posts found",
-      });
-
-    return res.status(200).json({
-      success: true,
-      posts,
-      hasMore: skip + posts.length < totalPosts,
-    });
-  } catch (error: any) {
-    console.log("Error in getAllPosts:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Error in getAllPosts",
-    });
-  }
-};
-
-export const getUserPosts = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  if (!id)
-    return res.status(400).json({ success: false, message: "id is undefined" });
-  const MAX_PAGE = 99;
-  const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-  const MAX_LIMIT = 15;
-  const limit = Math.min(MAX_LIMIT, Math.max(5, Number(req.query.limit) || 10)); // values >=5  and <= 15;
-
-  const cacheKey = `igclone2_user_posts:${id}:page:${page}:limit:${limit}`;
-  const lockKey = `lock:${cacheKey}`;
-
-  let lockAcquired = false;
-
-  try {
-    const skip = (page - 1) * limit;
-    const cached = await getCache(cacheKey);
-
-    if (cached) {
-      console.log("Serving from redis");
-      const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
-      return res.json({
-        success: true,
-        posts: parsed.posts,
-        hasMore: parsed.hasMore,
-      });
-    }
-
-    // 🔒 Acquire lock
-    const lock =
-      process.env.NODE_ENV === "production"
-        ? await redis.set(lockKey, "locked", { nx: true, ex: 10 })
-        : await redis.set(lockKey, "locked", { NX: true, EX: 10 });
-
-    if (lock) {
-      lockAcquired = true;
-    }
-
-    //  If lock NOT acquired → wait
-    if (!lock) {
-      let retries = 10;
-
-      while (retries--) {
-        await new Promise((res) => setTimeout(res, 2000));
-
-        const cachedRetry = await getCache(cacheKey);
-        if (cachedRetry) {
-          console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
-          return res.json({
-            success: true,
-            posts:
-              typeof cachedRetry === "string"
-                ? JSON.parse(cachedRetry)
-                : cachedRetry,
-          });
-        }
-      }
-
-      console.log(`[${id}] 💥 Fallback to DB after waiting`);
-    }
-
-    // 🔥 DB call (only one request ideally)
-    const posts = await Post.find({ author: id })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({ path: "author", select: "userName profilePic" })
-      .populate({
-        path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 2 },
-        populate: {
-          path: "author",
-          select: "userName profilePic",
-        },
-      })
-      .lean();
-
-    const totalPosts = await Post.countDocuments({ author: id });
-    if (posts.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No posts found",
-        hasMore: false,
-      });
-    }
-
-    const response = {
-      posts,
-      hasMore: skip + posts.length < totalPosts,
-    };
-
-    await setCache(cacheKey, response, 300);
-
-    return res.status(200).json({
-      success: true,
-      posts,
-      hasMore: skip + posts.length < totalPosts,
-    });
-  } catch (error: any) {
-    console.log("Error in getUserPosts:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Error in getUserPosts",
-    });
-  } finally {
-    // 🔓 Release lock (CRITICAL)
-    if (lockAcquired) {
-      await redis.del(lockKey);
-    }
-  }
-};
-
-export const getUserReels = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params; // user id
-    const MAX_PAGE = 99;
-    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-    const MAX_LIMIT = 15;
-    const limit = Math.min(
-      MAX_LIMIT,
-      Math.max(5, Number(req.query.limit) || 10),
-    ); // values >=5  and <= 15;
-
-    const skip = (page - 1) * limit;
-
-    // 🔥 ONLY VIDEO POSTS
-    const reels = await Post.find({
-      author: id,
-      "media.type": "video",
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({ path: "author", select: "userName profilePic" })
-      .populate({
-        path: "comments",
-        options: { sort: { createdAt: -1 }, limit: 2 },
-        populate: {
-          path: "author",
-          select: "userName profilePic",
-        },
-      })
-      .lean();
-
-    const total = await Post.countDocuments({
-      author: id,
-      "media.type": "video",
-    });
-
-    res.status(200).json({
-      reels,
-      hasMore: skip + reels.length < total,
-    });
-  } catch (error) {
-    console.error("getUserReels error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-//get all comments when user clicks show more...
-export const getAllComments = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params; //post id
-
-    const comments = await Comment.find({ post: id }).populate(
-      "author",
-      "userName profilePic",
-    );
-    if (!comments)
-      return res.status(400).json({
-        success: false,
-        message: "No comments found",
-      });
-
-    return res.status(200).json({
-      success: true,
-      comments,
-    });
-  } catch (error: any) {
-    console.log("Error in getAllComments:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Error in getAllComments",
-    });
-  }
-};
 
 export const deletePost = async (req: Request, res: Response) => {
   try {
@@ -699,59 +463,306 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
   }
 };
 
+//get post + top 2 comments
+export const getAllPosts = async (req: Request, res: Response) => {
+  try {
+    const MAX_PAGE = 99;
+    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+    const MAX_LIMIT = 5;
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(2, Number(req.query.limit) || 2),
+    ); // values 2>=  and <= 5;
+    const skip = (page - 1) * limit;
+    const posts = await Post.find()
+      .sort({ createdAt: -1 }) // latest posts first
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "author", select: "userName profilePic" })
+      .populate({
+        path: "comments",
+        options: { sort: { createdAt: -1 }, limit: 2 }, // latest comments first
+        populate: {
+          path: "author",
+          select: "userName profilePic",
+        },
+      })
+      .lean();
+
+    const totalPosts = await Post.countDocuments();
+
+    if (posts.length === 0)
+      return res.status(200).json({
+        success: true,
+        message: "No posts found",
+      });
+
+    // if author deletes from db then its posts gets deleted
+
+    const validPosts = posts
+      .filter((post) => post.author) // ✅ remove posts without author
+      .map((post) => ({
+        ...post,
+        comments: post.comments?.filter((comment: any) => comment.author),
+      }));
+    if (validPosts.length === 0)
+      return res.status(200).json({
+        success: true,
+        message: "No valid  posts found",
+        hasMore: false,
+        posts: [],
+      });
+    console.log(validPosts);
+    return res.status(200).json({
+      success: true,
+      posts: validPosts,
+      hasMore: skip + validPosts.length < totalPosts,
+    });
+  } catch (error: any) {
+    console.log("Error in getAllPosts:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getAllPosts",
+    });
+  }
+};
+
+export const getUserPosts = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id)
+    return res.status(400).json({ success: false, message: "id is undefined" });
+  const MAX_PAGE = 99;
+  const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+  const MAX_LIMIT = 15;
+  const limit = Math.min(MAX_LIMIT, Math.max(5, Number(req.query.limit) || 10)); // values >=5  and <= 15;
+
+  const cacheKey = `igclone2_user_posts:${id}:page:${page}:limit:${limit}`;
+  const lockKey = `lock:${cacheKey}`;
+
+  let lockAcquired = false;
+
+  try {
+    const skip = (page - 1) * limit;
+    const cached = await getCache(cacheKey);
+
+    if (cached) {
+      console.log("Serving from redis");
+      const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
+      return res.json({
+        success: true,
+        posts: parsed.posts,
+        hasMore: parsed.hasMore,
+      });
+    }
+
+    // 🔒 Acquire lock
+    const lock =
+      process.env.NODE_ENV === "production"
+        ? await redis.set(lockKey, "locked", { nx: true, ex: 10 })
+        : await redis.set(lockKey, "locked", { NX: true, EX: 10 });
+
+    if (lock) {
+      lockAcquired = true;
+    }
+
+    //  If lock NOT acquired → wait
+    if (!lock) {
+      let retries = 10;
+
+      while (retries--) {
+        await new Promise((res) => setTimeout(res, 2000));
+
+        const cachedRetry = await getCache(cacheKey);
+        if (cachedRetry) {
+          console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
+          return res.json({
+            success: true,
+            posts:
+              typeof cachedRetry === "string"
+                ? JSON.parse(cachedRetry)
+                : cachedRetry,
+          });
+        }
+      }
+
+      console.log(`[${id}] 💥 Fallback to DB after waiting`);
+    }
+
+    // 🔥 DB call (only one request ideally)
+    const posts = await Post.find({ author: id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "author", select: "userName profilePic" })
+      .lean();
+
+    const totalPosts = await Post.countDocuments({ author: id });
+    if (posts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No posts found",
+        hasMore: false,
+      });
+    }
+
+    const response = {
+      posts,
+      hasMore: skip + posts.length < totalPosts,
+    };
+
+    await setCache(cacheKey, response, 180);
+
+    return res.status(200).json({
+      success: true,
+      posts,
+      hasMore: skip + posts.length < totalPosts,
+    });
+  } catch (error: any) {
+    console.log("Error in getUserPosts:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getUserPosts",
+    });
+  } finally {
+    // 🔓 Release lock (CRITICAL)
+    if (lockAcquired) {
+      await redis.del(lockKey);
+    }
+  }
+};
+
+export const getUserReels = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // user id
+    const MAX_PAGE = 99;
+    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
+    const MAX_LIMIT = 15;
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(5, Number(req.query.limit) || 10),
+    ); // values >=5  and <= 15;
+
+    const skip = (page - 1) * limit;
+
+    // 🔥 ONLY VIDEO POSTS
+    const reels = await Post.find({
+      author: id,
+      "media.type": "video",
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "author", select: "userName profilePic" })
+      .lean();
+
+    const total = await Post.countDocuments({
+      author: id,
+      "media.type": "video",
+    });
+
+    res.status(200).json({
+      reels,
+      hasMore: skip + reels.length < total,
+    });
+  } catch (error) {
+    console.error("getUserReels error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//get all comments when user clicks show more...
+export const getAllComments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; //post id
+
+    const comments = await Comment.find({ post: id }).populate(
+      "author",
+      "userName profilePic",
+    );
+    if (comments.length === 0)
+      return res.status(200).json({
+        success: true,
+        comments: [],
+        message: "No comments found",
+      });
+
+    const validComments = comments.filter((comment) => comment.author);
+
+    return res.status(200).json({
+      success: true,
+      comments: validComments,
+    });
+  } catch (error: any) {
+    console.log("Error in getAllComments:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error in getAllComments",
+    });
+  }
+};
 export const getAllReels = async (req: Request, res: Response) => {
   try {
-    const videos = await Post.aggregate([
-      // 1️⃣ Only single-media posts
-      { $match: { media: { $size: 1 } } },
-
-      // 2️⃣ Flatten media
-      { $unwind: "$media" },
-
-      // 3️⃣ Keep only videos
-      { $match: { "media.type": "video" } },
-
-      // 4️⃣ Join author
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
+    const reels = await Post.find({
+      media: { $size: 1 },
+      "media.type": "video",
+    })
+      .sort({ createdAt: -1 })
+      .populate({ path: "author", select: "userName profilePic followers" })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          select: "userName profilePic",
         },
-      },
-      { $unwind: "$author" },
+      })
+      .lean();
 
-      // 5️⃣ Shape response + counts
-      {
-        $project: {
-          caption: 1,
-          createdAt: 1,
+    if (reels.length === 0) {
+      return res.status(200).json({
+        success: true,
+        videos: [],
+        message: "No reels present",
+      });
+    }
+
+    const validReels = reels
+      .filter((reel) => reel.author) // remove deleted authors
+      .map((reel) => {
+        const validComments = reel.comments?.filter((c: any) => c.author) || [];
+
+        return {
+          _id: reel._id,
+          caption: reel.caption,
+          createdAt: reel.createdAt,
 
           video: {
-            url: "$media.url",
-            publicId: "$media.publicId",
+            url: reel.media[0].url,
+            publicId: reel.media[0].publicId,
           },
 
-          author: {
-            followers: "$author.followers",
-            _id: "$author._id",
-            userName: "$author.userName",
-            profilePic: "$author.profilePic",
-          },
+          author: reel.author,
+          likes: reel.likes,
 
-          likes: 1,
+          // (optional) send filtered comments too
+          comments: validComments,
+        };
+      });
 
-          comments: 1,
-        },
-      },
-    ]);
-    if (!videos)
-      return res
-        .status(200)
-        .json({ success: true, message: "No reels present" });
+    if (validReels.length === 0) {
+      return res.status(200).json({
+        success: true,
+        videos: [],
+        message: "No valid reels",
+      });
+    }
 
-    return res.status(200).json({ success: true, videos });
+    return res.status(200).json({
+      success: true,
+      videos: validReels,
+    });
   } catch (error: any) {
     console.log("Error in getAllReels:", error);
 
