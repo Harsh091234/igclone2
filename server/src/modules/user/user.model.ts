@@ -1,11 +1,12 @@
-import mongoose, { Schema, Document, model, Mongoose } from "mongoose";
+import mongoose, { Schema, Document, model } from "mongoose";
 import bcrypt from "bcryptjs";
+import { generateHashedToken } from "../../config/generateToken.js";
 
 export interface IUser extends Document {
-  clerkId: string;
+  // clerkId: string;
 
   fullName: string;
-  userName: string;
+  userName?: string;
   email: string;
   password: string;
 
@@ -22,17 +23,32 @@ export interface IUser extends Document {
   posts: mongoose.Types.ObjectId[];
 
   isProfileComplete: boolean;
+
+  role: "user" | "admin";
+  isEmailVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationTokenExpiresAt?: Date;
+  passwordResetToken?: string;
+  passwordResetTokenExpiresAt?: Date;
+  refreshToken?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<IUser>(
+interface IUserMethods {
+  getEmailVerificationToken(): string;
+}
+
+type UserModel = mongoose.Model<IUser, {}, IUserMethods>;
+
+const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
-    clerkId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    // clerkId: {
+    //   type: String,
+    //   unique: false,
+    //   default: "",
+    // },
 
     fullName: {
       type: String,
@@ -62,6 +78,7 @@ const userSchema = new Schema<IUser>(
 
     password: {
       type: String,
+      select: false,
       default: "",
     },
 
@@ -117,6 +134,26 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+
+    emailVerificationToken: String,
+    emailVerificationTokenExpiresAt: Date,
+
+    passwordResetToken: String,
+
+    passwordResetTokenExpiresAt: Date,
+
+    refreshToken: String,
   },
   { timestamps: true },
 );
@@ -128,5 +165,12 @@ userSchema.pre<IUser>("save", async function (this: IUser) {
   return;
 });
 
-const User = model<IUser>("User", userSchema);
+userSchema.methods.getEmailVerificationToken = function () {
+  const tokenObj = generateHashedToken();
+  this.emailVerificationToken = tokenObj.hashedToken;
+  this.emailVerificationTokenExpiresAt = tokenObj.expiresAt;
+  return tokenObj.rawToken;
+};
+
+const User = model<IUser, UserModel>("User", userSchema);
 export default User;

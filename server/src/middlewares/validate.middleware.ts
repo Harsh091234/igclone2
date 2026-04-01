@@ -1,15 +1,21 @@
-import {Request, Response, NextFunction} from "express";
-import {ZodType} from "zod"
+import { Request, Response, NextFunction } from "express";
+import { success, ZodType } from "zod";
 
-export const validate = (schema: ZodType) => async(req: Request, res: Response, next: NextFunction) => {
+export const validate =
+  (schema: ZodType) =>
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const parseBody = await schema.parseAsync(req.body);
-        req.body = parseBody;
-        next();
+      const parseBody = await schema.parseAsync(req.body);
+      req.body = parseBody;
+      next();
     } catch (error: any) {
-        res.status(400).json({message: error.issues.map((issue: any) => ({
+      res.status(400).json({
+        success: false,
+        message:
+          error.issues.map((issue: any) => ({
             field: issue.path.join("."),
             message: issue.message,
-          })) || "Validation failed"});
+          })) || "Validation failed",
+      });
     }
-}
+  };
