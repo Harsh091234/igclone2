@@ -194,7 +194,31 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
-  } catch (error) {}
+    const token = req.params.token;
+    const hashedToken = crypto // for db
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+    const password = req.body.password;
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiresAt: {$gt: new Date()}
+    })
+    
+    if(!user) return res.status(401).json({success: false, message: "Invalid or expired token"});
+
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiresAt= undefined;
+
+    
+   await user.save();
+return res.status(401).json({success: true, message: "Password updated"});
+  } catch (error: any) {
+    console.log("error in resetPassword:", error.message);
+    return res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 interface AuthTokenPayload {
