@@ -38,6 +38,8 @@ export interface IUser extends Document {
 
 interface IUserMethods {
   getEmailVerificationToken(): string;
+  comparePassword(password: string): Promise<boolean>;
+  getForgotPasswordToken(): string;
 }
 
 type UserModel = mongoose.Model<IUser, {}, IUserMethods>;
@@ -167,10 +169,23 @@ userSchema.pre<IUser>("save", async function (this: IUser) {
 
 userSchema.methods.getEmailVerificationToken = function () {
   const tokenObj = generateHashedToken();
+
   this.emailVerificationToken = tokenObj.hashedToken;
   this.emailVerificationTokenExpiresAt = tokenObj.expiresAt;
   return tokenObj.rawToken;
 };
 
+userSchema.methods.comparePassword = async function (password: string) {
+  const isPasswordMatched = await bcrypt.compare(password, this.password);
+  return isPasswordMatched;
+};
+
+userSchema.methods.getForgotPasswordToken = function () {
+  const tokenObj = generateHashedToken();
+
+  this.passwordResetToken = tokenObj.hashedToken;
+  this.passwordResetTokenExpiresAt = tokenObj.expiresAt;
+  return tokenObj.rawToken;
+};
 const User = model<IUser, UserModel>("User", userSchema);
 export default User;
