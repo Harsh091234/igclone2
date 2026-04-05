@@ -21,20 +21,22 @@ import {
 } from "./auth.validator.js";
 import { protectRoutes } from "../../middlewares/protectRoutes.js";
 import { authorize } from "../../middlewares/roleMiddleware.js";
+import { apiLimiter, authLimiter } from "../../middlewares/rateLimitMiddleware.js";
 
 const router = Router();
 
-router.post("/register", validate(registerSchema), register);
+router.post("/register",apiLimiter,validate(registerSchema), register);
 router.post("/verify/:token", verifyEmail);
 router.post(
   "/resend-verification-url",
+  apiLimiter,
   validate(resendVerificationUrlSchema),
   resendVerificationUrl,
 );
-router.post("/login", validate(loginSchema), login);
-router.post("/logout",protectRoutes, logout);
-router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post("/login",authLimiter, validate(loginSchema), login);
+router.post("/logout",apiLimiter, protectRoutes, logout);
+router.post("/forgot-password",apiLimiter, validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password/:token", validate(resetPasswordSchema), resetPassword);
-router.post("/refresh-token", refreshToken);
-router.get("/get-me", protectRoutes, authorize("user"), getMe);
+router.post("/refresh-token", apiLimiter, refreshToken);
+router.get("/get-me",apiLimiter, protectRoutes, authorize("user"), getMe);
 export default router;

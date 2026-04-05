@@ -162,7 +162,12 @@ export const logout = async (req: Request, res: Response) => {
     await user.save()
       
    
-    res.cookie("token", "", {
+    res.cookie("refresh_token", "", {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    res.cookie("access_token", "", {
       httpOnly: true,
       expires: new Date(0),
     });
@@ -247,23 +252,23 @@ interface AuthTokenPayload {
 
 export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.body.refreshToken;
+    const refreshToken = req.cookies.refresh_token || (req.headers?.authorization?.startsWith("Bearer")? req.headers.authorization.split("")[0] : null);
     if (!refreshToken)
-      return res.json({ success: false, message: "no response token" });
+      return res.status(400).json({ success: false, message: "Refresh token missing" });
     const decoded = jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET as string,
     ) as AuthTokenPayload;
     if (!decoded.id)
-      return res.json({ success: false, message: "failedto verify token" });
+      return res.json({ success: false, message: "failed to verify token" });
     const user = await User.findById(decoded.id);
     if (!user || user.refreshToken !== refreshToken)
       return res.status(401).json({
         success: false,
-        message: "Unauthorized! invalid refresh token",
+        message: "Unauthorized! Invalid refresh token",
       });
     const accessToken = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, tokenVersion:user.tokenVersion },
       process.env.ACCESS_TOKEN_SECRET as string,
       {
         expiresIn: process.env
@@ -271,8 +276,20 @@ export const refreshToken = async (req: Request, res: Response) => {
       },
     );
 
-    res
+    res.cookie("access_token", accessToken, {
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 min
+       httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/"
+    })
       .status(200)
-      .json({ success: true, message: "Access token refreshed successfully" });
-  } catch (error) {}
+      .json({ success: true, message: "Access token refreshed successfully", accessToken });
+  } catch (error: any) {
+       console.log("error in refreshToken:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
