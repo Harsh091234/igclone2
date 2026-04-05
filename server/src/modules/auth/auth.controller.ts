@@ -221,6 +221,15 @@ return res.status(401).json({success: true, message: "Password updated"});
   }
 };
 
+export const getMe = async(req: Request, res: Response) => {
+  try {
+    res.json({success: true, user: req.user});
+  } catch (error: any) {
+     console.log("error in getMe:", error.message);
+    return res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
+
 interface AuthTokenPayload {
   id: string;
   role: string;

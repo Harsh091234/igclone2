@@ -11,7 +11,7 @@ import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 import path from "node:path";
 import { app, server } from "./socket/socket.js";
-
+import cookieParser from "cookie-parser";
 dotenv.config();
 const __dirname = path.resolve();
 const PORT = process.env.PORT || 3001;
@@ -28,7 +28,7 @@ app.use(
 );
 
 // app.use(clerkMiddleware());
-
+app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(urlencoded({ limit: "10mb", extended: true }));
 
