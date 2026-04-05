@@ -32,7 +32,7 @@ router.post(
   resendVerificationUrl,
 );
 router.post("/login", validate(loginSchema), login);
-router.post("/logout", logout);
+router.post("/logout",protectRoutes, logout);
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password/:token", validate(resetPasswordSchema), resetPassword);
 router.post("/refresh-token", refreshToken);

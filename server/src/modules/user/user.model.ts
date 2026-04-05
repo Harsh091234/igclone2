@@ -31,6 +31,8 @@ export interface IUser extends Document {
   passwordResetToken?: string;
   passwordResetTokenExpiresAt?: Date;
   refreshToken?: string;
+  tokenVersion: number;
+  
 
   createdAt: Date;
   updatedAt: Date;
@@ -156,6 +158,10 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     passwordResetTokenExpiresAt: Date,
 
     refreshToken: String,
+    tokenVersion: {
+    type: Number,
+   default: 0,
+},
   },
   { timestamps: true },
 );

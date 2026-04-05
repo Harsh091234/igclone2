@@ -153,6 +153,15 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
+    const user = await User.findById(req?.user?._id);
+    
+    if(!user) return res.status(400).json({success:false, message: "User not found"})
+
+         user.refreshToken = undefined;
+         user.tokenVersion += 1;
+    await user.save()
+      
+   
     res.cookie("token", "", {
       httpOnly: true,
       expires: new Date(0),
@@ -233,6 +242,7 @@ export const getMe = async(req: Request, res: Response) => {
 interface AuthTokenPayload {
   id: string;
   role: string;
+  tokenVersion: number;
 }
 
 export const refreshToken = async (req: Request, res: Response) => {

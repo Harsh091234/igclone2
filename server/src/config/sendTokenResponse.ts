@@ -7,7 +7,7 @@ export const sendTokenResponse = async (
   res: any,
 ) => {
   const accessToken = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: user.role, tokenVersion: user.tokenVersion },
     process.env.ACCESS_TOKEN_SECRET as string,
     {
       expiresIn: process.env
@@ -16,7 +16,7 @@ export const sendTokenResponse = async (
   );
 
   const refreshToken = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: user.role},
     process.env.REFRESH_TOKEN_SECRET as string,
     {
       expiresIn: process.env
@@ -27,16 +27,28 @@ export const sendTokenResponse = async (
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
-  const cookieOptions = {
-    expires: new Date(Date.now() + 60 * 60 * 1000),
+ const accessCookieOptions = {
+    expires: new Date(Date.now() + 15 * 60 * 1000), // 15 min
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "strict" as const,
+    path: "/",
   };
+
+  const refreshCookieOptions = {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    path: "/",
+  };
+
+  
 
   res
     .status(statusCode)
-    .cookie("token", accessToken, cookieOptions)
+    .cookie("access_token", accessToken, accessCookieOptions)
+    .cookie("refresh_token", refreshToken, refreshCookieOptions)
     .json({
       success: true,
       accessToken,

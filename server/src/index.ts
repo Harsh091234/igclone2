@@ -19,13 +19,11 @@ const PORT = process.env.PORT || 3001;
 connectDB(process.env.MONGO_URI || "");
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production" ? true : process.env.CLIENT_URL,
-    credentials: true,
+    origin: [process.env.CLIENT_URL, "http://localhost:3000", "http://localhost:5173"].filter(Boolean) as string[],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allowed methods
     allowedHeaders: ["Content-Type", "Authorization"], // headers your frontend sends
   }),
-);
+) ;
 
 // app.use(clerkMiddleware());
 app.use(cookieParser());
