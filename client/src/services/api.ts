@@ -5,7 +5,7 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl:
       import.meta.env.MODE === "development"
-        ? "http://localhost:3000/api"
+        ? `http://localhost:4000/api`
         : "/api",
     credentials: "include",
   }),

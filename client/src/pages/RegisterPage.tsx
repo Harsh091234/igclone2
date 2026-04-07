@@ -4,14 +4,22 @@ import {Link} from "react-router-dom"
 import logo from "../assets/instagram.png";
 import text from "../assets/instagram_text.png";
 import CustomButton from "../components/CustomButton";
-
+import { useRegisterMutation } from "../services/authApi";
+import { registerSchema, type RegisterFormData } from "../schemas/auth.validator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 export default function RegisterPage() {
+   const [registerUser, { isLoading }] = useRegisterMutation();
+   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm();
+  } = useForm<RegisterFormData>({
+      resolver: zodResolver(registerSchema),
+  });
   const {
   onBlur: rhfOnBlur,
   ...emailRegister
@@ -22,10 +30,20 @@ const {
 } = register("password");
   const [focused, setFocused] = useState<"email" | "password" | null>(null);
 
-  const onSubmit = (data) => {
-    console.log(data);
-  };
+  const onSubmit = async (data: { email: string; password: string }) => {
+  try {
+    const res = await registerUser(data).unwrap();
 
+    console.log("Success:", res);
+    toast.success("User registered successfully")
+
+
+  } catch (error: any) {
+    console.log("Error in registering user:", error.message || error?.data?.message);
+
+    
+  }
+};
   const emailValue = watch("email");
   const passwordValue = watch("password");
 
@@ -36,7 +54,7 @@ const {
         {/* Instagram Logo */}
         <div className="absolute flex items-center gap-2 h-12 top-6 left-6 z-10">
           <img className="h-full" src={logo} alt="instagram logo" />
-          <img className="h-10" src={text} alt="instagram logo" />
+          <img className="h-12" src={text} alt="instagram logo" />
         </div>
 
         <img
@@ -74,11 +92,12 @@ const {
   }}
               
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
+             {errors.email && (
+  <p className="text-red-500 text-xs mt-1 font-medium">
+    {errors.email.message}
+  </p>
+)}
+
             </div>
 
             {/* Password */}
@@ -94,8 +113,9 @@ const {
                 Password
               </label>
               <input
+                type={showPassword ? "text" : "password"} 
                {...passwordRegister}
-                className="w-full px-4 pt-5 pb-2 rounded-lg text-sm bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+                className="w-full  px-4 pt-5 pb-2 rounded-lg text-sm bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
                 onFocus={() => setFocused("password")}
                 onBlur={(e) => {
     passwordBlur(e);
@@ -103,25 +123,50 @@ const {
   }}
               
               />
+              <button
+  type="button"
+  onClick={() => setShowPassword((prev) => !prev)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+>
+  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+</button>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.password.message}
-                </p>
-              )}
+  <p className="text-red-500 text-xs font-medium mt-1">
+    {errors.password.message}
+  </p>
+)}
             </div>
 
             {/* Submit */}
            <CustomButton 
+           type="submit"
            text={"Register"}
            className="w-full  h-11  text-sm font-medium"
-           loading={true}
+           loading={isLoading}
            loaderClasses="h-5.5 w-5.5"
            />
           </form>
 
           <p className="text-center text-sm text-gray-400">
             Already have an account?{" "}
-            <Link className="active:text-primary-foreground hover:text-primary-foreground" to="/login">Login here</Link>
+           <Link
+  to="/login"
+  className="
+    relative inline-block
+    after:content-['']
+    after:absolute after:h-[1.5px]after:w-full
+    after:bg-white
+    after:-bottom-0.5 after:right-0
+    after:scale-x-0
+    after:origin-right
+    after:transition-transform after:duration-300
+    hover:after:scale-x-100
+    hover:text-white
+    hover:after:origin-left
+  "
+>
+  Login 
+</Link>
           </p>
         </div>
       </div>
