@@ -30,6 +30,8 @@ import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import { useAppSelector } from "./utils/hooks";
 import NotificationPage from "./pages/NotificationPage";
 import ExplorePage from "./pages/ExplorePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const App = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -43,16 +45,16 @@ const App = () => {
   // const { theme, setTheme } = useTheme();
   const authUser = data?.user;
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
-      syncUser()
-        .unwrap()
-        .then(() => {
-          refetch(); // refetch after syncing
-        })
-        .catch(console.error);
-    }
-  }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
+  // useEffect(() => {
+  //   if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
+  //     syncUser()
+  //       .unwrap()
+  //       .then(() => {
+  //         refetch(); // refetch after syncing
+  //       })
+  //       .catch(console.error);
+  //   }
+  // }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
 
   useEffect(() => {
     console.log("🟢 Redux socket state:", {
@@ -103,7 +105,7 @@ const App = () => {
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
-      <SignedIn>
+     
         <div className="bg-muted  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
           {/* <button
             onClick={handleTheme}
@@ -135,6 +137,23 @@ const App = () => {
 
           <div className="h-full">
             <Routes>
+               <Route
+                path="/register"
+                element={
+            
+                    <RegisterPage/>
+              
+                }
+              />
+
+              <Route
+                path="/login"
+                element={
+            
+                    <LoginPage/>
+              
+                }
+              />
               <Route
                 path="/sign-in/*"
                 element={<SignIn path="/sign-in" routing="path" />}
@@ -147,7 +166,7 @@ const App = () => {
                   </ProtectedRoutes>
                 }
               />
-
+              
               <Route
                 path="/messages"
                 element={
@@ -224,7 +243,7 @@ const App = () => {
             </Routes>
           </div>
         </div>
-      </SignedIn>
+  
     </div>
   );
 };

@@ -293,3 +293,15 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getCsrfToken = async (req: Request, res: Response) => {
+  try {
+   res.json({csrfToken: req.csrfToken()});
+  } catch (error: any) {
+       console.log("error in refreshToken:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

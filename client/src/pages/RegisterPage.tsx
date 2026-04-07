@@ -1,0 +1,130 @@
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import {Link} from "react-router-dom"
+import logo from "../assets/instagram.png";
+import text from "../assets/instagram_text.png";
+import CustomButton from "../components/CustomButton";
+
+export default function RegisterPage() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+  const {
+  onBlur: rhfOnBlur,
+  ...emailRegister
+} = register("email");
+const {
+  onBlur: passwordBlur,
+  ...passwordRegister
+} = register("password");
+  const [focused, setFocused] = useState<"email" | "password" | null>(null);
+
+  const onSubmit = (data) => {
+    console.log(data);
+  };
+
+  const emailValue = watch("email");
+  const passwordValue = watch("password");
+
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row bg-black text-white">
+      {/* Left Side (Image) */}
+      <div className="relative hidden md:flex md:w-1/2 items-center justify-center bg-white">
+        {/* Instagram Logo */}
+        <div className="absolute flex items-center gap-2 h-12 top-6 left-6 z-10">
+          <img className="h-full" src={logo} alt="instagram logo" />
+          <img className="h-10" src={text} alt="instagram logo" />
+        </div>
+
+        <img
+          src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
+          alt="Instagram style"
+          className="object-cover h-full w-full"
+        />
+      </div>
+
+      {/* Right Side (Form) */}
+      <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">
+        <div className="w-full max-w-md space-y-6">
+          <h1 className="text-3xl font-medium text-center">Register Account</h1>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email */}
+            <div className="relative">
+              <label
+                className={`absolute left-4 transition-all duration-200 pointer-events-none 
+                ${
+                  focused === "email" || !!emailValue
+                    ? "top-0.5 text-xs bg-black px-1"
+                    : "top-3.5 text-sm text-gray-400"
+                }`}
+              >
+                Email
+              </label>
+              <input
+                {...emailRegister}              
+                className="w-full  text-sm px-4 pt-5 pb-2 rounded-lg bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+                onFocus={() => setFocused("email")}
+                onBlur={(e) => {
+    rhfOnBlur(e);        // important ✅
+    setFocused(null);    // your logic ✅
+  }}
+              
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <label
+                className={`absolute left-4 transition-all duration-200 pointer-events-none 
+                ${
+                  focused === "password" || !!passwordValue
+                    ? "top-0.5 text-xs bg-black px-1"
+                    : "top-3.5 text-sm text-gray-400"
+                }`}
+              >
+                Password
+              </label>
+              <input
+               {...passwordRegister}
+                className="w-full px-4 pt-5 pb-2 rounded-lg text-sm bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+                onFocus={() => setFocused("password")}
+                onBlur={(e) => {
+    passwordBlur(e);
+    setFocused(null);
+  }}
+              
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* Submit */}
+           <CustomButton 
+           text={"Register"}
+           className="w-full  h-11  text-sm font-medium"
+           loading={true}
+           loaderClasses="h-5.5 w-5.5"
+           />
+          </form>
+
+          <p className="text-center text-sm text-gray-400">
+            Already have an account?{" "}
+            <Link className="active:text-primary-foreground hover:text-primary-foreground" to="/login">Login here</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
