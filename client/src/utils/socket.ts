@@ -6,7 +6,7 @@ let socket: Socket | null = null;
 export const connectSocket = (userId: string) => {
   if (!socket) {
    const url =
-     import.meta.env.MODE === "development" ? "http://localhost:3000" : "/"; // production uses same origin
+     import.meta.env.MODE === "development" ? "http://localhost:4000" : "/"; // production uses same origin
 
    socket = io(url, {
      query: { userId },

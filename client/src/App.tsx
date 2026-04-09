@@ -36,21 +36,23 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ResendVerificationPage from "./pages/ResendVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import { useLazyGetCsrfTokenQuery } from "./services/authApi";
+import { useGetMeQuery, useLazyGetCsrfTokenQuery } from "./services/authApi";
 import { setCsrfToken } from "./redux/csrfSlice";
 
 const App = () => {
-  const { isSignedIn, isLoaded } = useUser();
-  const [syncUser, { isLoading: syncUserLoading }] = useSyncUserMutation();
+  
+
+    const { data, isLoading  } = useGetMeQuery(undefined);
   const { onlineUsers, connected } = useAppSelector((state) => state.socket);
- 
+ const user=  data?.user;
   const [getCsrfToken] = useLazyGetCsrfTokenQuery();
   const dispatch = useDispatch<AppDispatch>();
-  const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
-    skip: !isLoaded || !isSignedIn,
-  });
+
   // const { theme, setTheme } = useTheme();
-  const authUser = data?.user;
+
+  useEffect(() => {
+    console.log("Auth user:", user)
+  }, [user])
 useEffect(() => {
     const fetchCsrf = async () => {
       try {
@@ -64,17 +66,6 @@ useEffect(() => {
     fetchCsrf();
   }, []);
 
-  // useEffect(() => {
-  //   if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {
-  //     syncUser()
-  //       .unwrap()
-  //       .then(() => {
-  //         refetch(); // refetch after syncing
-  //       })
-  //       .catch(console.error);
-  //   }
-  // }, [isLoaded, isSignedIn, syncUserLoading, authUser, syncUser, refetch]);
-
   useEffect(() => {
     console.log("🟢 Redux socket state:", {
       connected,
@@ -83,9 +74,9 @@ useEffect(() => {
   }, [connected, onlineUsers]);
 
   useEffect(() => {
-    if (!authUser?._id) return;
+    if (!user?._id) return;
 
-    const socket = connectSocket(authUser._id);
+    const socket = connectSocket(user._id);
 
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
@@ -108,7 +99,7 @@ useEffect(() => {
       socket.off("getOnlineUsers");
       disconnectSocket();
     };
-  }, [authUser?._id, dispatch]);
+  }, [user?._id, dispatch]);
 
   // const handleTheme = () => {
   //   if (theme === "light") {
@@ -118,12 +109,10 @@ useEffect(() => {
   //   }
   // };
 
-  if (!isLoaded || isLoading || syncUserLoading) return <CenterLoading />;
+    if (isLoading) return <CenterLoading />
   return (
     <div className="h-screen ">
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
+     
      
         <div className="bg-muted  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
           {/* <button

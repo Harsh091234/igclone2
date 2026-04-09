@@ -28,7 +28,7 @@ export const sendTokenResponse = async (
   await user.save({ validateBeforeSave: false });
 
  const accessCookieOptions = {
-    expires: new Date(Date.now() + 15 * 60 * 1000), // 15 min
+    expires: new Date(Date.now() +  60 * 1000), // 15 min
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict" as const,
@@ -51,8 +51,6 @@ export const sendTokenResponse = async (
     .cookie("refresh_token", refreshToken, refreshCookieOptions)
     .json({
       success: true,
-      accessToken,
-      refreshToken,
       user: {
         id: user._id,
         fullName: user.fullName,

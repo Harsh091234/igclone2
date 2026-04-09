@@ -9,6 +9,8 @@ import crypto from "crypto";
 import { sendTokenResponse } from "../../config/sendTokenResponse.js";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { success } from "zod";
+import Message from "../conversation/message.model.js";
+import { sanitizeUser } from "../../config/sanitizeDocs.js";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -39,13 +41,13 @@ export const register = async (req: Request, res: Response) => {
     const html = getVerificationEmailTemplate(name, url);
 
     const subject = "Email Verification";
-
+    const safeUser = sanitizeUser(user);
     // for extra mailing safety
     try {
       await sendEmail(user.email, subject, html);
       return res
         .status(201)
-        .json({ success: true, message: "Check your email", user });
+        .json({ success: true, message: "Check your email", user: safeUser });
     } catch (error: any) {
       user.emailVerificationToken = undefined;
       user.emailVerificationTokenExpiresAt = undefined;
@@ -237,7 +239,12 @@ return res.status(200).json({success: true, message: "Password updated successfu
 
 export const getMe = async(req: Request, res: Response) => {
   try {
-    res.json({success: true, user: req.user});
+    const user = req.user;
+    if(!user) return res.status(401).json({success: false, message: "No user found in request"});
+ 
+     const safeUser = sanitizeUser(user);
+
+    res.status(200).json({success: true, user: safeUser});
   } catch (error: any) {
      console.log("error in getMe:", error.message);
     return res.status(500).json({ success: false, message: "Server Error" });
@@ -251,6 +258,7 @@ interface AuthTokenPayload {
 }
 
 export const refreshToken = async (req: Request, res: Response) => {
+  console.log("refresh token api hitted");
   try {
     const refreshToken = req.cookies.refresh_token || (req.headers?.authorization?.startsWith("Bearer")? req.headers.authorization.split("")[0] : null);
     if (!refreshToken)

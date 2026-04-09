@@ -1,5 +1,7 @@
 import { api } from "./api";
 
+
+
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
      register: builder.mutation({
@@ -42,6 +44,7 @@ export const authApi = api.injectEndpoints({
     method: "POST",
     body: {email}
   }),
+
 }),
 
 resetPassword: builder.mutation({
@@ -51,6 +54,12 @@ resetPassword: builder.mutation({
     body: { password },
   }),
 }),
+
+  getMe: builder.query({
+      query: () => "/auth/get-me",
+      providesTags: ["User"]
+    }), 
+
   getCsrfToken: builder.query({
       query: () => "/auth/csrf-token",
     }),
@@ -64,9 +73,16 @@ resetPassword: builder.mutation({
       }),
     }),
 
+      refreshToken: builder.mutation({
+      query: () => ({
+        url: "/auth/refresh-token",
+        method: "POST",
+      }),
+    }),
+
   }),
 });
 
 export const {useRegisterMutation, useLoginMutation, useVerifyEmailMutation, useResendVerificationUrlMutation, useForgotPasswordMutation,
-  useResetPasswordMutation, useLogoutMutation, useLazyGetCsrfTokenQuery
+  useResetPasswordMutation, useLogoutMutation, useLazyGetCsrfTokenQuery, useGetMeQuery, useRefreshTokenMutation
 } = authApi;

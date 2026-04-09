@@ -144,7 +144,7 @@ const {
   className="
     relative inline-block
     after:content-['']
-    after:absolute after:h-[1.5px]after:w-full
+    after:absolute after:h-[1.5px] after:w-full
     after:bg-white
     after:-bottom-0.5 after:right-0
     after:scale-x-0
