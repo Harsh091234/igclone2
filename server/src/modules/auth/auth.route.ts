@@ -35,7 +35,7 @@ router.post(
   resendVerificationUrl,
 );
 router.post("/login",authLimiter, validate(loginSchema), login);
-router.post("/logout",authLimiter, protectRoutes, logout);
+router.post("/logout",authLimiter, protectRoutes, csrfProtection, logout);
 router.post("/forgot-password",authLimiter, validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password/:token",authLimiter, validate(resetPasswordSchema), resetPassword);
 router.post("/refresh-token", authLimiter, refreshToken);

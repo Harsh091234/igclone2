@@ -60,6 +60,7 @@ resetPassword: builder.mutation({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
+        
       }),
     }),
 

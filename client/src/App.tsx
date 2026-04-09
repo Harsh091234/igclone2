@@ -36,18 +36,33 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ResendVerificationPage from "./pages/ResendVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import { useLazyGetCsrfTokenQuery } from "./services/authApi";
+import { setCsrfToken } from "./redux/csrfSlice";
 
 const App = () => {
   const { isSignedIn, isLoaded } = useUser();
   const [syncUser, { isLoading: syncUserLoading }] = useSyncUserMutation();
   const { onlineUsers, connected } = useAppSelector((state) => state.socket);
-
+ 
+  const [getCsrfToken] = useLazyGetCsrfTokenQuery();
   const dispatch = useDispatch<AppDispatch>();
   const { data, isLoading, refetch } = useGetAuthUserQuery(undefined, {
     skip: !isLoaded || !isSignedIn,
   });
   // const { theme, setTheme } = useTheme();
   const authUser = data?.user;
+useEffect(() => {
+    const fetchCsrf = async () => {
+      try {
+        const res = await getCsrfToken(undefined).unwrap();
+        dispatch(setCsrfToken(res.csrfToken));
+      } catch (err) {
+        console.log("CSRF fetch failed");
+      }
+    };
+
+    fetchCsrf();
+  }, []);
 
   // useEffect(() => {
   //   if (isLoaded && isSignedIn && !syncUserLoading && !authUser) {

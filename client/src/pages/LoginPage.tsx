@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import {Link} from "react-router-dom"
-import logo from "../assets/instagram.png";
-import text from "../assets/instagram_text.png";
+import {Link, useNavigate} from "react-router-dom"
+
 import CustomButton from "../components/CustomButton";
 import { useLazyGetCsrfTokenQuery } from "../services/authApi";
 import { useDispatch } from "react-redux";
@@ -19,6 +18,7 @@ export default function LoginPage() {
    const [showPassword, setShowPassword] = useState(false);
    const [getCsrfToken] = useLazyGetCsrfTokenQuery();
 const dispatch = useDispatch();
+const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -47,6 +47,7 @@ const {
 
        dispatch(setCsrfToken(csrfRes.csrfToken));
     toast.success("User authenticated successfully")
+    navigate("/");
 
 
   } catch (error: any) {
