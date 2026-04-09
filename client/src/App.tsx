@@ -32,6 +32,10 @@ import NotificationPage from "./pages/NotificationPage";
 import ExplorePage from "./pages/ExplorePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ResendVerificationPage from "./pages/ResendVerificationPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const App = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -155,15 +159,45 @@ const App = () => {
                 }
               />
               <Route
+                path="/verify-email/:token"
+                element={
+            
+                    <VerifyEmailPage/>
+              
+                }
+              />
+                 <Route
+                path="/resend-verification-url"
+                element={
+            
+                  <ResendVerificationPage />
+              
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+            
+                <ForgotPasswordPage />
+              
+                }
+              />
+              <Route
+                path="/reset-password/:token"
+                element={
+                  <ResetPasswordPage />
+                }
+              />
+              <Route
                 path="/sign-in/*"
                 element={<SignIn path="/sign-in" routing="path" />}
               />
               <Route
                 path="/"
                 element={
-                  <ProtectedRoutes>
+                
                     <FeedPage />
-                  </ProtectedRoutes>
+                 
                 }
               />
               

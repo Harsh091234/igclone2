@@ -8,6 +8,7 @@ interface PrimaryButtonProps {
   onClick?: () => void;
   type?: "button" | "submit";
   loaderClasses?: string;
+  disabled?: boolean;
 }
 
 const CustomButton: React.FC<PrimaryButtonProps> = ({
@@ -17,12 +18,13 @@ const CustomButton: React.FC<PrimaryButtonProps> = ({
   onClick,
   type = "button",
   loaderClasses = "h-4 w-4 ",
+  disabled
 }) => {
   return (
     <button
       type={type}
       onClick={onClick}
-      disabled={loading}
+      disabled={disabled}
       className={`
     rounded-lg text-primary-foreground
     bg-primary hover:bg-primary/90

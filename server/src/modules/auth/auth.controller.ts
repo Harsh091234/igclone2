@@ -180,7 +180,7 @@ export const logout = async (req: Request, res: Response) => {
 
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
-    console.log("hi from forgotpass");
+   
     const email = req.body.email;
     const user = await User.findOne({ email });
     if (!user)
@@ -189,7 +189,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const token = user.getForgotPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    const url = `${process.env.CLIENT_URL}/forgot-password/${token}`;
+    const url = `${process.env.CLIENT_URL}/reset-password/${token}`;
     const html = getForgotPasswordEmailTemplate(user.fullName, url);
 
     const subject = "Forgot password";
@@ -228,7 +228,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     
    await user.save();
-return res.status(401).json({success: true, message: "Password updated"});
+return res.status(200).json({success: true, message: "Password updated successfully"});
   } catch (error: any) {
     console.log("error in resetPassword:", error.message);
     return res.status(500).json({ success: false, message: "Server Error" });

@@ -4,15 +4,21 @@ import {Link} from "react-router-dom"
 import logo from "../assets/instagram.png";
 import text from "../assets/instagram_text.png";
 import CustomButton from "../components/CustomButton";
+import { useLazyGetCsrfTokenQuery } from "../services/authApi";
+import { useDispatch } from "react-redux";
+import { setCsrfToken } from "../redux/csrfSlice";
 
 import { loginSchema, type LoginFormData,} from "../schemas/auth.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useLoginMutation } from "../services/authApi";
+import LeftSectionStartPage from "../components/LeftSectionStartPage";
 export default function LoginPage() {
   const [login, {isLoading}] = useLoginMutation();
    const [showPassword, setShowPassword] = useState(false);
+   const [getCsrfToken] = useLazyGetCsrfTokenQuery();
+const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -36,6 +42,10 @@ const {
     const res = await login(data).unwrap();
 
     console.log("Success:", res);
+
+     const csrfRes = await getCsrfToken(undefined).unwrap();
+
+       dispatch(setCsrfToken(csrfRes.csrfToken));
     toast.success("User authenticated successfully")
 
 
@@ -49,21 +59,9 @@ const {
   const passwordValue = watch("password");
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-black text-white">
+    <div className="min-h-screen flex flex-col w-screen md:flex-row bg-black text-white">
       {/* Left Side (Image) */}
-      <div className="relative hidden md:flex md:w-1/2 items-center justify-center bg-white">
-        {/* Instagram Logo */}
-        <div className="absolute flex items-center gap-2 h-12 top-6 left-6 z-10">
-          <img className="h-full" src={logo} alt="instagram logo" />
-          <img className="h-12" src={text} alt="instagram logo" />
-        </div>
-
-        <img
-          src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
-          alt="Instagram style"
-          className="object-cover h-full w-full"
-        />
-      </div>
+      <LeftSectionStartPage />
 
       {/* Right Side (Form) */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">

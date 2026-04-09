@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {Link} from "react-router-dom"
-import logo from "../assets/instagram.png";
-import text from "../assets/instagram_text.png";
+
 import CustomButton from "../components/CustomButton";
 import { useRegisterMutation } from "../services/authApi";
 import { registerSchema, type RegisterFormData } from "../schemas/auth.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import LeftSectionStartPage from "../components/LeftSectionStartPage";
 export default function RegisterPage() {
    const [registerUser, { isLoading }] = useRegisterMutation();
    const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +16,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<RegisterFormData>({
       resolver: zodResolver(registerSchema),
@@ -33,13 +34,13 @@ const {
   const onSubmit = async (data: { email: string; password: string }) => {
   try {
     const res = await registerUser(data).unwrap();
-
+    reset();
     console.log("Success:", res);
     toast.success("User registered successfully")
 
 
   } catch (error: any) {
-    console.log("Error in registering user:", error.message || error?.data?.message);
+    console.log("Error in registering user:", error.message || error?.data?.message || "Something went wrong");
 
     
   }
@@ -48,22 +49,11 @@ const {
   const passwordValue = watch("password");
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-black text-white">
+    <div className="min-h-screen flex flex-col md:flex-row w-screen bg-black text-white">
       {/* Left Side (Image) */}
-      <div className="relative hidden md:flex md:w-1/2 items-center justify-center bg-white">
-        {/* Instagram Logo */}
-        <div className="absolute flex items-center gap-2 h-12 top-6 left-6 z-10">
-          <img className="h-full" src={logo} alt="instagram logo" />
-          <img className="h-12" src={text} alt="instagram logo" />
-        </div>
-
-        <img
-          src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
-          alt="Instagram style"
-          className="object-cover h-full w-full"
-        />
-      </div>
-
+    <LeftSectionStartPage
+      
+    />
       {/* Right Side (Form) */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">
         <div className="w-full max-w-md space-y-6">
