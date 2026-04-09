@@ -41,13 +41,11 @@ export const register = async (req: Request, res: Response) => {
     const html = getVerificationEmailTemplate(name, url);
 
     const subject = "Email Verification";
-    const safeUser = sanitizeUser(user);
+    
     // for extra mailing safety
     try {
       await sendEmail(user.email, subject, html);
-      return res
-        .status(201)
-        .json({ success: true, message: "Check your email", user: safeUser });
+     sendTokenResponse(user, 201, res);
     } catch (error: any) {
       user.emailVerificationToken = undefined;
       user.emailVerificationTokenExpiresAt = undefined;

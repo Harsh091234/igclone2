@@ -1,5 +1,6 @@
 import { access } from "fs";
 import jwt from "jsonwebtoken";
+import { sanitizeUser } from "./sanitizeDocs.js";
 
 export const sendTokenResponse = async (
   user: any,
@@ -28,7 +29,7 @@ export const sendTokenResponse = async (
   await user.save({ validateBeforeSave: false });
 
  const accessCookieOptions = {
-    expires: new Date(Date.now() +  60 * 1000), // 15 min
+    expires: new Date(Date.now() + 15* 60 * 1000), // 15 min
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict" as const,
@@ -44,19 +45,13 @@ export const sendTokenResponse = async (
   };
 
   
-
+  const safeUser = sanitizeUser(user);
   res
     .status(statusCode)
     .cookie("access_token", accessToken, accessCookieOptions)
     .cookie("refresh_token", refreshToken, refreshCookieOptions)
     .json({
       success: true,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified,
-      },
+      user:safeUser
     });
 };
