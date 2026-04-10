@@ -1,95 +1,50 @@
-import {
-  RedirectToSignIn,
-  SignedIn,
-  SignedOut,
-  SignIn,
-  useUser,
-} from "@clerk/clerk-react";
-import { useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
-import FeedPage from "./pages/FeedPage";
-import ProfilePage from "./pages/ProfilePage";
-import UserSetupPage from "./pages/UserSetupPage";
-import SettingsPage from "./pages/SettingsPage";
-import EditProfilePage from "./pages/SettingPages/EditProfilePage";
-import LeftSideBar from "./components/LeftSideBar";
-// import { useTheme } from "./utils/ThemeProvider";
-// import { Moon, Sun } from "lucide-react";
-import { useGetAuthUserQuery, useSyncUserMutation } from "./services/userApi";
-// import CenterLoading from "./components/CenterLoading";
-import NotFoundPage from "./pages/NotFoundPage";
-import CenterLoading from "./components/CenterLoading";
-import { ProtectedRoutes } from "./utils/ProtectedRoutes";
-import SettingsIndexRedirect from "./utils/SettingIndexRedirect";
-import ReelsPage from "./pages/ReelsPage";
-import MessagePage from "./pages/MessagePage";
 import { useDispatch } from "react-redux";
+import { useGetMeQuery, useLazyGetCsrfTokenQuery } from "./services/authApi";
 import type { AppDispatch } from "./store/store";
+import { useAppSelector } from "./utils/hooks";
+import { useEffect } from "react";
+import { setCsrfToken } from "./redux/csrfSlice";
 import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
-import { useAppSelector } from "./utils/hooks";
-import NotificationPage from "./pages/NotificationPage";
-import ExplorePage from "./pages/ExplorePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
-import ResendVerificationPage from "./pages/ResendVerificationPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import { useGetMeQuery, useLazyGetCsrfTokenQuery } from "./services/authApi";
-import { setCsrfToken } from "./redux/csrfSlice";
+import CenterLoading from "./components/CenterLoading";
+import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
-  
+  const { data, isLoading } = useGetMeQuery(undefined);
+  const user = data?.user;
 
-    const { data, isLoading  } = useGetMeQuery(undefined);
-  const { onlineUsers, connected } = useAppSelector((state) => state.socket);
- const user=  data?.user;
-  const [getCsrfToken] = useLazyGetCsrfTokenQuery();
   const dispatch = useDispatch<AppDispatch>();
+  const { onlineUsers, connected } = useAppSelector((state) => state.socket);
+  const [getCsrfToken] = useLazyGetCsrfTokenQuery();
 
-  // const { theme, setTheme } = useTheme();
-
+  // CSRF
   useEffect(() => {
-    console.log("Auth user:", user)
-  }, [user])
-useEffect(() => {
     const fetchCsrf = async () => {
       try {
         const res = await getCsrfToken(undefined).unwrap();
         dispatch(setCsrfToken(res.csrfToken));
-      } catch (err) {
+      } catch {
         console.log("CSRF fetch failed");
       }
     };
-
     fetchCsrf();
   }, []);
 
-  useEffect(() => {
-    console.log("🟢 Redux socket state:", {
-      connected,
-      onlineUsers,
-    });
-  }, [connected, onlineUsers]);
-
+  // Socket
   useEffect(() => {
     if (!user?._id) return;
 
     const socket = connectSocket(user._id);
 
     socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
       dispatch(setConnected(true));
     });
-    socket.on(
-      "getOnlineUsers",
-      (users: { userId: string; lastActive: number }[]) => {
-        const userMap: Record<string, number> = {};
-        users.forEach((u) => (userMap[u.userId] = u.lastActive));
-        dispatch(setOnlineUsers(userMap));
-      },
-    );
+
+    socket.on("getOnlineUsers", (users) => {
+      const map: Record<string, number> = {};
+      users.forEach((u: any) => (map[u.userId] = u.lastActive));
+      dispatch(setOnlineUsers(map));
+    });
 
     socket.on("disconnect", () => {
       dispatch(setConnected(false));
@@ -99,191 +54,11 @@ useEffect(() => {
       socket.off("getOnlineUsers");
       disconnectSocket();
     };
-  }, [user?._id, dispatch]);
+  }, [user?._id]);
 
-  // const handleTheme = () => {
-  //   if (theme === "light") {
-  //     setTheme("dark");
-  //   } else {
-  //     setTheme("light");
-  //   }
-  // };
+  if (isLoading) return <CenterLoading />;
 
-    if (isLoading) return <CenterLoading />
-  return (
-    <div className="h-screen ">
-     
-     
-        <div className="bg-muted  h-full grid grid-cols-1 items-start   lg:grid-cols-[60px_1fr] xl:grid-cols-[75px_1fr] overflow-hidden">
-          {/* <button
-            onClick={handleTheme}
-            className="
-    flex absolute bottom-10 right-10 z-50
-    items-center justify-center
-    px-3 py-3
-    rounded-full
-
-    bg-neutral-200 dark:bg-neutral-900
-    border border-neutral-300 dark:border-neutral-700
-    text-foreground
-   
-    shadow-lg 
-    hover:shadow-xl
-    active:shadow-inner
-
-    transition-all duration-300
-  "
-          >
-            {theme === "dark" ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button> */}
-
-          <LeftSideBar />
-
-          <div className="h-full">
-            <Routes>
-               <Route
-                path="/register"
-                element={
-            
-                    <RegisterPage/>
-              
-                }
-              />
-
-              <Route
-                path="/login"
-                element={
-            
-                    <LoginPage/>
-              
-                }
-              />
-              <Route
-                path="/verify-email/:token"
-                element={
-            
-                    <VerifyEmailPage/>
-              
-                }
-              />
-                 <Route
-                path="/resend-verification-url"
-                element={
-            
-                  <ResendVerificationPage />
-              
-                }
-              />
-              <Route
-                path="/forgot-password"
-                element={
-            
-                <ForgotPasswordPage />
-              
-                }
-              />
-              <Route
-                path="/reset-password/:token"
-                element={
-                  <ResetPasswordPage />
-                }
-              />
-              <Route
-                path="/sign-in/*"
-                element={<SignIn path="/sign-in" routing="path" />}
-              />
-              <Route
-                path="/"
-                element={
-                
-                    <FeedPage />
-                 
-                }
-              />
-              
-              <Route
-                path="/messages"
-                element={
-                  <ProtectedRoutes>
-                    <MessagePage />
-                  </ProtectedRoutes>
-                }
-              />
-
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoutes>
-                    <NotificationPage />
-                  </ProtectedRoutes>
-                }
-              />
-
-              <Route
-                path="/onboarding"
-                element={
-                  <ProtectedRoutes>
-                    <UserSetupPage />
-                  </ProtectedRoutes>
-                }
-              />
-
-              <Route
-                path="/profile/:name"
-                element={
-                  <ProtectedRoutes>
-                    <ProfilePage />
-                  </ProtectedRoutes>
-                }
-              />
-
-              <Route
-                path="/reels"
-                element={
-                  <ProtectedRoutes>
-                    <ReelsPage />
-                  </ProtectedRoutes>
-                }
-              />
-
-              <Route
-                path="/explore"
-                element={
-                  <ProtectedRoutes>
-                    <ExplorePage />
-                  </ProtectedRoutes>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoutes>
-                    <SettingsPage />
-                  </ProtectedRoutes>
-                }
-              >
-                {" "}
-                <Route index element={<SettingsIndexRedirect />} />
-                <Route
-                  path="edit-profile"
-                  element={
-                    <ProtectedRoutes>
-                      <EditProfilePage />
-                    </ProtectedRoutes>
-                  }
-                />
-              </Route>
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </div>
-        </div>
-  
-    </div>
-  );
+  return <AppRoutes />;
 };
 
 export default App;

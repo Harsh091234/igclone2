@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import {Link} from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
 
 import CustomButton from "../components/CustomButton";
 import { useRegisterMutation } from "../services/authApi";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
 export default function RegisterPage() {
+  const navigate = useNavigate();
    const [registerUser, { isLoading }] = useRegisterMutation();
    const [showPassword, setShowPassword] = useState(false);
   const {
@@ -36,8 +37,8 @@ const {
     const res = await registerUser(data).unwrap();
     reset();
     console.log("Success:", res);
-    toast.success("User registered successfully")
-
+    toast.success("User registered successfully");
+    navigate("/onboarding");
 
   } catch (error: any) {
     console.log("Error in registering user:", error.message || error?.data?.message || "Something went wrong");
@@ -49,7 +50,7 @@ const {
   const passwordValue = watch("password");
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row w-screen bg-black text-white">
+    <div className="min-h-screen flex flex-col md:flex-row w-screen ">
       {/* Left Side (Image) */}
     <LeftSectionStartPage
       
@@ -57,24 +58,32 @@ const {
       {/* Right Side (Form) */}
       <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">
         <div className="w-full max-w-md space-y-6">
-          <h1 className="text-3xl font-medium text-center">Register Account</h1>
+          <h1 className="text-3xl font-medium text-center ">Register Account</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
             <div className="relative">
               <label
-                className={`absolute left-4 transition-all duration-200 pointer-events-none 
-                ${
-                  focused === "email" || !!emailValue
-                    ? "top-0.5 text-xs bg-black px-1"
-                    : "top-3.5 text-sm text-gray-400"
-                }`}
+                className={`absolute left-4 transition-all duration-200 pointer-events-none
+${
+  focused === "email" || !!emailValue
+    ? "top-1 text-xs  px-1 "
+    : "top-3.5 text-sm text-muted-foreground"
+}`}
               >
                 Email
               </label>
               <input
                 {...emailRegister}              
-                className="w-full  text-sm px-4 pt-5 pb-2 rounded-lg bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+             className="
+w-full text-sm px-4 pt-5 pb-2 rounded-lg
+bg-muted/20
+border border-border/80
+text-foreground
+placeholder:text-muted-foreground
+transition-all duration-200
+focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+"
                 onFocus={() => setFocused("email")}
                 onBlur={(e) => {
     rhfOnBlur(e);        // important ✅
@@ -91,13 +100,14 @@ const {
             </div>
 
             {/* Password */}
-            <div className="relative">
-              <label
+            <div >
+             <div className="relative">
+<label
                 className={`absolute left-4 transition-all duration-200 pointer-events-none 
                 ${
                   focused === "password" || !!passwordValue
-                    ? "top-0.5 text-xs bg-black px-1"
-                    : "top-3.5 text-sm text-gray-400"
+                    ? "top-0.5 text-xs px-1"
+                    : "top-3.5 text-sm text-muted-foreground"
                 }`}
               >
                 Password
@@ -105,7 +115,15 @@ const {
               <input
                 type={showPassword ? "text" : "password"} 
                {...passwordRegister}
-                className="w-full  px-4 pt-5 pb-2 rounded-lg text-sm bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+                className="
+w-full text-sm px-4 pt-5 pb-2 rounded-lg
+bg-muted/20
+border border-border/80
+text-foreground
+placeholder:text-muted-foreground
+transition-all duration-200
+focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+"
                 onFocus={() => setFocused("password")}
                 onBlur={(e) => {
     passwordBlur(e);
@@ -116,10 +134,12 @@ const {
               <button
   type="button"
   onClick={() => setShowPassword((prev) => !prev)}
-  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
 >
   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
 </button>
+             </div>
+              
               {errors.password && (
   <p className="text-red-500 text-xs font-medium mt-1">
     {errors.password.message}
@@ -131,33 +151,32 @@ const {
            <CustomButton 
            type="submit"
            text={"Register"}
-           className="w-full  h-11  text-sm font-medium"
+           className="w-full  h-11   font-semibold"
            loading={isLoading}
            loaderClasses="h-5.5 w-5.5"
            />
           </form>
 
-          <p className="text-center text-sm text-gray-400">
-            Already have an account?{" "}
-           <Link
-  to="/login"
-  className="
-    relative inline-block
-    after:content-['']
-    after:absolute after:h-[1.5px] after:w-full
-    after:bg-white
-    after:-bottom-0.5 after:right-0
-    after:scale-x-0
-    after:origin-right
-    after:transition-transform after:duration-300
-    hover:after:scale-x-100
-    hover:text-white
-    hover:after:origin-left
-  "
->
-  Login 
-</Link>
-          </p>
+         <p className="text-center text-sm text-muted-foreground">
+  Already have an account?{" "}
+  <Link
+    to="/login"
+    className="
+      relative inline-block text-foreground
+      after:content-['']
+      after:absolute after:h-[1.5px] after:w-full
+      after:bg-foreground
+      after:-bottom-0.5 after:right-0
+      after:scale-x-0
+      after:origin-right
+      after:transition-transform after:duration-300
+      hover:after:scale-x-100
+      hover:after:origin-left
+    "
+  >
+    Login
+  </Link>
+</p>
         </div>
       </div>
     </div>

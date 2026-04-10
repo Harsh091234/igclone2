@@ -17,12 +17,12 @@ import CreatePostModal from "./modals/CreatePostModal";
 
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
-  const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
-    useState<boolean>(false);
-  const { data } = useGetAuthUserQuery();
-  const authUser = data?.user;
-  if (!authUser) return;
+  // const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
+  // const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
+  //   useState<boolean>(false);
+  // const { data } = useGetAuthUserQuery();
+  // const authUser = data?.user;
+  // if (!authUser) return;
 
   return (
     <aside className="w-full bg-card lg:h-screen h-0">
@@ -67,18 +67,18 @@ const LeftSideBar = () => {
           <Home className="w-6 h-6" />
         </Link>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsSearchPanelOpen(!isSearchPanelOpen);
-          }}
+          // onClick={(e) => {
+          //   e.stopPropagation();
+          //   setIsSearchPanelOpen(!isSearchPanelOpen);
+          // }}
           className=""
         >
           <Search className="w-6 h-6" />
         </button>
-        <SearchPanel
+        {/* <SearchPanel
           isSearchPanelOpen={isSearchPanelOpen}
           onClose={() => setIsSearchPanelOpen(false)}
-        />
+        /> */}
         <Link to="/explore" className="">
           <Compass className="w-6 h-6" />
         </Link>
@@ -91,12 +91,17 @@ const LeftSideBar = () => {
         <Link to="/notifications" className="">
           <Heart className="w-6 h-6" />
         </Link>
-        <button onClick={() => setIsCreatePostModelOpen(true)} className="">
+        <button
+        //  onClick={() => setIsCreatePostModelOpen(true)} 
+         className="">
           <Plus className="w-6 h-6" />
         </button>
 
         {/* Profile Pic */}
-        <Link to={`/profile/${authUser?.userName}`}>
+        {/* {/* <Link 
+        // to={`/profile/${authUser?.userName}`
+        // }
+        > 
           <img
             src={
               authUser?.profilePic ||
@@ -105,7 +110,7 @@ const LeftSideBar = () => {
             className="w-7 h-7 rounded-full object-cover "
             alt="profile"
           />
-        </Link>
+        </Link> */}
 
         {/* Menu / Settings */}
         <button className="mt-auto" onClick={() => setIsOpen(!isOpen)}>
@@ -133,17 +138,17 @@ const LeftSideBar = () => {
           <Film className="w-5 h-5" />
         </Link>
 
-        <button
+        {/* <button
           onClick={() => setIsCreatePostModelOpen(true)}
           className="flex items-center justify-center p-2"
         >
           <Plus className="w-5 h-5" />
-        </button>
+        </button> */}
 
         <Link to="/messages" className="flex items-center justify-center p-2">
           <Send className="w-5 h-5" />
         </Link>
-
+{/* 
         <Link
           to={`/profile/${authUser?.userName}`}
           className="flex items-center justify-center p-1"
@@ -156,15 +161,15 @@ const LeftSideBar = () => {
             className="w-6 h-6 rounded-full object-cover"
             alt="profile"
           />
-        </Link>
+        </Link> */}
       </div>
 
-      {isCreatePostModelOpen && (
+      {/* {isCreatePostModelOpen && (
         <CreatePostModal
           isOpen={isCreatePostModelOpen}
           onClose={() => setIsCreatePostModelOpen(false)}
         />
-      )}
+      )} */}
     </aside>
   );
 };

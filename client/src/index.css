@@ -194,8 +194,11 @@ body::-webkit-scrollbar {
   /* change div to reference your elements you put in <Masonry> */
   margin-bottom: 10px;
 }
-
-input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px black inset !important;
-  -webkit-text-fill-color: white !important;
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--muted) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground);
+  border: 1px solid var(--border);
 }
