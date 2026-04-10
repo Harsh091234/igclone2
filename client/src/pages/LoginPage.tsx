@@ -60,12 +60,12 @@ const {
   const passwordValue = watch("password");
 
   return (
-    <div className="min-h-screen flex flex-col w-screen md:flex-row bg-black text-white">
+    <div className="h-screen flex flex-col w-screen md:flex-row">
       {/* Left Side (Image) */}
       <LeftSectionStartPage />
 
       {/* Right Side (Form) */}
-      <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">
+      <div className="flex h-full  w-full md:flex-1 items-center justify-center px-8 py-10">
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-medium text-center">Login Account</h1>
 
@@ -73,18 +73,26 @@ const {
             {/* Email */}
             <div className="relative">
               <label
-                className={`absolute left-4 transition-all duration-200 pointer-events-none 
-                ${
-                  focused === "email" || !!emailValue
-                    ? "top-0.5 text-xs bg-black px-1"
-                    : "top-3.5 text-sm text-gray-400"
-                }`}
+                className={`absolute left-4 transition-all duration-200 pointer-events-none
+${
+  focused === "email" || !!emailValue
+    ? "top-1 text-xs  px-1 "
+    : "top-3.5 text-sm text-muted-foreground"
+}`}
               >
                 Email
               </label>
               <input
                 {...emailRegister}              
-                className="w-full  text-sm px-4 pt-5 pb-2 rounded-lg bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
+                 className="
+w-full text-sm px-4 pt-5 pb-2 rounded-lg
+bg-muted/20
+border border-border/80
+text-foreground
+placeholder:text-muted-foreground
+transition-all duration-200
+focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+"
                 onFocus={() => setFocused("email")}
                 onBlur={(e) => {
     rhfOnBlur(e);        // important ✅
@@ -102,68 +110,96 @@ const {
 
             {/* Password */}
             <div className="relative">
-              <label
-                className={`absolute left-4 transition-all duration-200 pointer-events-none 
-                ${
-                  focused === "password" || !!passwordValue
-                    ? "top-0.5 text-xs bg-black px-1"
-                    : "top-3.5 text-sm text-gray-400"
-                }`}
-              >
-                Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"} 
-               {...passwordRegister}
-                className="w-full  px-4 pt-5 pb-2 rounded-lg text-sm bg-black border border-gray-700 focus:ring focus:ring-white outline-none"
-                onFocus={() => setFocused("password")}
-                onBlur={(e) => {
-    passwordBlur(e);
-    setFocused(null);
-  }}
-              
-              />
-              <button
-  type="button"
-  onClick={() => setShowPassword((prev) => !prev)}
-  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
->
-  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-</button>
+             <div className="relative">
+            <label
+                            className={`absolute left-4 transition-all duration-200 pointer-events-none 
+                            ${
+                              focused === "password" || !!passwordValue
+                                ? "top-0.5 text-xs px-1"
+                                : "top-3.5 text-sm text-muted-foreground"
+                            }`}
+                          >
+                            Password
+                          </label>
+                          <input
+                            type={showPassword ? "text" : "password"} 
+                           {...passwordRegister}
+                            className="
+            w-full text-sm px-4 pt-5 pb-2 rounded-lg
+            bg-muted/20
+            border border-border/80
+            text-foreground
+            placeholder:text-muted-foreground
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+            "
+                            onFocus={() => setFocused("password")}
+                            onBlur={(e) => {
+                passwordBlur(e);
+                setFocused(null);
+              }}
+                          
+                          />
+                          <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+                         </div>
               {errors.password && (
   <p className="text-red-500 text-xs font-medium mt-1">
     {errors.password.message}
   </p>
 )}
+<div className="text-right mt-1">
+ <Link
+    to="/forgot-password"
+    className="
+      relative inline-block text-foreground text-xs
+      after:content-['']
+      after:absolute after:h-[1px] after:w-full
+      after:bg-foreground
+      after:-bottom-0.5 after:right-0
+      after:scale-x-0
+      after:origin-right
+      after:transition-transform after:duration-300
+      hover:after:scale-x-100
+      hover:after:origin-left
+    "
+  >
+    Forgot password?
+  </Link>
+</div>
             </div>
 
             {/* Submit */}
            <CustomButton 
            type="submit"
            text="Login"
-           className="w-full  h-11  text-sm font-medium"
+           className="w-full  h-11  text-sm   font-semibold"
            loading={isLoading}
            loaderClasses="h-5.5 w-5.5"
            />
           </form>
 
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-muted-foreground">
             New to instagram?{" "}
            <Link
   to="/register"
-  className="
-    relative inline-block
-    after:content-['']
-    after:absolute after:h-[1.5px] after:w-full
-    after:bg-white
-    after:-bottom-0.5 after:right-0
-    after:scale-x-0
-    after:origin-right
-    after:transition-transform after:duration-300
-    hover:after:scale-x-100
-    hover:text-white
-    hover:after:origin-left
-  "
+ className="
+      relative inline-block text-foreground
+      after:content-['']
+      after:absolute after:h-[1.5px] after:w-full
+      after:bg-foreground
+      after:-bottom-0.5 after:right-0
+      after:scale-x-0
+      after:origin-right
+      after:transition-transform after:duration-300
+      hover:after:scale-x-100
+      hover:after:origin-left
+    "
 >
   Register 
 </Link>

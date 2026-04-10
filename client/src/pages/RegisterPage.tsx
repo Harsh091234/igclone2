@@ -41,6 +41,7 @@ const {
     navigate("/onboarding");
 
   } catch (error: any) {
+    toast.error(error.data.message)
     console.log("Error in registering user:", error.message || error?.data?.message || "Something went wrong");
 
     
@@ -50,13 +51,13 @@ const {
   const passwordValue = watch("password");
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row w-screen ">
+    <div className="h-screen flex flex-col md:flex-row w-screen ">
       {/* Left Side (Image) */}
     <LeftSectionStartPage
       
     />
       {/* Right Side (Form) */}
-      <div className="flex w-full md:w-1/2 items-center justify-center px-8 py-10">
+      <div className="flex w-full h-full  md:flex-1 items-center justify-center px-8 py-10">
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-medium text-center ">Register Account</h1>
 
@@ -86,8 +87,8 @@ focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
 "
                 onFocus={() => setFocused("email")}
                 onBlur={(e) => {
-    rhfOnBlur(e);        // important ✅
-    setFocused(null);    // your logic ✅
+    rhfOnBlur(e);        
+    setFocused(null);   
   }}
               
               />
