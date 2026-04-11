@@ -23,9 +23,9 @@ export const authApi = api.injectEndpoints({
       query: (token: string) => ({
         url: `/auth/verify/${token}`,
         method: "POST",
-  
+        
       }),
-      
+      invalidatesTags: ["User"]
     }),
 
     resendVerificationUrl: builder.mutation({

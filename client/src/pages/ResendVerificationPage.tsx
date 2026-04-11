@@ -6,20 +6,31 @@ import { resendVerificationUrlSchema, type resendVerificationUrlType } from "../
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useResendVerificationUrlMutation } from "../services/authApi";
 import { useEffect, useState } from "react";
+import LeftSectionStartPage from "../components/LeftSectionStartPage";
 
 const ResendVerificationPage = () => {
     const [resendVerificationUrl, {isLoading, isSuccess, isError}] = useResendVerificationUrlMutation();
     const [cooldown, setCooldown] = useState(0); // seconds
     const [message, setMessage] = useState<string | null>(null);
+
 const [type, setType] = useState<"success" | "error" | null>(null);
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors},
   } = useForm<resendVerificationUrlType>({
     resolver: zodResolver(resendVerificationUrlSchema),
   });
+
+      const {
+  onBlur: rhfOnBlur,
+  ...emailRegister
+} = register("email");
+
+const emailValue = watch("email");
+const [focused, setFocused] = useState<"email" | null>(null);
 
   useEffect(() => {
   if (cooldown <= 0) return;
@@ -36,6 +47,8 @@ const [type, setType] = useState<"success" | "error" | null>(null);
     await resendVerificationUrl(data).unwrap();
       reset();
         setCooldown(30);
+          setMessage(`Verification link sent to ${data.email}`);
+    setType("success");
     } catch (err: any) {
         const seconds = err?.data?.retryAfter;
    if (seconds) {
@@ -56,62 +69,87 @@ const [type, setType] = useState<"success" | "error" | null>(null);
   }, 5000);
   };
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
-      <Card className="w-full max-w-md shadow-lg border border-gray-200 dark:border-gray-800">
-        <CardContent className="py-6 px-10 ">
+    <div className="h-screen flex">
+      <LeftSectionStartPage />
+
+      <div className="flex w-full h-full flex-col md:flex-1 items-center justify-center px-6 py-10">
+    
+  
+     
+        
+        <h1 className="text-3xl font-medium mb-8 text-center">
+          Resend Verification Url
+        </h1>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-sm">
           
-          <h1 className="text-2xl font-semibold  mb-8 text-center text-gray-900 dark:text-gray-100">
-            Resend Verification Url
-          </h1>
+          {/* Email Field */}
+         <div className="relative">
+  <label
+    className={`absolute left-4 transition-all duration-200 pointer-events-none
+    ${
+      focused === "email" || !!emailValue
+        ? "top-1 text-xs px-1"
+        : "top-3.5 text-sm text-muted-foreground"
+    }`}
+  >
+    Email
+  </label>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            
-            {/* Email Field */}
-            <div>
-              <input
-             
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"
-               {...register("email")}
-              />
+  <input
+    {...emailRegister}
+    className="
+      w-full text-sm px-4 pt-5 pb-2 rounded-lg
+      bg-muted/20
+      border border-border/80
+      text-foreground
+      placeholder:text-muted-foreground
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+    "
+    onFocus={() => setFocused("email")}
+    onBlur={(e) => {
+      rhfOnBlur(e);
+      setFocused(null);
+    }}
+  />
 
-              {errors.email && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+  {errors.email && (
+    <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
+      {errors.email.message}
+    </p>
+  )}
+</div>
 
-            {/* Submit Button */}
-            <CustomButton 
+          {/* Submit Button */}
+          <CustomButton 
             loading={isLoading}
             loaderClasses="h-6 w-6"
-              text={
-    cooldown > 0
-      ? `Try again in ${cooldown}s`
-      : "Submit"
-  }
-            className="w-full h-10 "
+            text={
+              cooldown > 0
+                ? `Try again in ${cooldown}s`
+                : "Submit"
+            }
+            className="w-full h-10 font-semibold"
             type="submit"
             disabled={cooldown > 0 || isLoading}
-            />
-          </form>
+          />
+        </form>
 
-          {
-  message && (
-    <p
-      className={`mt-3 text-sm font-medium text-center ${
-        type === "success"
-          ? "text-green-600 dark:text-green-400"
-          : "text-red-600 dark:text-red-400"
-      }`}
-    >
-      {message}
-    </p>
-  )
-}
-        </CardContent>
-      </Card>
+        {message && (
+          <p
+          className={`mt-3 text-sm font-medium text-center transition-all duration-300 ${
+    type === "success"
+      ? "text-green-600 dark:text-green-400"
+      : "text-red-600 dark:text-red-400"
+  }`}
+          >
+            {message}
+          </p>
+        )}
+   
+    
+  </div>
     </div>
   );
 }

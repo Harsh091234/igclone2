@@ -4,7 +4,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import EditProfilePage from "../pages/SettingPages/EditProfilePage";
 import SettingsIndexRedirect from "../utils/SettingIndexRedirect";
 import SettingsPage from "../pages/SettingsPage";
-import { ProtectedRoutes } from "../utils/ProtectedRoutes";
+
 import UserSetupPage from "../pages/UserSetupPage";
 import ExplorePage from "../pages/ExplorePage";
 import ReelsPage from "../pages/ReelsPage";
@@ -18,41 +18,64 @@ import ResendVerificationPage from "../pages/ResendVerificationPage";
 import VerifyEmailPage from "../pages/VerifyEmailPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import CheckEmailPage from "../pages/CheckEmailPage";
+import { ProtectedRoutes } from "./ProtectedRoutes";
+import { PublicOnlyRoute } from "./PublicOnlyRoutes";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* PUBLIC ROUTES */}
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-      <Route path="/resend-verification-url" element={<ResendVerificationPage />} />
+      {/* PUBLIC ONLY ROUTES */}
+      <Route path="/register" element={
+        <PublicOnlyRoute>
+         <RegisterPage />
+          </PublicOnlyRoute>
+        } />
+      <Route path="/login" element={
+         <PublicOnlyRoute>
+          <LoginPage />
+           </PublicOnlyRoute> 
+        } />
+      
+
+
+    {/* SHARED ROUTES */}
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+    
 
       {/* MAIN APP (WITH SIDEBAR) */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<FeedPage />} />
+      {/* PROTECTED ROUTES */}
+<Route element={<ProtectedRoutes />}>
+  <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+      <Route path="/resend-verification-url" element={<ResendVerificationPage />} />
+      <Route path="/check-email" element={<CheckEmailPage />} />
+    
 
+</Route>
+   
+      <Route element={<ProtectedRoutes> <MainLayout /></ProtectedRoutes>   }>
+        <Route path="/" element={<FeedPage />} />
+       
         <Route
           path="/messages"
-          element={<ProtectedRoutes><MessagePage /></ProtectedRoutes>}
+          element={<MessagePage />}
         />
         <Route
           path="/notifications"
-          element={<ProtectedRoutes><NotificationPage /></ProtectedRoutes>}
+          element={<NotificationPage />}
         />
         <Route
           path="/profile/:name"
-          element={<ProtectedRoutes><ProfilePage /></ProtectedRoutes>}
+          element={<ProfilePage />}
         />
         <Route
           path="/reels"
-          element={<ProtectedRoutes><ReelsPage /></ProtectedRoutes>}
+          element={<ReelsPage />}
         />
         <Route
           path="/explore"
-          element={<ProtectedRoutes><ExplorePage /></ProtectedRoutes>}
+          element={<ExplorePage />}
         />
         <Route
           path="/onboarding"
@@ -62,15 +85,17 @@ const AppRoutes = () => {
         {/* SETTINGS */}
         <Route
           path="/settings"
-          element={<ProtectedRoutes><SettingsPage /></ProtectedRoutes>}
+          element={<SettingsPage />}
         >
           <Route index element={<SettingsIndexRedirect />} />
           <Route path="edit-profile" element={<EditProfilePage />} />
         </Route>
+
+           {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<NotFoundPage />} />
+     
     </Routes>
   );
 };

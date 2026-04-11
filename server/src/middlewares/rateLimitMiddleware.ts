@@ -48,11 +48,11 @@ const createLimiter = (max: number, message: string) =>
 
 // ✅ Use different configs
 export const apiLimiter = createLimiter(
-  50,
+  200,
   "Too many requests."
 );
 
 export const authLimiter = createLimiter(
-  6,
+  100,
   "Too many attempts."
 );

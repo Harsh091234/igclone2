@@ -9,11 +9,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
+import type { AppDispatch } from "../store/store";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/authSlice";
 export default function RegisterPage() {
   const navigate = useNavigate();
-   const [registerUser, { isLoading }] = useRegisterMutation();
+   const [registerUser, { isLoading, data }] = useRegisterMutation();
    const [showPassword, setShowPassword] = useState(false);
-  const {
+ const dispatch = useDispatch<AppDispatch>();
+   const {
     register,
     handleSubmit,
     watch,
@@ -35,13 +39,15 @@ const {
   const onSubmit = async (data: { email: string; password: string }) => {
   try {
     const res = await registerUser(data).unwrap();
+    console.log("res in register:", res)
+       dispatch(setUser(res?.user)); 
     reset();
     console.log("Success:", res);
     toast.success("User registered successfully");
-    navigate("/onboarding");
+    navigate("/check-email");
 
   } catch (error: any) {
-    toast.error(error.data.message)
+    toast.error(error?.data?.message)
     console.log("Error in registering user:", error.message || error?.data?.message || "Something went wrong");
 
     

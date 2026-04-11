@@ -3,12 +3,15 @@ import socketReducer from '../redux/socketSlice'
 import { api } from '../services/api'
 import notificationReducer from "../redux/noticationSlice"
 import csrfReducer from "../redux/csrfSlice"
+import authReducer from "../redux/authSlice"
+
 export const store = configureStore({
   reducer: {
     [api.reducerPath]: api.reducer,
     socket: socketReducer,
     notifications: notificationReducer,
     csrf: csrfReducer,
+    auth: authReducer,
    
   },
   middleware: (getDefaultMiddleware) =>

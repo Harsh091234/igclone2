@@ -3,18 +3,33 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { useNavigate, useParams } from "react-router-dom";
 import { useVerifyEmailMutation } from "../services/authApi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const VerifyEmailPage = () => {
  const navigate = useNavigate();
   const { token } = useParams();
-
+const [redirectTime, setRedirectTime] = useState(3);
 
    const [verifyEmail, { isLoading, isSuccess, isError }] =
     useVerifyEmailMutation();
 
 
    const demoVar = true;
+
+   useEffect(() => {
+  if (!isSuccess) return;
+
+  if (redirectTime <= 0) {
+    navigate("/onboarding");
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    setRedirectTime((prev) => prev - 1);
+  }, 1000);
+
+  return () => clearTimeout(timer);
+}, [isSuccess, redirectTime]);
 
 useEffect(() => {
   const verify = async () => {
@@ -67,12 +82,11 @@ useEffect(() => {
                 Your email has been verified. You can now continue.
               </p>
 
-              <Button
-                onClick={() => navigate("/")}
-                className="w-full bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900"
-              >
-                Go to Home
-              </Button>
+           
+    {/* ⏱️ Countdown text */}
+    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      Redirecting to onboarding in {redirectTime}s...
+    </p>
             </>
           )}
 

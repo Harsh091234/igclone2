@@ -21,10 +21,18 @@ const ForgotPasswordPage = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ForgotPasswordType>({
     resolver: zodResolver(forgotPasswordSchema),
   });
+
+ const {
+    onBlur: rhfOnBlur,
+    ...emailRegister
+  } = register("email");
+  const emailValue = watch("email");
+  const [focused, setFocused] = useState<"email" | null>(null);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -62,53 +70,83 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6 space-y-4">
-          <h1 className="text-xl font-semibold text-center">
-            Forgot Password
-          </h1>
+    <div className="min-h-screen w-screen flex items-center justify-center">
+     <Card className="w-full max-w-md shadow-lg border border-gray-200 dark:border-gray-800">
+  <CardContent className="p-8 space-y-6">
+    
+    {/* Heading */}
+    <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-gray-100">
+      Forgot Password
+    </h1>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <input
-              {...register("email")}
-              placeholder="Enter your email"
-                className="w-full px-4 py-2 border rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"
-            />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      
+      {/* ✅ Floating Email Field */}
+      <div className="relative">
+        <label
+          className={`absolute left-4 transition-all duration-200 pointer-events-none
+          ${
+            focused === "email" || !!emailValue
+              ? "top-1 text-xs px-1 "
+              : "top-3.5 text-sm text-muted-foreground"
+          }`}
+        >
+          Email
+        </label>
 
-            {errors.email && (
-              <p className="text-red-500 text-sm">
-                {errors.email.message}
-              </p>
-            )}
+        <input
+          {...emailRegister}
+          className="
+            w-full text-sm px-4 pt-5 pb-2 rounded-lg
+            bg-muted/20
+            border border-border/80
+            text-foreground
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-primary focus:border-ring
+          "
+          onFocus={() => setFocused("email")}
+          onBlur={(e) => {
+            rhfOnBlur(e);
+            setFocused(null);
+          }}
+        />
 
-            <CustomButton
-              type="submit"
-              loading={isLoading}
-              text={
-                cooldown > 0
-                  ? `Try again in ${formatTimeVerbose(cooldown)}`
-                  : "Send Reset Link"
-              }
-              disabled={cooldown > 0 || isLoading}
-              className="w-full h-10"
-              loaderClasses="h-6 w-6"
-            />
-          </form>
+        {errors.email && (
+          <p className="text-red-500 text-xs mt-2 ml-1 font-medium">
+            {errors.email.message}
+          </p>
+        )}
+      </div>
 
-          {message && (
-            <p
-              className={`text-center text-sm ${
-                type === "success"
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {/* ✅ Submit Button */}
+      <CustomButton
+        type="submit"
+        loading={isLoading}
+        text={
+          cooldown > 0
+            ? `Try again in ${formatTimeVerbose(cooldown)}`
+            : "Send Reset Link"
+        }
+        disabled={cooldown > 0 || isLoading}
+        className="w-full h-11 font-semibold"
+        loaderClasses="h-5 w-5"
+      />
+
+      {/* ✅ Message (RIGHT PLACE) */}
+      {message && (
+        <p
+          className={`text-center text-sm font-medium transition-all duration-300 ${
+            type === "success"
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {message}
+        </p>
+      )}
+    </form>
+  </CardContent>
+</Card>
     </div>
   );
 };
