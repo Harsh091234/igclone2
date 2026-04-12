@@ -10,15 +10,40 @@ import {
   viewStory,
 } from "./story.controller.js";
 import express from "express";
+import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
+import { protectRoutes } from "../../middlewares/protectRoutes.js";
+import { csrfProtection } from "../../config/csrfProtection.js";
+import { authorize } from "../../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/create", requireAuth(), upload.single("media"), createStory);
-router.get("/get-all", requireAuth(), getStories);
-router.get("/get", requireAuth(), getSingleUserStories);
-router.post("/view/:storyId", requireAuth(), viewStory);
+router.post("/create",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  upload.single("media"), createStory);
+router.get("/get-all",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  getStories);
+router.get("/get", apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), getSingleUserStories);
+router.post("/view/:storyId",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  viewStory);
 
-router.post("/like/:storyId", requireAuth(), likeStory);
-router.get("/get-views/:storyId", requireAuth(), getStoryViews);
-router.delete("/delete/:storyId", requireAuth(), deleteStory);
+router.post("/like/:storyId",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  likeStory);
+router.get("/get-views/:storyId",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  getStoryViews);
+router.delete("/delete/:storyId",apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),  deleteStory);
 export default router;

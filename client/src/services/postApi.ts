@@ -1,6 +1,7 @@
 import type { Post, Reel } from "../types/post.types";
 import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
+import { authApi } from "./authApi";
 import { userApi } from "./userApi";
 
 export const postApi = api.injectEndpoints({
@@ -365,18 +366,18 @@ export const postApi = api.injectEndpoints({
       }),
 
       //Optimistic
-      async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+      async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
         const patches = [];
-
+        const state:any= getState();
         // AUTH USER
         patches.push(
           dispatch(
-            userApi.util.updateQueryData("getAuthUser", undefined, (draft) => {
+            authApi.util.updateQueryData("getMe", undefined, (draft) => {
               if (!draft.user) return;
 
               const bookmarks = draft.user.bookmarks ?? [];
               const index = bookmarks.findIndex(
-                (id) => id.toString() === postId.toString(),
+                (id:any) => id.toString() === postId.toString(),
               );
 
               if (index !== -1) bookmarks.splice(index, 1);
@@ -386,14 +387,20 @@ export const postApi = api.injectEndpoints({
         );
 
         // PROFILE POSTS
-        patches.push(
-          dispatch(
-            postApi.util.updateQueryData("getUserPosts", undefined, (draft) => {
-              const post = draft.posts?.find((p: Post) => p._id === postId);
-              if (post) post.isBookmarked = !post.isBookmarked;
-            }),
-          ),
-        );
+        Object.values(state.api.queries).forEach((query: any) => {
+    const args = query.originalArgs;
+
+    if (query.endpointName === "getUserPosts") {
+      patches.push(
+        dispatch(
+          postApi.util.updateQueryData("getUserPosts", args, (draft) => {
+            const post = draft.posts?.find((p: Post) => p._id === postId);
+            if (post) post.isBookmarked = !post.isBookmarked;
+          })
+        )
+      );
+    }
+  });
 
         try {
           await queryFulfilled;

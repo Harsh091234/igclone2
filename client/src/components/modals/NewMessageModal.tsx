@@ -26,7 +26,9 @@ const NewMessageModal = ({
     skip: !searchTerm.trim(),
   });
 
-  const users = searchData?.users;
+  const users = searchData?.users?.filter(
+  (user: SearchUser) => user._id !== authUserId
+);
 
   const toggleUser = (user: SearchUser) => {
     setSelectedUsers((prev) => {
@@ -145,16 +147,7 @@ const NewMessageModal = ({
           <button
             disabled={selectedUsers.length === 0}
             onClick={() => {
-              //  Check self selection
-              const isSelfSelected = selectedUsers.some(
-                (u) => u._id === authUserId,
-              );
-
-              if (isSelfSelected) {
-                setError("You cannot message yourself");
-                return;
-              }
-
+             
               setError("");
               onStartChat(selectedUsers);
               startChat();

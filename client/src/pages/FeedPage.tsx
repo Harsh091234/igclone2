@@ -84,7 +84,7 @@ export default function FeedPage() {
     (group: any) => group.user._id !== authUser?._id,
   );
 
-  console.log("stories", storyGroups);
+  
   const navigate = useNavigate();
 
   const handleCloseStoryViewer = () => {
@@ -427,6 +427,7 @@ export default function FeedPage() {
           isStoryOwner={activeGroup?.user._id === authUser?._id}
           onPrevGroup={goToPrevGroup}
           onAllStoriesEnd={goToNextGroup}
+          userName={authUser.userName}
         />
       }
     </div>

@@ -68,7 +68,7 @@ const SelectedChat = ({
     if (!socket || !user?._id || !authUserId) return;
 
     const handleNewMessage = (message: any) => {
-      console.log("📩 NEW MESSAGE RECEIVED (socket):", message);
+    
       const senderId = message.senderId._id;
       const receiverId = message.receiverId._id;
       const isBetweenTheseUsers =

@@ -95,7 +95,16 @@ const ReelsPage = () => {
                 <ReelSkeleton />
               </CarouselItem>
             ))}
-          {!isReelLoading &&
+
+            {!isReelLoading && reels?.length === 0 && (
+  <div className="h-full w-full flex items-center justify-center text-center">
+    <p className="text-sm sm:text-base text-muted-foreground">
+      No reels available
+    </p>
+  </div>
+)}
+
+          {!isReelLoading &&  reels?.length > 0 &&
             reels.map((reel: Reel) => {
               isLiked = reel.likes?.some(
                 (id) => id === authUser?._id.toString(),

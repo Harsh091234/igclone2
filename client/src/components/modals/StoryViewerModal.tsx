@@ -10,6 +10,8 @@ import {
   useLikeStoryMutation,
   useViewStoryMutation,
 } from "../../services/storyApi";
+import { useNavigate } from "react-router-dom";
+import AnimatedLink from "../AnimatedLink";
 
 interface TextLayer {
   _id: string;
@@ -46,6 +48,7 @@ interface Props {
   initialIndex: number;
   authUserId: string;
   onPrevGroup?: () => void;
+  userName: string;
   onAllStoriesEnd?: () => void;
 }
 
@@ -56,6 +59,7 @@ export default function StoryViewerModal({
   isStoryOwner,
   initialIndex,
   authUserId,
+  userName,
   onPrevGroup,
   onAllStoriesEnd,
 }: Props) {
@@ -67,7 +71,7 @@ export default function StoryViewerModal({
   const viewersCount =
     viewsData?.viewers?.length ?? currentStory?.viewersCount ?? 0;
   const [deleteStory, { isLoading: deletingStory }] = useDeleteStoryMutation();
-
+  const navigate = useNavigate();
   const viewers =
     viewsData?.viewers?.map((view: any) => ({
       id: view.user._id,
@@ -196,11 +200,9 @@ export default function StoryViewerModal({
       {/* Header */}
       <div className="flex items-center justify-between  p-2 text-primary">
         <div className="flex items-center gap-3 ">
-          <UserAvatar user={currentStory.user} classes="w-10 h-10" />
+          <UserAvatar onClick={() => navigate(`/profile/${currentStory.user.userName}`)} user={currentStory.user} classes="w-10 h-10" />
           <div>
-            <p className="text-sm font-semibold">
-              {currentStory.user.userName}
-            </p>
+            <AnimatedLink path={`/profile/${currentStory.user.userName}`} text={currentStory.user.userName} className="mb-1 text-sm font-medium" />
             <p className="text-xs text-secondary-foreground">
               {" "}
               {`${formatTimeAgo(currentStory.createdAt)}   `}
@@ -224,7 +226,7 @@ export default function StoryViewerModal({
         <div
           className={`relative w-full max-w-screen sm:max-w-sm h-full max-h-full md:max-h-[43rem]
   bg-black overflow-hidden sm:rounded-xl transition-all duration-300 ease-out
-  ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"}
+  ${isAnimating ? "opacity-0 " : "opacity-100"}
 `}
         >
           {isStoryOwner && (
@@ -244,28 +246,26 @@ export default function StoryViewerModal({
               )}
             </button>
           )}
-
-          <div className="absolute top-2 left-0 right-0 px-2 flex items-center gap-1 z-50">
-            {stories.map((_, i) => (
-              <div
-                key={i}
-                className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden"
-              >
-                <div
-                  className="h-full bg-white transition-all duration-150 ease-linear"
-                  style={{
-                    width:
-                      i < currentIndex
-                        ? "100%"
-                        : i === currentIndex
-                          ? `${progress}%`
-                          : "0%",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          {/* Click Areas */}
+<div className="absolute top-2 left-0 right-0 px-2 flex items-center gap-1.5 z-50">
+  {stories.map((_, i) => (
+    <div
+      key={i}
+      className="flex-1 h-[4px] bg-black/25 rounded-full overflow-hidden backdrop-blur-[2px] flex items-center"
+    >
+      <div
+        className="h-[2.5px] bg-white/90 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.4)] transition-all duration-150 ease-linear"
+        style={{
+          width:
+            i < currentIndex
+              ? "100%"
+              : i === currentIndex
+              ? `${progress}%`
+              : "0%",
+        }}
+      />
+    </div>
+  ))}
+</div>    {/* Click Areas */}
           <div className="absolute inset-0 z-40 pointer-events-none">
             <div
               onClick={goPrev}
@@ -358,7 +358,7 @@ export default function StoryViewerModal({
                   handleLike();
                 }}
                 disabled={isLiking}
-                className="flex ml-auto active:scale-90 z-50 transition"
+                className="flex ml-auto  z-50 "
               >
                 <Heart
                   size={22}

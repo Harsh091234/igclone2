@@ -25,11 +25,11 @@ export async function createStory(req: Request, res: Response) {
         fontSize: layer.fontSize || 18,
       }));
     }
-    // const { userId: clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
+
+  
     const file = req.file;
 
-    if (!clerkId) return res.status(401).json({ message: "Unauthenticated" });
+  
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -56,7 +56,7 @@ export async function createStory(req: Request, res: Response) {
       mediaUrl = cloudResponse.secure_url;
       publicId = cloudResponse.public_id;
     }
-    const user = await User.findOne({ clerkId });
+    const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(400).json({ message: "No auth user found" });
     }
@@ -82,8 +82,8 @@ export async function createStory(req: Request, res: Response) {
 
 export async function getStories(req: Request, res: Response) {
   try {
-    const { userId: clerkId } = req.auth!();
-    const user = await User.findOne({ clerkId });
+
+       const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(400).json({ message: "No auth user found" });
     }
@@ -138,10 +138,9 @@ export async function getStories(req: Request, res: Response) {
 
 export async function getSingleUserStories(req: Request, res: Response) {
   try {
-    // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
 
-    const user = await User.findOne({ clerkId }).select("userName profilePic");
+   
+       const user = await User.findById(req.user?._id).select("userName profilePic");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -183,9 +182,9 @@ export async function viewStory(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
 
-    // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
-    const user = await User.findOne({ clerkId });
+
+
+      const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -239,10 +238,10 @@ export async function viewStory(req: Request, res: Response) {
 export async function getStoryViews(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
-    // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
 
-    const user = await User.findOne({ clerkId });
+
+
+   const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -289,9 +288,9 @@ export async function getStoryViews(req: Request, res: Response) {
 export async function likeStory(req: Request, res: Response) {
   try {
     const { storyId } = req.params;
-    // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
-    const user = await User.findOne({ clerkId });
+   
+ 
+   const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -389,11 +388,9 @@ export async function likeStory(req: Request, res: Response) {
 
 export async function deleteStory(req: Request, res: Response) {
   try {
-    console.log("hello from delete story ");
+  
     const { storyId } = req.params;
-    // const { clerkId } = req.body;
-    const { userId: clerkId } = req.auth!();
-    const user = await User.findOne({ clerkId });
+       const user = await User.findById(req.user?._id)
     if (!user) {
       return res.status(401).json({
         success: false,

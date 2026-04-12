@@ -19,8 +19,8 @@ import { useGetMeQuery } from "../services/authApi";
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
-  // const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
-  //   useState<boolean>(false);
+  const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
+    useState<boolean>(false);
   const { data } = useGetMeQuery(undefined);
   const authUser = data?.user;
   if (!authUser) return;
@@ -93,7 +93,7 @@ const LeftSideBar = () => {
           <Heart className="w-6 h-6" />
         </Link>
         <button
-        //  onClick={() => setIsCreatePostModelOpen(true)} 
+         onClick={() => setIsCreatePostModelOpen(true)} 
          className="">
           <Plus className="w-6 h-6" />
         </button>
@@ -139,12 +139,12 @@ const LeftSideBar = () => {
           <Film className="w-5 h-5" />
         </Link>
 
-        {/* <button
+         <button
           onClick={() => setIsCreatePostModelOpen(true)}
           className="flex items-center justify-center p-2"
         >
           <Plus className="w-5 h-5" />
-        </button> */}
+        </button> 
 
         <Link to="/messages" className="flex items-center justify-center p-2">
           <Send className="w-5 h-5" />
@@ -165,12 +165,12 @@ const LeftSideBar = () => {
         </Link> */}
       </div>
 
-      {/* {isCreatePostModelOpen && (
+       {isCreatePostModelOpen && (
         <CreatePostModal
           isOpen={isCreatePostModelOpen}
           onClose={() => setIsCreatePostModelOpen(false)}
         />
-      )} */}
+      )} 
     </aside>
   );
 };

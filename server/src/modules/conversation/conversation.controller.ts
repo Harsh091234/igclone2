@@ -23,9 +23,7 @@ const getMediaType = (mimetype: string) => {
 
 export const createMessage = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-    //  const { clerkId } = req.body;
-    const sender = await User.findOne({ clerkId });
+   const sender = await User.findById(req.user?._id);
     if (!sender)
       return res
         .status(400)
@@ -143,9 +141,8 @@ export const createMessage = async (req: Request, res: Response) => {
 
 export const getAllMessages = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-    // const { clerkId } = req.body;
-    const sender = await User.findOne({ clerkId });
+  
+    const sender = await User.findById(req.user?._id);
     if (!sender)
       return res
         .status(400)
@@ -202,9 +199,8 @@ export const getAllMessages = async (req: Request, res: Response) => {
 
 export const getLastMessages = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-    // const {clerkId} = req.body;
-    const authUser = await User.findOne({ clerkId });
+ 
+    const authUser = await User.findById(req.user?._id);
     if (!authUser) {
       return res.status(400).json({
         success: false,

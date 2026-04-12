@@ -13,10 +13,10 @@ import redis from "../../config/redis.js";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
+   
     const { caption } = req.body;
 
-    const authUser = await User.findOne({ clerkId });
+    const authUser = await User.findById(req.user?._id);
     if (!authUser) {
       return res.status(401).json({ message: "No auth user found" });
     }
@@ -117,15 +117,15 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const toggleLikePost = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
+   
     const { id } = req.params; //post id
 
-    const authUser = await User.findOne({ clerkId });
-    if (!authUser)
-      return res.status(401).json({
+    const authUser = await User.findById(req.user?._id);
+     if(!authUser) return res.status(401).json({
         success: false,
         message: "Auth user not found",
       });
+
     const post = await Post.findById(id);
     if (!post)
       return res.status(400).json({
@@ -217,11 +217,11 @@ export const toggleLikePost = async (req: Request, res: Response) => {
 
 export const commentPost = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
+   
     const { id } = req.params; //post id
     const { text } = req.body;
 
-    const authUser = await User.findOne({ clerkId });
+const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res.status(401).json({
         success: false,
@@ -294,11 +294,11 @@ export const commentPost = async (req: Request, res: Response) => {
 
 export const deleteComment = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
+   
     const { id: commentId } = req.params;
 
-    // Auth user
-    const authUser = await User.findOne({ clerkId });
+
+const authUser = await User.findById(req.user?._id);
     if (!authUser) {
       return res.status(401).json({
         success: false,
@@ -372,11 +372,11 @@ export const deleteComment = async (req: Request, res: Response) => {
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; //post id
-    const { userId: clerkId } = req.auth!();
 
-    console.log("user id", clerkId);
-    const authUser = await User.findOne({ clerkId: clerkId });
-    console.log("user", authUser);
+
+  
+    const authUser = await User.findById(req.user?._id);
+
     if (!authUser)
       return res.status(401).json({
         message: "No auth user found",
@@ -417,7 +417,7 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const toggleBookmarkPost = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
+
     const { id } = req.params; //post id
 
     const post = await Post.findById(id);
@@ -426,7 +426,7 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
         message: "No post found",
       });
 
-    const authUser = await User.findOne({ clerkId });
+ const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res.status(401).json({
         message: "No auth user found",

@@ -94,7 +94,7 @@ const ExplorePage = () => {
   }, [isFetching]);
   useEffect(() => {
     if (postData?.posts) {
-      console.log("adding 10 more items");
+   
       setAllPosts((prev) => {
         const newPosts = postData.posts.filter(
           (newPost: any) => !prev.some((p) => p._id === newPost._id),

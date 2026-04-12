@@ -10,7 +10,7 @@ import {
   followOrUnfollowUser,
 } from "./user.controller.js";
 import { validate } from "../../middlewares/validate.middleware.js";
-import { requireAuth } from "@clerk/express";
+
 import { Router } from "express";
 import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
 import { protectRoutes } from "../../middlewares/protectRoutes.js";
