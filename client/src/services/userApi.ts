@@ -20,12 +20,6 @@ export const userApi = api.injectEndpoints({
       }),
     }),
 
-    getAuthUser: builder.query<SyncUserResponse, void>({
-      query: () => ({
-        url: "/user/get-auth-user",
-      }),
-      providesTags: ["User"],
-    }),
 
     getProfileUser: builder.query<SyncUserResponse, string>({
       query: (name) => ({
@@ -37,7 +31,7 @@ export const userApi = api.injectEndpoints({
     editProfile: builder.mutation<SyncUserResponse, FormData>({
       query: (body) => ({
         url: "/user/edit-profile",
-        method: "PUT",
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["User"],
@@ -69,7 +63,7 @@ export const userApi = api.injectEndpoints({
 
 export const {
   useSyncUserMutation,
-  useGetAuthUserQuery,
+
   useEditProfileMutation,
   useGetProfileUserQuery,
   useLazySearchUsersQuery,

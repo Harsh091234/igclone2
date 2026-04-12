@@ -15,7 +15,7 @@ import type { Reel } from "../types/post.types";
 import ReelSkeleton from "../components/Skeletons/ReelSkeleton";
 import {
   useFollowOrUnfollowUsersMutation,
-  useGetAuthUserQuery,
+
   useGetProfileUserQuery,
 } from "../services/userApi";
 import UserAvatar from "../components/UserAvatar";
@@ -25,13 +25,14 @@ import { useState } from "react";
 import ReelOptionsModal from "../components/modals/ReelOptionsModal";
 import CommentPostModal from "../components/modals/CommentPostModal";
 import AccountInfoModal from "../components/modals/AccountInfoModal";
+import { useGetMeQuery } from "../services/authApi";
 
 const ReelsPage = () => {
   const { isLoading: isReelLoading, data: reelData } =
     useGetAllReelsQuery(undefined);
 
   const navigate = useNavigate();
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
   const authUser = authData?.user;
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();

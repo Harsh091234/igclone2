@@ -7,7 +7,7 @@ interface ErrorMessageProps{
 const ErrorMessage = ({text}: ErrorMessageProps) => {
   return (
     <div>
-        <p className="text-red-400 text-xs">
+        <p className="text-red-500 text-xs">
         {text}
         </p>
     </div>

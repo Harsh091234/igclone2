@@ -1,6 +1,7 @@
 import { Loader, Trash2 } from "lucide-react";
 import { formatTimeAgo } from "../utils/timeFormatter";
-import { useGetAuthUserQuery } from "../services/userApi";
+import { useGetMeQuery } from "../services/authApi";
+
 
 export interface CommentProps {
   text: string;
@@ -24,7 +25,7 @@ const Comment = ({
   onDelete,
   isDeleting,
 }: CommentProps) => {
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
   const authUser = authData?.user;
 
   const isAuthUserComment = author._id === authUser?._id;

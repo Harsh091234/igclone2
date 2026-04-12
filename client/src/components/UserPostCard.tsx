@@ -8,7 +8,7 @@ import {
   useToggleBookmarkPostMutation,
   useToggleLikePostMutation,
 } from "../services/postApi";
-import { useGetAuthUserQuery } from "../services/userApi";
+
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CommentPostModal from "./modals/CommentPostModal";
@@ -22,13 +22,14 @@ import {
   CarouselPrevious,
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
+import { useGetMeQuery } from "../services/authApi";
 
 interface PostCardProps {
   post: Post;
 }
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
 
   const authUser = authData?.user;
   const navigate = useNavigate();

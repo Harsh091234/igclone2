@@ -1,5 +1,5 @@
 import  { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../utils/ThemeProvider";
 import {
   Settings,
@@ -13,6 +13,8 @@ import {
   Moon,
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
+import { useLogoutMutation } from "../../services/authApi";
+import toast from "react-hot-toast";
 
 interface MoreMenuProps {
     isOpen: boolean,
@@ -21,12 +23,20 @@ interface MoreMenuProps {
 
 export default function MoreMenu({ isOpen, onClose }: MoreMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const {signOut} = useClerk()
+   const [logout] = useLogoutMutation();
+  
+  const navigate = useNavigate();
 const { theme, setTheme } = useTheme();
-  const onHandleLogout = () => {
-    onClose?.();
-    signOut();
+ const handleLogout = async () => {
+  try {
+    await logout(undefined).unwrap();
+    console.log("Logged out");
+    navigate("/login");
+  } catch (err: any) {
+    toast.error("Error logging out");
+    console.log("Error logging out:", err?.data?.message || "Something went wrong!");
   }
+};
   
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -157,7 +167,7 @@ const { theme, setTheme } = useTheme();
 
        {/* Destructive Logout Button */}
        <button
-         onClick={onHandleLogout}
+         onClick={handleLogout}
          className="
       flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg
       text-destructive

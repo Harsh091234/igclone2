@@ -1,12 +1,13 @@
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import {
-  useGetAuthUserQuery,
+
   useGetProfileUserQuery,
 } from "../../services/userApi";
 import { useDeletePostMutation } from "../../services/postApi";
 import AccountInfoModal from "./AccountInfoModal";
 import { useState } from "react";
+import { useGetMeQuery } from "../../services/authApi";
 
 const PostActionDivider = () => <div className="h-px bg-border" />;
 
@@ -53,7 +54,7 @@ export const PostMenuModal = ({
   postId,
 }: PostMenuModalProps) => {
   const [deletePost] = useDeletePostMutation();
-  const { data: userData } = useGetAuthUserQuery();
+  const { data: userData } = useGetMeQuery(undefined);
   const authUser = userData?.user;
   const isOwner = postOwnerName === authUser?.userName;
   const [isAccountInfoOpen, setIsAccountInfoOpen] = useState<boolean>(false);

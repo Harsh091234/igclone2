@@ -9,8 +9,9 @@ import {
 import Masonry from "react-masonry-css";
 import CommentPostModal from "../components/modals/CommentPostModal";
 import { useNavigate } from "react-router-dom";
-import { useGetAuthUserQuery } from "../services/userApi";
+
 import toast from "react-hot-toast";
+import { useGetMeQuery } from "../services/authApi";
 const ExplorePage = () => {
   const [bookmarkPost, { isLoading: isBookmarking }] =
     useToggleBookmarkPostMutation();
@@ -24,7 +25,7 @@ const ExplorePage = () => {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [currentAuthorName, setCurrentAuthorName] = useState<string>("");
   const [likePost, { isLoading: isLikeLoading }] = useToggleLikePostMutation();
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
 
   const { isFetching, data: postData } = useGetAllPostsQuery(page);
   const isFetchingRef = useRef(false);

@@ -9,7 +9,7 @@ import {
   useCreateMessageMutation,
   useGetAllMessagesQuery,
 } from "../services/conversationApi";
-import { useGetAuthUserQuery } from "../services/userApi";
+
 import toast from "react-hot-toast";
 import MessageBubble from "./MessageBubble";
 import { getSocket } from "../utils/socket";
@@ -17,6 +17,7 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
 import type { Message } from "../types/conversation.types";
 import MessageSkeleton from "./Skeletons/MessageSkeleton";
+import { useGetMeQuery } from "../services/authApi";
 
 interface SelectedChatProps {
   onClose: () => void;
@@ -53,7 +54,7 @@ const SelectedChat = ({
     useGetAllMessagesQuery(user._id);
   const messages = messagesData?.messages ?? [];
 
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
   const authUserId = authData?.user?._id;
   const MAX_MEDIA_FILES = 5;
   const [previews, setPreviews] = useState<PreviewItem[]>([]);

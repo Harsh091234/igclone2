@@ -4,67 +4,18 @@ import User from "./user.model.js";
 
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { clerkClient } from "@clerk/express";
+
 import { convertToBase64 } from "../../config/convertToBase64.js";
 import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
 import { getReceiverSocketId, io } from "../../socket/socket.js";
 import Notification from "../notification/notification.model.js";
 
-export const syncUser = async (req: Request, res: Response) => {
-  try {
-    const { userId: clerkId } = req.auth!();
 
-    if (!clerkId) return res.status(401).json({ message: "Not authenticated" });
-
-    let clerkUser;
-    try {
-      clerkUser = await clerkClient.users.getUser(clerkId);
-    } catch (err: any) {
-      // 🔥 Clerk user deleted / not found
-      if (err?.status === 404) {
-        // Optional: cleanup DB user
-        return res.status(401).json({
-          success: false,
-          user: null,
-          message: "Clerk user not found",
-        });
-      }
-
-      throw err; // other Clerk errors
-    }
-
-    const email = clerkUser.primaryEmailAddress?.emailAddress;
-
-    if (!email)
-      return res.status(400).json({ message: "Email not found in clerk db" });
-    let user = await User.findOne({ clerkId });
-
-    if (!user) {
-      user = await User.create({
-        clerkId,
-        email,
-      });
-    }
-
-    return res.status(201).json({ success: true, user });
-  } catch (error) {
-    console.error("Error storing user:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
 
 export const getAuthUser = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-
-    if (!clerkId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await User.findOne({ clerkId })
+    
+    const user = await User.findById(req.user?._id)
       .populate("following", "userName fullName profilePic")
       .populate("followers", "userName fullName profilePic");
 
@@ -112,9 +63,9 @@ export const getProfile = async (req: Request, res: Response) => {
 
 export const editProfile = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-
-    const user = await User.findOne({ clerkId });
+    
+   
+    const user = await User.findById(req.user?._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const profileComplete = user.isProfileComplete;
@@ -185,16 +136,13 @@ export const searchUsers = async (req: Request, res: Response) => {
 
 export const getSuggestedUsers = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-
+  
+  
     const { limit } = req.query;
-    if (!clerkId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
+    
     const count = Number(limit) || 14;
     const suggestedUsers = await User.aggregate([
-      { $match: { clerkId: { $ne: clerkId } } },
+      { $match: { _id : { $ne: req.user?._id } } },
       { $sample: { size: count } },
       {
         $project: {
@@ -223,11 +171,7 @@ export const getSuggestedUsers = async (req: Request, res: Response) => {
 
 export const followOrUnfollowUser = async (req: Request, res: Response) => {
   try {
-    const { userId: clerkId } = req.auth!();
-
-    if (!clerkId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+    
 
     const targetUserId = req.params.id.trim();
 
@@ -235,7 +179,8 @@ export const followOrUnfollowUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user id" });
     }
 
-    const authUser = await User.findOne({ clerkId });
+    const authUser = await User.findById(req.user?._id);
+    
     const targetUser = await User.findById(targetUserId);
     if (!authUser || !targetUser) {
       return res.status(400).json({ message: "User not found" });

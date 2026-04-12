@@ -15,8 +15,9 @@ import ChatListSkeleton from "../components/Skeletons/ChatListSkeleton";
 import { useAppSelector } from "../utils/hooks";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
-import { useGetAuthUserQuery } from "../services/userApi";
+
 import { getSocket } from "../utils/socket";
+import { useGetMeQuery } from "../services/authApi";
 
 const MessagePage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,7 +33,7 @@ const MessagePage = () => {
   const conversations = lastChatData?.conversations;
 
   const { onlineUsers } = useAppSelector((state) => state.socket);
-  const { data: authData } = useGetAuthUserQuery();
+  const { data: authData } = useGetMeQuery(undefined);
   const authUserId = authData?.user?._id;
   const ONLINE_THRESHOLD = 2 * 60 * 1000; // 2 minutes
 

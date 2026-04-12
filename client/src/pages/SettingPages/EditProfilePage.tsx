@@ -5,7 +5,7 @@ import CustomButton from "../../components/CustomButton";
 import { useNavigate } from "react-router-dom";
 import {
   useEditProfileMutation,
-  useGetAuthUserQuery,
+ 
 } from "../../services/userApi";
 import { useForm } from "react-hook-form";
 import {
@@ -15,9 +15,10 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EditProfileData } from "../../types/user.types";
 import { ChevronLeft } from "lucide-react";
+import { useGetMeQuery } from "../../services/authApi";
 
 const EditProfilePage = () => {
-  const { data } = useGetAuthUserQuery();
+  const { data } = useGetMeQuery(undefined);
   const [editProfile, { isLoading }] = useEditProfileMutation();
   const [preview, setPreview] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);

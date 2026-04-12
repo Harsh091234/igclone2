@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useGetAuthUserQuery } from "../../services/userApi";
+
 import UserAvatar from "../UserAvatar";
 import { ImagePlus } from "lucide-react";
 import { useCreatePostMutation } from "../../services/postApi";
@@ -12,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
+import { useGetMeQuery } from "../../services/authApi";
 
 export interface CreatePostModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
   const [step, setStep] = useState<CreatePostStep>("SELECT");
   const [media, setMedia] = useState<SelectedMedia[]>([]);
   const [caption, setCaption] = useState<string>("");
-  const { data } = useGetAuthUserQuery();
+  const { data } = useGetMeQuery(undefined);
   const authUser = data?.user;
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [createPost, { isLoading }] = useCreatePostMutation();

@@ -2,14 +2,19 @@ import React from 'react'
 import { useLogoutMutation } from '../services/authApi';
 import CustomButton from '../components/CustomButton';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../store/store';
+import { setUser } from '../redux/authSlice';
 
 const LogoutButton = () => {
   const [logout, {isLoading}] = useLogoutMutation();
+  const dispatch = useDispatch<AppDispatch>();
 const navigate = useNavigate();
 const handleLogout = async () => {
   try {
-    await logout(undefined).unwrap();
+    const res = await logout(undefined).unwrap();
     console.log("Logged out");
+    dispatch(setUser(null));
     navigate("/login");
   } catch (err: any) {
     console.log("Error logging out:", err?.data?.message || "Something went wrong!");

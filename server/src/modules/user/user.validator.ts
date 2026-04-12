@@ -20,8 +20,8 @@ export const editProfileSchema = z.object({
   gender: z
     .string()
     .min(1, "Gender is required")
-    .max(30, "Gender too long")
-    .optional(),
+    .max(30, "Gender too long"),
+    
 
   profilePic: z.string().optional(),
 });

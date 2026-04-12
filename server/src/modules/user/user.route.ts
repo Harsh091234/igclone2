@@ -4,7 +4,7 @@ import {
   editProfile,
   getAuthUser,
   getProfile,
-  syncUser,
+
   searchUsers,
   getSuggestedUsers,
   followOrUnfollowUser,
@@ -12,20 +12,40 @@ import {
 import { validate } from "../../middlewares/validate.middleware.js";
 import { requireAuth } from "@clerk/express";
 import { Router } from "express";
+import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
+import { protectRoutes } from "../../middlewares/protectRoutes.js";
+import { csrfProtection } from "../../config/csrfProtection.js";
+import { authorize } from "@/middlewares/roleMiddleware.js";
 
 const router = Router();
-router.put(
+router.patch(
   "/edit-profile",
-  requireAuth(),
+  apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"),
+ 
   upload.single("profilePic"),
   validate(editProfileSchema),
   editProfile,
 );
-router.post("/sync-user", requireAuth(), syncUser);
-router.get("/get-auth-user", requireAuth(), getAuthUser);
-router.get("/profile/:name", requireAuth(), getProfile);
-router.get("/search", requireAuth(), searchUsers);
-router.get("/fetch-suggested-users", requireAuth(), getSuggestedUsers);
-router.post("/follow-unfollow/:id", requireAuth(), followOrUnfollowUser);
+
+
+router.get("/profile/:name", apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), getProfile);
+router.get("/search",  apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), searchUsers);
+router.get("/fetch-suggested-users",  apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), getSuggestedUsers);
+router.post("/follow-unfollow/:id",  apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), followOrUnfollowUser);
 
 export default router;

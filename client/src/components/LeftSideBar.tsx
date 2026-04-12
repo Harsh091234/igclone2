@@ -12,17 +12,18 @@ import {
 import { Link } from "react-router-dom";
 import MoreMenu from "./panels/MoreMenu";
 import SearchPanel from "./panels/SearchPanel";
-import { useGetAuthUserQuery } from "../services/userApi";
+
 import CreatePostModal from "./modals/CreatePostModal";
+import { useGetMeQuery } from "../services/authApi";
 
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  // const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState<boolean>(false);
   // const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
   //   useState<boolean>(false);
-  // const { data } = useGetAuthUserQuery();
-  // const authUser = data?.user;
-  // if (!authUser) return;
+  const { data } = useGetMeQuery(undefined);
+  const authUser = data?.user;
+  if (!authUser) return;
 
   return (
     <aside className="w-full bg-card lg:h-screen h-0">
@@ -67,18 +68,18 @@ const LeftSideBar = () => {
           <Home className="w-6 h-6" />
         </Link>
         <button
-          // onClick={(e) => {
-          //   e.stopPropagation();
-          //   setIsSearchPanelOpen(!isSearchPanelOpen);
-          // }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsSearchPanelOpen(!isSearchPanelOpen);
+          }}
           className=""
         >
           <Search className="w-6 h-6" />
         </button>
-        {/* <SearchPanel
+        <SearchPanel
           isSearchPanelOpen={isSearchPanelOpen}
           onClose={() => setIsSearchPanelOpen(false)}
-        /> */}
+        />
         <Link to="/explore" className="">
           <Compass className="w-6 h-6" />
         </Link>

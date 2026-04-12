@@ -13,11 +13,13 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useLoginMutation } from "../services/authApi";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
+import type { AppDispatch } from "../store/store";
+import { setUser } from "../redux/authSlice";
 export default function LoginPage() {
   const [login, {isLoading}] = useLoginMutation();
    const [showPassword, setShowPassword] = useState(false);
    const [getCsrfToken] = useLazyGetCsrfTokenQuery();
-const dispatch = useDispatch();
+const dispatch = useDispatch<AppDispatch>();
 const navigate = useNavigate();
   const {
     register,
@@ -41,7 +43,7 @@ const {
   try {
     const res = await login(data).unwrap();
 
-    console.log("Success:", res);
+   dispatch(setUser(res?.user));
 
      const csrfRes = await getCsrfToken(undefined).unwrap();
 

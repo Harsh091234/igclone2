@@ -68,9 +68,12 @@ resetPassword: builder.mutation({
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
+
+        
         method: "POST",
         
       }),
+       invalidatesTags: ["User"]
     }),
 
       refreshToken: builder.mutation({

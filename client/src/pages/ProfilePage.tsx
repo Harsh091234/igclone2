@@ -6,7 +6,7 @@ import PostCard from "../components/PostCard";
 
 import {
   useFollowOrUnfollowUsersMutation,
-  useGetAuthUserQuery,
+  
   useGetProfileUserQuery,
 } from "../services/userApi";
 
@@ -27,6 +27,7 @@ import CommentPostModal from "../components/modals/CommentPostModal";
 import toast from "react-hot-toast";
 import FollowingModal from "../components/modals/FollowingModal";
 import FollowersModal from "../components/modals/FollowersModal";
+import { useGetMeQuery } from "../services/authApi";
 // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
 const getLimit = () => {
@@ -47,7 +48,7 @@ const ProfilePage = () => {
   const postBlockRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
   const navigate = useNavigate();
-  const { data: authData, isLoading: isAuthLoading } = useGetAuthUserQuery();
+  const { data: authData, isLoading: isAuthLoading } = useGetMeQuery(undefined);
   const { data: profileData, isLoading: isProfileLoading } =
     useGetProfileUserQuery(name);
   const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
@@ -92,7 +93,7 @@ const ProfilePage = () => {
   const isFollowing = user?.followers?.some(
     (follower) => follower._id.toString() === authUser?._id,
   );
-  console.log("isfollowing", isFollowing, user);
+
   const displayPosts =
     activeTab === "reels" ? (reelsData?.reels ?? []) : (postData?.posts ?? []);
   const activePost = displayPosts.find((p: Post) => p._id === activePostId);
