@@ -8,7 +8,7 @@ import notificationRoutes from "./modules/notification/notification.route.js";
 import storyRoutes from "./modules/story/story.route.js";
 import authRoutes from "./modules/auth/auth.route.js";
 import cors from "cors";
-import { clerkMiddleware } from "@clerk/express";
+
 import path from "node:path";
 import { app, server } from "./socket/socket.js";
 import cookieParser from "cookie-parser";
@@ -26,7 +26,7 @@ app.use(
   }),
 ) ;
 
-// app.use(clerkMiddleware());
+
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(urlencoded({ limit: "10mb", extended: true }));

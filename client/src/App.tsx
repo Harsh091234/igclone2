@@ -9,14 +9,13 @@ import { setConnected, setOnlineUsers } from "./redux/socketSlice";
 import CenterLoading from "./components/CenterLoading";
 import AppRoutes from "./routes/AppRoutes";
 import { setUser } from "./redux/authSlice";
-import { Navigate } from "react-router-dom";
 
 const App = () => {
   const { data, isLoading, error} = useGetMeQuery(undefined);
  
 
   const dispatch = useDispatch<AppDispatch>();
-  const { onlineUsers, connected } = useAppSelector((state) => state.socket);
+  
   const [getCsrfToken] = useLazyGetCsrfTokenQuery();
 const user = useAppSelector((state) => state.auth.user);
 

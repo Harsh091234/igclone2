@@ -50,7 +50,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
     null,
   );
   let isBookmarked = authUser?.bookmarks?.some(
-    (id) => id.toString() === post._id.toString(),
+    (id: string) => id.toString() === post._id.toString(),
   );
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
     null,

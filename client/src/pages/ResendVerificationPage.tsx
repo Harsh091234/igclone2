@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Card, CardContent } from "../components/ui/card";
+
 
 import CustomButton from "../components/CustomButton";
 import { resendVerificationUrlSchema, type resendVerificationUrlType } from "../schemas/auth.validator";
@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
 
 const ResendVerificationPage = () => {
-    const [resendVerificationUrl, {isLoading, isSuccess, isError}] = useResendVerificationUrlMutation();
+    const [resendVerificationUrl, {isLoading}] = useResendVerificationUrlMutation();
     const [cooldown, setCooldown] = useState(0); // seconds
     const [message, setMessage] = useState<string | null>(null);
 

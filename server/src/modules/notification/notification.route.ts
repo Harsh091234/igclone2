@@ -1,9 +1,17 @@
 import { getNotifications } from "./notification.controller.js";
-import { requireAuth } from "@clerk/express";
 import { Router } from "express";
+
+import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
+import { protectRoutes } from "../../middlewares/protectRoutes.js";
+import { csrfProtection } from "../../config/csrfProtection.js";
+import { authorize } from "../../middlewares/roleMiddleware.js";
+
 
 const router = Router();
 
-router.get("/", requireAuth(), getNotifications);
+router.get("/",   apiLimiter,
+  protectRoutes,
+  csrfProtection,
+  authorize("user"), getNotifications);
 
 export default router;

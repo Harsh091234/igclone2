@@ -48,7 +48,7 @@ interface Props {
   initialIndex: number;
   authUserId: string;
   onPrevGroup?: () => void;
-  userName: string;
+
   onAllStoriesEnd?: () => void;
 }
 
@@ -59,7 +59,7 @@ export default function StoryViewerModal({
   isStoryOwner,
   initialIndex,
   authUserId,
-  userName,
+ 
   onPrevGroup,
   onAllStoriesEnd,
 }: Props) {

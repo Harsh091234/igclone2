@@ -25,7 +25,7 @@ const router = Router();
 
 router.post(
   "/create-post",
-apiLimiter,
+  apiLimiter,
   protectRoutes,
   csrfProtection,
   authorize("user"),

@@ -25,7 +25,7 @@ import StoryViewerModal from "../components/modals/StoryViewerModal";
 import { useGetAllUsersStoryQuery } from "../services/storyApi";
 
 import { StoriesSkeleton } from "../components/Skeletons/StoriesSkeleton";
-import LogoutButton from "../utils/LogoutButton";
+
 import { useGetMeQuery } from "../services/authApi";
 
 const getLimit = () => {
@@ -183,9 +183,7 @@ export default function FeedPage() {
   if (!authUser) return <CenterLoading />;
 
   return (
-    // <div>
-    //   <LogoutButton />
-    // </div>
+
     <div className="min-h-screen pt-0">
       {/* Main wrapper */}
       <div className="h-full px-0 md:px-4    mx-auto w-full ">
@@ -427,7 +425,7 @@ export default function FeedPage() {
           isStoryOwner={activeGroup?.user._id === authUser?._id}
           onPrevGroup={goToPrevGroup}
           onAllStoriesEnd={goToNextGroup}
-          userName={authUser.userName}
+         
         />
       }
     </div>

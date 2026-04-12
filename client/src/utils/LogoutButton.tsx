@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { useLogoutMutation } from '../services/authApi';
 import CustomButton from '../components/CustomButton';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ const navigate = useNavigate();
 const handleLogout = async () => {
   try {
     const res = await logout(undefined).unwrap();
-    console.log("Logged out");
+    console.log("Logged out", res.message);
     dispatch(setUser(null));
     navigate("/login");
   } catch (err: any) {

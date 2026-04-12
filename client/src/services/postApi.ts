@@ -2,7 +2,7 @@ import type { Post, Reel } from "../types/post.types";
 import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
 import { authApi } from "./authApi";
-import { userApi } from "./userApi";
+
 
 export const postApi = api.injectEndpoints({
   endpoints: (builder) => ({

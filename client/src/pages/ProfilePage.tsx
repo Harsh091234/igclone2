@@ -101,7 +101,7 @@ const ProfilePage = () => {
   const isAuthUser = authUser?._id === user?._id;
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-  const authFollowingIds = authUser?.following?.map((u) => u._id) ?? [];
+  const authFollowingIds = authUser?.following?.map((u: any) => u._id) ?? [];
   const handleRouteToProfile = () => {
     navigate(`/profile/${user?.userName}`);
   };
@@ -114,45 +114,10 @@ const ProfilePage = () => {
     navigate(`/settings/${url}`);
   };
 
-  // const highlightsData = [
-  //   {
-  //     title: "Travel",
-  //     img: "https://picsum.photos/200?1",
-  //   },
-  //   {
-  //     title: "Travel",
-  //     img: "https://picsum.photos/200?1",
-  //   },
-  //   {
-  //     title: "Travel",
-  //     img: "https://picsum.photos/200?1",
-  //   },
-  //   {
-  //     title: "Travel",
-  //     img: "https://picsum.photos/200?1",
-  //   },
-
-  //   {
-  //     title: "Food",
-  //     img: "https://picsum.photos/200?2",
-  //   },
-  //   {
-  //     title: "Art",
-  //     img: "https://picsum.photos/200?3",
-  //   },
-  //   {
-  //     title: "Friends",
-  //     img: "https://picsum.photos/200?4",
-  //   },
-  //   {
-  //     title: "Pets",
-  //     img: "https://picsum.photos/200?5",
-  //   },
-  // ];
-
+  
   const handleBookmark = async (postId: string) => {
     const isBookmarked = authUser?.bookmarks?.some(
-      (id) => id.toString() === postId.toString(),
+      (id: any) => id.toString() === postId.toString(),
     );
 
     await toggleBookmarkPost(postId).unwrap();
@@ -476,7 +441,7 @@ const ProfilePage = () => {
               authUser?._id ? activePost.likes.includes(authUser._id) : false
             }
             isBookmarked={authUser?.bookmarks?.some(
-              (id) => id.toString() === activePost._id.toString(),
+              (id: any) => id.toString() === activePost._id.toString(),
             )}
             handleRouteToProfile={handleRouteToProfile}
           />

@@ -12,7 +12,7 @@ import {
   CircleEllipsis,
   Moon,
 } from "lucide-react";
-import { useClerk } from "@clerk/clerk-react";
+
 import { useLogoutMutation } from "../../services/authApi";
 import toast from "react-hot-toast";
 

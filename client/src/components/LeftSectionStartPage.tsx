@@ -1,4 +1,4 @@
-import React from 'react'
+
 import logo from "../assets/instagram.png";
 import text from "../assets/instagram_text.png";
 

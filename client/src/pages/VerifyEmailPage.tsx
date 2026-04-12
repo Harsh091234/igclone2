@@ -14,7 +14,6 @@ const [redirectTime, setRedirectTime] = useState(3);
     useVerifyEmailMutation();
 
 
-   const demoVar = true;
 
    useEffect(() => {
   if (!isSuccess) return;

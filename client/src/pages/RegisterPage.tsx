@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useForm } from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom"
 
@@ -14,7 +14,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../redux/authSlice";
 export default function RegisterPage() {
   const navigate = useNavigate();
-   const [registerUser, { isLoading, data }] = useRegisterMutation();
+   const [registerUser, { isLoading }] = useRegisterMutation();
    const [showPassword, setShowPassword] = useState(false);
  const dispatch = useDispatch<AppDispatch>();
    const {
