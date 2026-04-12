@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Input } from "../ui/input";
+import { useGetMeQuery } from "../../services/authApi";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
@@ -29,18 +30,19 @@ const FollowersModal = ({
   handleFollow,
   userName,
   authUserId,
-  authFollowing,
+ 
 }: FollowersModalProps) => {
   const [search, setSearch] = useState("");
   const { isLoading, data: userData } = useGetProfileUserQuery(userName ?? "");
   const followers = userData?.user?.followers ?? [];
   const navigate = useNavigate();
-
+const { data: authData } = useGetMeQuery(undefined);
+const authUser = authData?.user;
   const handleRouteToProfile = (userName: any) => {
     onClose();
     navigate(`/profile/${userName}`);
   };
-
+  
   console.log("id:", authUserId);
   return (
     <>
@@ -93,10 +95,10 @@ const FollowersModal = ({
                   followers.map((follower) => {
                     const isFollowerAuthUser =
                       follower._id.toString() === authUserId;
-
-                    const isAuthFollowingThisFollower = authFollowing.includes(
-                      follower._id.toString(),
-                    );
+const isAuthFollowingThisFollower = (authUser?.following ?? []).some(
+  (u: any) =>
+    (typeof u === "string" ? u : u._id) === follower._id
+);
                     return (
                       <div
                         key={follower._id}

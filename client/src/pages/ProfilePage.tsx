@@ -55,8 +55,9 @@ const ProfilePage = () => {
     "posts",
   );
   const authUser = authData?.user;
-
+  
   const user = profileData?.user;
+  console.log("profile user", user)
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
 
@@ -90,9 +91,11 @@ const ProfilePage = () => {
 
   const [toggleFollow, { isLoading: followLoading }] =
     useFollowOrUnfollowUsersMutation();
-  const isFollowing = user?.followers?.some(
-    (follower) => follower._id.toString() === authUser?._id,
-  );
+
+    const getId = (u: any) => (typeof u === "string" ? u : u?._id);
+    const isFollowing = (user?.followers ?? []).some(
+  (f: any) => getId(f) === authUser?._id
+);
 
   const displayPosts =
     activeTab === "reels" ? (reelsData?.reels ?? []) : (postData?.posts ?? []);
@@ -107,8 +110,15 @@ const ProfilePage = () => {
   };
 
   const handleFollow = async (targetUserId: string) => {
-    await toggleFollow(targetUserId).unwrap();
-  };
+  try {
+    await toggleFollow({
+      userId: targetUserId,
+      userName: name,
+    }).unwrap();
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const handleClick = (url: string) => {
     navigate(`/settings/${url}`);
@@ -278,13 +288,14 @@ const ProfilePage = () => {
                 onClose={() => setIsFollowerModalOpen(false)}
                 isFollowing={isFollowing}
                 handleFollow={handleFollow}
-                userName={user.userName}
+                userName={name}
                 authUserId={authUser?._id}
                 authFollowing={authFollowingIds}
               />
             )}
             {isFollowingModalOpen && (
               <FollowingModal
+              user={user}
                 onClose={() => setIsFollowingModalOpen(false)}
                 userName={user.userName}
                 authUserId={authUser?._id}

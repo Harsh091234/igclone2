@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
+import { useGetMeQuery } from "../../services/authApi";
 import { X } from "lucide-react";
 import FollowersFollowingSkeleton from "../Skeletons/FollowersFollowingSkeleton";
 import { useGetProfileUserQuery } from "../../services/userApi";
 import { useNavigate } from "react-router-dom";
+import type { User } from "../../types/user.types";
 
 export interface FollowingUser {
   _id: string;
@@ -20,6 +22,7 @@ interface FollowingModalProps {
   handleFollow: (userId: string) => void;
   userName?: string;
   authUserId?: string;
+  user: User;
   authFollowing: string[];
 }
 
@@ -27,13 +30,24 @@ const FollowingModal = ({
   onClose,
   handleFollow,
   userName,
+  
   authUserId,
-  authFollowing,
+
 }: FollowingModalProps) => {
   const [search, setSearch] = useState("");
-  const { isLoading, data: userData } = useGetProfileUserQuery(userName ?? "");
-  const following = userData?.user?.following ?? [];
+const { data: profileData , isLoading} = useGetProfileUserQuery(userName ?? "", {
+  skip: !userName,
+});
+const following = profileData?.user?.following ?? [];
   const navigate = useNavigate();
+const { data: authData } = useGetMeQuery(undefined);
+const authUser = authData?.user;
+  const normalizedFollowing = (following ?? []).map((u: any) => ({
+  _id: typeof u === "string" ? u : u._id,
+  userName: u.userName,
+  fullName: u.fullName,
+  profilePic: u.profilePic,
+}));
 
   const handleRouteToProfile = (userName?: string) => {
     if (!userName) return;
@@ -41,12 +55,7 @@ const FollowingModal = ({
     navigate(`/profile/${userName}`);
   };
 
-  useEffect(() => {
-    if (!isLoading && following.length === 0) {
-      onClose();
-    }
-  }, [following.length, isLoading, onClose]);
-
+ 
   return (
     <>
       {/* Overlay */}
@@ -95,13 +104,12 @@ const FollowingModal = ({
                     Not following anyone
                   </p>
                 ) : (
-                  following.map((user: FollowingUser) => {
+                  normalizedFollowing.map((user: FollowingUser) => {
                     const isAuthUser = user._id.toString() === authUserId;
 
-                    const isAuthFollowingUser = authFollowing.includes(
-                      user._id.toString(),
-                    );
-
+                   const isAuthFollowingUser = (authUser?.following ?? []).some(
+  (u: any) => (typeof u === "string" ? u : u._id) === user._id
+);
                     return (
                       <div
                         key={user._id}

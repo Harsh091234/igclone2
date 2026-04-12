@@ -8,6 +8,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import {
   useFetchSuggestedUsersQuery,
+  useFollowOrUnfollowUsersMutation,
 
 } from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
@@ -16,7 +17,7 @@ import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
 import { Plus } from "lucide-react";
-import type { User } from "../types/user.types";
+
 import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
 import UserAvatar from "../components/UserAvatar";
@@ -43,6 +44,7 @@ export default function FeedPage() {
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [animateRing, setAnimateRing] = useState(false);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [followUser] = useFollowOrUnfollowUsersMutation();
   const { data } = useGetMeQuery(undefined);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState(getLimit());
@@ -51,6 +53,8 @@ export default function FeedPage() {
   const isFetchingRef = useRef(false);
 
   const authUser = data?.user;
+  console.log(authUser)
+  
   const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery({
     page,
     limit,
@@ -58,7 +62,9 @@ export default function FeedPage() {
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
+  console.log("suggested users", suggestedUsers)
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
+  console.log("visible uesrs", visibleSuggestedUsers)
   const { isLoading: isStoryLoading, data: storyData } =
     useGetAllUsersStoryQuery(undefined);
   const storyGroups = storyData?.stories ?? [];
@@ -95,6 +101,14 @@ export default function FeedPage() {
   const handleVisibleCount = () => {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
   };
+
+  const handleFollow = async(id: string, userName: string) => {
+    try {
+        await followUser({ userId: id, userName }).unwrap();
+    } catch (error: any) {
+      console.log("Error following user:", error?.data?.message || "Something went wrong")
+    }
+  }
 
   const goToPrevGroup = () => {
     if (activeGroupIndex === -1) return;
@@ -366,29 +380,33 @@ export default function FeedPage() {
                   <FollowersFollowingSkeleton />
                 ) : (
                   <ScrollArea className=" h-80 pr-4 ">
-                    {visibleSuggestedUsers.map((user: User) => (
-                      <Link
-                        to={`/profile/${user.userName}`}
-                        key={user._id}
-                        className="flex items-center gap-3 mb-3 py-2 px-3 rounded-lg hover:bg-accent transition-colors"
-                      >
-                        <UserAvatar classes="" user={user} />
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm text-foreground">
-                            {user.userName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {user.fullName}
-                          </p>
-                        </div>
-                        <button
-                          className="text-foreground/70 text-xs font-semibold
-              hover:text-foreground hover:underline
-              transition-colors"
-                        >
-                          Follow
-                        </button>
-                      </Link>
+                    {visibleSuggestedUsers.map((user: any) => (
+                     <div className="relative  mb-3 rounded-lg hover:bg-accent transition-colors">
+  <Link
+    to={`/profile/${user.userName}`}
+    className="flex items-center gap-3 py-2 px-3 flex-1"
+  >
+    <UserAvatar classes="" user={user} />
+    <div>
+      <p className="font-semibold text-sm text-foreground">
+        {user.userName}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {user.fullName}
+      </p>
+    </div>
+  </Link>
+
+  <button
+    className="text-foreground/70 absolute right-3 top-0 bottom-0 text-xs font-semibold
+    hover:text-foreground hover:underline transition-colors"
+    onClick={() => handleFollow(user._id, user.userName!)}
+  >
+    {
+     authUser.following.includes(user._id) ? "Unfollow" : "Follow"
+    }
+  </button>
+</div>
                     ))}
                   </ScrollArea>
                 )}

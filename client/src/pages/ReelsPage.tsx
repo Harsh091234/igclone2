@@ -78,9 +78,9 @@ const ReelsPage = () => {
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
-  const handleFollow = async (userId: string) => {
-    await toggleFollow(userId).unwrap();
-  };
+ const handleFollow = async (userId: string, userName: string) => {
+  await toggleFollow({ userId, userName }).unwrap();
+};
 
   return (
     <div className="flex justify-center pb-10 sm:pb-0 px-2 items-start sm:items-center text-foreground h-[108dvh] sm:min-h-screen   bg-primary-foreground">
@@ -211,7 +211,7 @@ const ReelsPage = () => {
                         {!isAuthUser && (
                           <button
                             disabled={isFollowLoading}
-                            onClick={() => handleFollow(reel.author._id)}
+                            onClick={() => handleFollow(reel.author._id, reel.author.userName)}
                             className={`
       text-[0.55rem] sm:text-xs
       py-0.5 sm:py-1
@@ -245,7 +245,7 @@ const ReelsPage = () => {
           isFollowed={isFollowedForModal}
           isAuthUser={activeReel.author._id === authUser?._id}
           onClose={() => setIsReelModalOpen(false)}
-          onFollow={() => handleFollow(activeReel.author._id)}
+          onFollow={() => handleFollow(activeReel.author._id, activeReel.author.userName)}
           onGoToPost={() => {
             setIsCommentModalOpen(true);
           }}
