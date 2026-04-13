@@ -1,17 +1,18 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import MainLayout from "../layouts/MainLayout";
-import NotFoundPage from "../pages/NotFoundPage";
-import EditProfilePage from "../pages/SettingPages/EditProfilePage";
-import SettingsIndexRedirect from "../utils/SettingIndexRedirect";
-import SettingsPage from "../pages/SettingsPage";
+import logo from "../assets/instagram.png"
+// import EditProfilePage from "../pages/SettingPages/EditProfilePage";
+// import SettingsIndexRedirect from "../utils/SettingIndexRedirect";
+// import SettingsPage from "../pages/SettingsPage";
 
-import UserSetupPage from "../pages/UserSetupPage";
-import ExplorePage from "../pages/ExplorePage";
-import ReelsPage from "../pages/ReelsPage";
-import ProfilePage from "../pages/ProfilePage";
-import NotificationPage from "../pages/NotificationPage";
-import MessagePage from "../pages/MessagePage";
-import FeedPage from "../pages/FeedPage";
+// import UserSetupPage from "../pages/UserSetupPage";
+// import ExplorePage from "../pages/ExplorePage";
+// import ReelsPage from "../pages/ReelsPage";
+// import ProfilePage from "../pages/ProfilePage";
+// import NotificationPage from "../pages/NotificationPage";
+// import MessagePage from "../pages/MessagePage";
+// import FeedPage from "../pages/FeedPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResendVerificationPage from "../pages/ResendVerificationPage";
@@ -19,12 +20,32 @@ import VerifyEmailPage from "../pages/VerifyEmailPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import CheckEmailPage from "../pages/CheckEmailPage";
+
 import { ProtectedRoutes } from "./ProtectedRoutes";
 import { PublicOnlyRoute } from "./PublicOnlyRoutes";
+import SettingsIndexRedirect from "../utils/SettingIndexRedirect";
+import EditProfilePage from "../pages/SettingPages/EditProfilePage";
+
+const FeedPage = lazy(() => import("../pages/FeedPage"));
+const MessagePage = lazy(() => import("../pages/MessagePage"));
+const NotificationPage = lazy(() => import("../pages/NotificationPage"));
+const ProfilePage = lazy(() => import("../pages/ProfilePage"));
+const ReelsPage = lazy(() => import("../pages/ReelsPage"));
+const ExplorePage = lazy(() => import("../pages/ExplorePage"));
+const UserSetupPage = lazy(() => import("../pages/UserSetupPage"));
+
+
+const SettingsPage = lazy(() => import("../pages/SettingsPage"));
+
+
+const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
+
 
 const AppRoutes = () => {
   return (
-    <Routes>
+    <Suspense fallback={<div className="h-screen flex items-center
+    justify-center"><img className="h-13 w-13 md:h-18 md:w-18" src={logo} /></div>}>
+      <Routes>
       {/* PUBLIC ONLY ROUTES */}
       <Route path="/register" element={
         <PublicOnlyRoute>
@@ -97,6 +118,8 @@ const AppRoutes = () => {
 
      
     </Routes>
+    </Suspense>
+    
   );
 };
 

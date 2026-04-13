@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { setCsrfToken } from "./redux/csrfSlice";
 import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
-import CenterLoading from "./components/CenterLoading";
+
 import AppRoutes from "./routes/AppRoutes";
 import { setUser } from "./redux/authSlice";
 
@@ -73,7 +73,7 @@ useEffect(() => {
   }, [user?._id]);
 
   if (isLoading) {
-  return <CenterLoading />;
+  return ;
 }
 
 
