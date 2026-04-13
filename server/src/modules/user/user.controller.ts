@@ -38,7 +38,7 @@ export const getAuthUser = async (req: Request, res: Response) => {
 export const getProfile = async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
-    console.log(name);
+   
 
     const user = await User.findOne({ userName: name })
       .populate("followers", "userName profilePic fullName")
