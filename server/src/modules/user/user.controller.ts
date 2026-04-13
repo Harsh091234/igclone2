@@ -266,3 +266,4 @@ export const followOrUnfollowUser = async (req: Request, res: Response) => {
     });
   }
 };
+

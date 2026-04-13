@@ -318,6 +318,7 @@ const ProfilePage = () => {
                 </Button>
 
                 <Button
+                  onClick={() => navigate(`/messages?user=${user.userName}`)}
                   variant="outline"
                   className="text-sm w-28 justify-center"
                 >

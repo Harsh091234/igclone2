@@ -1,5 +1,5 @@
 import { Input } from "../components/ui/input";
-
+import { useSearchParams } from "react-router-dom";
 import { Search, SquarePen } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import SelectedChat from "../components/SelectedChat";
@@ -18,13 +18,18 @@ import type { AppDispatch } from "../store/store";
 
 import { getSocket } from "../utils/socket";
 import { useGetMeQuery } from "../services/authApi";
+import { useGetProfileUserQuery } from "../services/userApi";
 
 const MessagePage = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const userNameFromUrl = searchParams.get("user");
   const [isChatSelected, setIsChatSelected] = useState(false);
   const [isNewMessageModalOpen, setIsNewMessageModalOpen] =
     useState<boolean>(false);
-
+ const { data: profileUserData } = useGetProfileUserQuery(userNameFromUrl!, {
+  skip: !userNameFromUrl,
+});
   const { isLoading: isLastChatsLoading, data: lastChatData } =
     useGetLastMessagesQuery(undefined);
   const [search, setSearch] = useState("");
@@ -36,6 +41,12 @@ const MessagePage = () => {
   const { data: authData } = useGetMeQuery(undefined);
   const authUserId = authData?.user?._id;
   const ONLINE_THRESHOLD = 2 * 60 * 1000; // 2 minutes
+
+  const openChat = (user: SearchUser) => {
+  setActiveChatUser(user);
+  setIsChatSelected(true);
+  setSearchParams({ user: user.userName });
+};
 
   const isUserOnline = (userId: string) => {
     const lastActive = onlineUsers[userId];
@@ -115,6 +126,35 @@ const MessagePage = () => {
     );
   }, [search, conversations]);
 
+useEffect(() => {
+  if (!userNameFromUrl) return;
+
+
+  // 1️⃣ Try from conversations
+  const foundConversation = conversations?.find(
+    (c: any) => c.receiver.userName === userNameFromUrl
+  );
+
+  if (foundConversation) {
+    setActiveChatUser(foundConversation.receiver);
+    setIsChatSelected(true);
+    return;
+  }
+
+  // 2️⃣ Fallback → API user
+  if (profileUserData?.user) {
+    const u = profileUserData.user;
+
+    const mappedUser:any= {
+      _id: u._id,
+      userName: u.userName ?? "unknown",
+      profilePic: u.profilePic ?? "",
+    };
+
+    setActiveChatUser(mappedUser);
+    setIsChatSelected(true);
+  }
+}, [userNameFromUrl, conversations, profileUserData]);
   return (
     <div className="h-screen w-full  text-foreground flex">
       {/* Sidebar */}
@@ -154,10 +194,9 @@ const MessagePage = () => {
             filteredConversations.map((chat: any) => (
               <div
                 key={chat._id}
-                onClick={() => {
-                  setActiveChatUser(chat.receiver);
-                  setIsChatSelected(true);
-                }}
+              
+                  onClick={() => openChat(chat.receiver)}
+            
                 className="flex items-center gap-3 px-4 py-1.5 md:py-3 cursor-pointer hover:bg-muted/60 active:bg-muted/60"
               >
                 <div className="relative">
@@ -211,7 +250,7 @@ const MessagePage = () => {
           startChat={() => setIsChatSelected(true)}
           onStartChat={(selectedUsers) => {
             if (selectedUsers.length === 1) {
-              setActiveChatUser(selectedUsers[0]);
+              openChat(selectedUsers[0]); 
             }
             // (later: handle group chat here)
             setIsNewMessageModalOpen(false);
@@ -234,6 +273,7 @@ const MessagePage = () => {
             onClose={() => {
               setIsChatSelected(false);
               setActiveChatUser(null);
+               setSearchParams({}); // ✅ remove userName
             }}
           />
         ) : (
