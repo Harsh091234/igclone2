@@ -1,11 +1,13 @@
 import { access } from "fs";
 import jwt from "jsonwebtoken";
 import { sanitizeUser } from "./sanitizeDocs.js";
-
+import crypto from "crypto";
+import Session from "../modules/auth/session.model.js";
 export const sendTokenResponse = async (
   user: any,
   statusCode: number,
   res: any,
+  req: any,
 ) => {
   const accessToken = jwt.sign(
     { id: user._id, role: user.role, tokenVersion: user.tokenVersion },
@@ -25,8 +27,16 @@ export const sendTokenResponse = async (
     },
   );
 
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
+  const  hashedRefreshToken =  crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+  await Session.create({
+    userId: user._id,
+    email: user.email,
+    refreshToken: hashedRefreshToken,
+    ip: req.ip,
+    userAgent: req.headers["user-agent"],
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  })
 
  const accessCookieOptions = {
     expires: new Date(Date.now() + 15* 60 * 1000), // 15 min

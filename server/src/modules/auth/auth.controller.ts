@@ -11,6 +11,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { success } from "zod";
 import Message from "../conversation/message.model.js";
 import { sanitizeUser } from "../../config/sanitizeDocs.js";
+import Session from "./session.model.js";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -45,7 +46,7 @@ export const register = async (req: Request, res: Response) => {
     // for extra mailing safety
     try {
       await sendEmail(user.email, subject, html);
-     sendTokenResponse(user, 201, res);
+     sendTokenResponse(user, 201, res, req);
     } catch (error: any) {
       user.emailVerificationToken = undefined;
       user.emailVerificationTokenExpiresAt = undefined;
@@ -144,7 +145,7 @@ export const login = async (req: Request, res: Response) => {
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
-    sendTokenResponse(user, 200, res);
+    sendTokenResponse(user, 200, res, req);
   } catch (error: any) {
     console.log("error in login:", error.message);
     return res.status(500).json({ success: false, message: "Server Error" });
@@ -153,15 +154,26 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req?.user?._id);
-    
-    if(!user) return res.status(400).json({success:false, message: "User not found"})
+    const refreshToken =
+      req.cookies.refresh_token ||
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.split(" ")[1]
+        : null);
 
-         user.refreshToken = undefined;
-         user.tokenVersion += 1;
-    await user.save()
-      
-   
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Refresh token missing",
+      });
+    }
+
+    
+    const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+    //  delete session
+    await Session.deleteOne({ refreshToken: hashedRefreshToken });
+
+    //  clear cookies
     res.cookie("refresh_token", "", {
       httpOnly: true,
       expires: new Date(0),
@@ -171,10 +183,18 @@ export const logout = async (req: Request, res: Response) => {
       httpOnly: true,
       expires: new Date(0),
     });
-    res.status(200).json({ success: true, message: "Logout successfull" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+
   } catch (error: any) {
     console.log("error in logout:", error.message);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };
 
@@ -258,7 +278,7 @@ interface AuthTokenPayload {
 export const refreshToken = async (req: Request, res: Response) => {
   console.log("refresh token api hitted");
   try {
-    const refreshToken = req.cookies.refresh_token || (req.headers?.authorization?.startsWith("Bearer")? req.headers.authorization.split("")[0] : null);
+    const refreshToken = req.cookies.refresh_token || (req.headers?.authorization?.startsWith("Bearer ")? req.headers.authorization.split(" ")[1] : null);
     if (!refreshToken)
       return res.status(400).json({ success: false, message: "Refresh token missing" });
     const decoded = jwt.verify(
@@ -267,12 +287,26 @@ export const refreshToken = async (req: Request, res: Response) => {
     ) as AuthTokenPayload;
     if (!decoded.id)
       return res.json({ success: false, message: "failed to verify token" });
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== refreshToken)
+
+    const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+ const session = await Session.findOne({ refreshToken: hashedRefreshToken });
+
+    if (!session) {
       return res.status(401).json({
         success: false,
-        message: "Unauthorized! Invalid refresh token",
+        message: "Session expired or invalid",
       });
+    }
+
+    const user = await User.findById(session.userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+
     const accessToken = jwt.sign(
       { id: user._id, role: user.role, tokenVersion:user.tokenVersion },
       process.env.ACCESS_TOKEN_SECRET as string,

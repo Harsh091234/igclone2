@@ -153,7 +153,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
 
     passwordResetTokenExpiresAt: Date,
 
-    refreshToken: String,
+  
     tokenVersion: {
     type: Number,
    default: 0,
