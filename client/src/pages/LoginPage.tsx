@@ -53,7 +53,19 @@ const {
 
 
   } catch (error: any) {
-    console.log("Error in authenticating user:", error.message || error?.data?.message || "Something went wrong!");
+    const message = error?.data?.message;
+    
+    if (message === "Invalid credentials") {
+      toast.error("Invalid credentials");
+    } 
+    else if(error?.data?.retryAfter) {
+      toast.error("Too many attempts. Please wait.");
+    
+    }
+    else{
+      toast.error("Something went wrong !!");
+    }
+    console.log("Error in authenticating user:", error?.data?.message || "Something went wrong!");
 
     
   }

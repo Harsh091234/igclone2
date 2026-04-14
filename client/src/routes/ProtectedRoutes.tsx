@@ -4,10 +4,9 @@ import { useSelector } from "react-redux";
 export const ProtectedRoutes = ({ children }: { children?: React.ReactNode }) => {
   const user = useSelector((state: any) => state.auth.user);
   const location = useLocation();
-
+const isVerifyEmailPage = location.pathname.startsWith("/verify-email");
   const isVerificationRoute =
     location.pathname.startsWith("/check-email") ||
-    location.pathname.startsWith("/verify-email") ||
     location.pathname.startsWith("/resend-verification-url");
 
   // ⏳ still loading user
@@ -20,20 +19,20 @@ export const ProtectedRoutes = ({ children }: { children?: React.ReactNode }) =>
 
   // ❌ Not verified → allow ONLY verification pages
   if (!user.isEmailVerified) {
-    if (isVerificationRoute) {
+    if (isVerifyEmailPage || isVerificationRoute ) {
       return children ? children : <Outlet />;
     }
     return <Navigate to="/check-email" replace />;
   }
 
   // ✅ Already verified → block verification pages
-  if (user.isEmailVerified && isVerificationRoute) {
+  if (user.isEmailVerified && isVerificationRoute && !isVerifyEmailPage) {
     return <Navigate to="/" replace />;
   }
 
   // ❌ Not onboarded
   if (!user.isProfileComplete) {
-    if (location.pathname !== "/onboarding") {
+    if (location.pathname !== "/onboarding"  &&  !isVerifyEmailPage) {
       return <Navigate to="/onboarding" replace />;
     }
   }

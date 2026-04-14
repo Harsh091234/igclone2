@@ -12,11 +12,14 @@ import {
 import { useResetPasswordMutation } from "../services/authApi";
 import { useEffect, useState } from "react";
 import { formatTimeVerbose } from "../utils/formatRecedingSeconds";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 const ResetPasswordPage = () => {
   const [cooldown, setCooldown] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const authUser = useSelector((state: RootState) => state.auth.user);
 const navigate = useNavigate();
   const { token } = useParams();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
@@ -45,10 +48,14 @@ const navigate = useNavigate();
       setMessage("Password reset successfully");
       setType("success");
         setSubmitted(true);
-
-          setTimeout(() => {
-      navigate("/");
+        if(!authUser){
+        setTimeout(() => {
+          navigate("/login");
     }, 4000);
+        }
+        setTimeout(() => {
+        navigate("/");
+    },  4000);
 
 
     } catch (err: any) {
@@ -90,7 +97,7 @@ const navigate = useNavigate();
 
     {type === "success" && (
       <p className="text-gray-500 text-sm">
-        Redirecting to home...
+        Redirecting to {authUser? "home...": "login..."}
       </p>
     )}
 
