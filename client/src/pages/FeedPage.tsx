@@ -329,7 +329,7 @@ export default function FeedPage() {
                 {isPostsFetching && <FullPostSkeleton />}
               </div>
             ) : (
-              <div>No posts are present</div>
+              <div className="text-muted-foreground">No posts are present</div>
             )}
           </div>
 

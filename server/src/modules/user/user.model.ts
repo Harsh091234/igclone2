@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { generateHashedToken } from "../../config/generateToken.js";
 
 export interface IUser extends Document {
-  // clerkId: string;
+  
 
   fullName: string;
   userName?: string;
@@ -48,11 +48,7 @@ type UserModel = mongoose.Model<IUser, {}, IUserMethods>;
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
-    // clerkId: {
-    //   type: String,
-    //   unique: false,
-    //   default: "",
-    // },
+  
 
     fullName: {
       type: String,

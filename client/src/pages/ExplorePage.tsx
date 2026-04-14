@@ -178,49 +178,64 @@ const ExplorePage = () => {
 
   return (
     <div className="h-screen overflow-y-auto px-5 pb-15 sm:pb-0 pt-7">
-      <Masonry
-        breakpointCols={breakpoints}
-        className="my-masonry-grid"
-        columnClassName="my-masonry-grid_column"
-      >
-        {allPosts?.flatMap(
-          (post: any) =>
-            post.media?.map((item: any, i: number) => (
-              <ExploreItem
-                key={`${post._id}-${i}`}
-                item={item}
-                onClick={() => {
-                  setSelectedPost(post);
-                  setCurrentAuthorName(post.author.userName);
-                  setIsModalOpen(true);
-                }}
-              />
-            )) || [],
-        )}
-        {isFetching &&
-          allPosts.length > 0 &&
-          Array.from({ length: 6 }).map((_, i) => {
-            const types = ["portrait", "square", "landscape"] as const;
-            const randomType = types[i % types.length];
+     {allPosts.length === 0 && !isFetching ? (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground text-lg font-medium">
+          No posts present
+        </p>
+      </div>
+    ) : (
+      <>
+        <Masonry
+          breakpointCols={breakpoints}
+          className="my-masonry-grid"
+          columnClassName="my-masonry-grid_column"
+        >
+          {allPosts?.flatMap(
+            (post: any) =>
+              post.media?.map((item: any, i: number) => (
+                <ExploreItem
+                  key={`${post._id}-${i}`}
+                  item={item}
+                  onClick={() => {
+                    setSelectedPost(post);
+                    setCurrentAuthorName(post.author.userName);
+                    setIsModalOpen(true);
+                  }}
+                />
+              )) || [],
+          )}
 
-            return <SkeletonCard key={i} type={randomType} />;
-          })}
-      </Masonry>
-      {hasMore && <div ref={loaderRef} className="h-10" />}
-      {selectedPost && (
-        <CommentPostModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          post={selectedPost}
-          isLikeLoading={isLikeLoading}
-          handleLike={handleLike}
-          handleBookmark={handleBookmark}
-          isBookmarkLoading={isBookmarking}
-          isBookmarked={isBookmarked}
-          isLiked={isLiked}
-          handleRouteToProfile={() => navigate(`/profile/${currentAuthorName}`)}
-        />
-      )}
+          {isFetching &&
+            allPosts.length > 0 &&
+            Array.from({ length: 6 }).map((_, i) => {
+              const types = ["portrait", "square", "landscape"] as const;
+              const randomType = types[i % types.length];
+
+              return <SkeletonCard key={i} type={randomType} />;
+            })}
+        </Masonry>
+
+        {hasMore && <div ref={loaderRef} className="h-10" />}
+      </>
+    )}
+
+    {selectedPost && (
+      <CommentPostModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        post={selectedPost}
+        isLikeLoading={isLikeLoading}
+        handleLike={handleLike}
+        handleBookmark={handleBookmark}
+        isBookmarkLoading={isBookmarking}
+        isBookmarked={isBookmarked}
+        isLiked={isLiked}
+        handleRouteToProfile={() =>
+          navigate(`/profile/${currentAuthorName}`)
+        }
+      />
+    )}
     </div>
   );
 };
