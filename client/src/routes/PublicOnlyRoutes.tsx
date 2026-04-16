@@ -1,13 +1,12 @@
-import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-
-export const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
+export const PublicOnlyRoute = ({ children }: { children?: React.ReactNode }) => {
   const user = useSelector((state: any) => state.auth.user);
 
-  if (!user) return children;
+  // ⏳ loading
+  if (user === undefined) return null;
 
-  if (!user.isEmailVerified) return <Navigate to="/check-email" />;
-  if (!user.isProfileComplete) return <Navigate to="/onboarding" />;
+  // ✅ Not logged in → allow
+  if (!user) return children ?? <Outlet />;
 
-  return <Navigate to="/" />;
+  // ❌ Logged in → block
+  return <Navigate to="/" replace />;
 };
