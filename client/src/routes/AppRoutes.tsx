@@ -63,17 +63,14 @@ const AppRoutes = () => {
     {/* SHARED ROUTES */}
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-    
-
-      {/* MAIN APP (WITH SIDEBAR) */}
-      {/* PROTECTED ROUTES */}
-<Route element={<ProtectedRoutes />}>
-  <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+      <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
       <Route path="/resend-verification-url" element={<ResendVerificationPage />} />
       <Route path="/check-email" element={<CheckEmailPage />} />
     
 
-</Route>
+      {/* MAIN APP (WITH SIDEBAR) */}
+      {/* PROTECTED ROUTES */}
+
    
       <Route element={<ProtectedRoutes> <MainLayout /></ProtectedRoutes>   }>
         <Route path="/" element={<FeedPage />} />
