@@ -13,7 +13,7 @@ const [type, setType] = useState<"success" | "error" | null>(null);
   const { token } = useParams();
 
 
-   const [verifyEmail, { isLoadin }] =
+   const [verifyEmail, { isLoading }] =
     useVerifyEmailMutation();
 
 
