@@ -1,9 +1,24 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
+import { useEffect } from "react";
 
 export default function CheckEmailPage() {
-  return (
+  const user = useSelector((state: RootState) => state.auth.user);
+   const navigate = useNavigate();
+  
+    useEffect(() => {
+       if (user?.isEmailVerified) {
+        navigate("/");
+        return;
+      }
+    
+    
+    },[user, navigate])
+  
+   return (
     <div className="h-screen flex ">
         <LeftSectionStartPage />
       <div className="text-center flex flex-col items-center justify-center w-full md:flex-1 h-full space-y-4">

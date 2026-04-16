@@ -7,12 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useResendVerificationUrlMutation } from "../services/authApi";
 import { useEffect, useState } from "react";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
+import { useNavigate } from "react-router-dom";
+
 
 const ResendVerificationPage = () => {
+    const user = useSelector((state: RootState) => state.auth.user);
     const [resendVerificationUrl, {isLoading}] = useResendVerificationUrlMutation();
     const [cooldown, setCooldown] = useState(0); // seconds
     const [message, setMessage] = useState<string | null>(null);
-
+    const navigate = useNavigate();
 const [type, setType] = useState<"success" | "error" | null>(null);
   const {
     register,
@@ -57,7 +62,7 @@ const [focused, setFocused] = useState<"email" | null>(null);
     }
      else {
       // 🔥 Generic failure
-      setMessage("Failed to send verification email");
+      setMessage(err?.data?.message === "User already verified"? err.data.message : "Failed to send verification email");
     }
         setType("error");
       console.error(err?.data?.message || "Something went wrong");
@@ -68,6 +73,17 @@ const [focused, setFocused] = useState<"email" | null>(null);
     setType(null);
   }, 5000);
   };
+
+  useEffect(() => {
+     if (user?.isEmailVerified) {
+      navigate("/");
+      return;
+    }
+  
+  
+  },[user, navigate])
+  
+
   return (
     <div className="h-screen flex">
       <LeftSectionStartPage />

@@ -4,10 +4,14 @@ import { Card, CardContent } from "../components/ui/card";
 import { useNavigate, useParams } from "react-router-dom";
 import { useVerifyEmailMutation } from "../services/authApi";
 import { useEffect, useState } from "react";
+import type { RootState } from "../store/store";
+import { useSelector } from "react-redux";
 
 
 const VerifyEmailPage = () => {
- const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.auth.user);
+  
+  const navigate = useNavigate();
  const [message, setMessage] = useState<string | null>(null);
 const [type, setType] = useState<"success" | "error" | null>(null);
   const { token } = useParams();
@@ -19,18 +23,21 @@ const [type, setType] = useState<"success" | "error" | null>(null);
 
 
 useEffect(() => {
- 
+
+  
       if(!token) return;
+        // 1. If already verified → redirect immediately
+ 
   const verify = async () => {
     try {
       // ✅ If token exists → ALWAYS verify first
-  
+
         await verifyEmail(token).unwrap();
 
         setMessage("Email Verified Successfully");
         setType("success");
 
-        setTimeout(() => navigate("/"), 4000);
+        setTimeout(() => navigate(user? "/": "/login"), 4000);
         return;
      
       // ✅ No token → fallback check
@@ -51,6 +58,10 @@ console.log("Error verifying error", msg || "Something went wrong")
 
   verify();
 }, [token, verifyEmail, navigate]);
+
+
+
+
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <Card className="w-full max-w-md shadow-lg border border-gray-200 dark:border-gray-800">
@@ -81,7 +92,7 @@ console.log("Error verifying error", msg || "Something went wrong")
 </p>
 
 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-  Redirecting in 4 seconds...
+  Redirecting to {user? "home" : "login"} in 4 seconds...
 </p>
             </>
           )}

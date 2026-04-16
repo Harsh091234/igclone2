@@ -104,7 +104,7 @@ export const resendVerificationUrl = async (req: Request, res: Response) => {
         message: "Invalid Email",
       });
 
-    if (user && user.isEmailVerified)
+    if (user.isEmailVerified)
       return res.status(400).json({
         success: false,
         message: "User already verified",

@@ -15,7 +15,7 @@ export interface User {
 
   followers?: follower[];
   following?: FollowingUser[];
-
+  isEmailVerified: boolean;
   bookmarks?: string[];
   posts?: string[];
   publicKey?: string;
