@@ -4,7 +4,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { useNavigate, useParams } from "react-router-dom";
 import { useVerifyEmailMutation } from "../services/authApi";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+
 
 const VerifyEmailPage = () => {
  const navigate = useNavigate();
@@ -13,7 +13,7 @@ const [type, setType] = useState<"success" | "error" | null>(null);
   const { token } = useParams();
 
 
-   const [verifyEmail, { isLoading, isSuccess, isError }] =
+   const [verifyEmail, { isLoadin }] =
     useVerifyEmailMutation();
 
 
