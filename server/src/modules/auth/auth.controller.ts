@@ -46,7 +46,7 @@ export const register = async (req: Request, res: Response) => {
     // for extra mailing safety
     try {
       await sendEmail(user.email, subject, html);
-     res.status(200).json({success:"true", user})
+     res.status(200).json({success:true, user})
     } catch (error: any) {
       user.emailVerificationToken = undefined;
       user.emailVerificationTokenExpiresAt = undefined;
