@@ -1,9 +1,9 @@
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import LeftSectionStartPage from "../components/LeftSectionStartPage";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
-import { useEffect } from "react";
+
 
 export default function CheckEmailPage() {
   const user = useSelector((state: RootState) => state.auth.user);
