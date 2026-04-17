@@ -16,7 +16,7 @@ import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
 import type { Post } from "../types/post.types";
-import { Plus } from "lucide-react";
+import { Plus, HeartIcon } from "lucide-react";
 
 import FollowersFollowingSkeleton from "../components/Skeletons/FollowersFollowingSkeleton";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -198,7 +198,8 @@ export default function FeedPage() {
 
   return (
 
-    <div className="min-h-screen pt-0">
+    <div className="min-h-screen pt-0 relative">
+      <button className="z-50 absolute top-7 right-7 md:hidden" onClick={() => navigate("/notifications")}><HeartIcon className="h-7 w-7 text-primary"/></button>
       {/* Main wrapper */}
       <div className="h-full px-0 md:px-4    mx-auto w-full ">
         <div className=" grid grid-cols-1   h-full lg:grid-cols-[1fr_450px]  ">
