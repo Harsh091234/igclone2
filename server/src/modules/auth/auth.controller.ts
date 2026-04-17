@@ -58,32 +58,54 @@ export const register = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.log("error in register:", error.message);
     return res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
 
-export const verifyEmail = async (req: Request, res: Response) => {
+   export const verifyEmail = async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
+    // 🔍 Find user ONLY by token (no expiry check yet)
     const user = await User.findOne({
       emailVerificationToken: hashedToken,
-      emailVerificationTokenExpiresAt: { $gt: new Date() },
     });
-    if (!user)
+
+    // ❌ Token doesn't exist at all
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid link: token expired or already used",
+        message: "Invalid token",
       });
-    if (user.isEmailVerified)
-      return res.status(400).json({
-        success: false,
+    }
+
+    // ✅ Already verified (IMPORTANT: handle before expiry)
+    if (user.isEmailVerified) {
+      return res.status(200).json({
+        success: true,
         message: "User already verified",
       });
+    }
+
+    // ⏳ Check expiry
+    if (
+      !user.emailVerificationTokenExpiresAt ||
+      user.emailVerificationTokenExpiresAt < new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Token expired",
+      });
+    }
+
+    // 🎉 Verify user
     user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationTokenExpiresAt = undefined;
+
+    // 👉 expire token instead of deleting
+    user.emailVerificationTokenExpiresAt = new Date(0);
+
     await user.save({ validateBeforeSave: false });
 
     return res.status(200).json({
@@ -92,10 +114,12 @@ export const verifyEmail = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.log("error in verifyEmail:", error.message);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
-};
-
+}; 
 export const resendVerificationUrl = async (req: Request, res: Response) => {
   try {
     const email = req.body.email;
