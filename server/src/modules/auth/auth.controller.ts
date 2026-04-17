@@ -76,7 +76,11 @@ export const verifyEmail = async (req: Request, res: Response) => {
         success: false,
         message: "Invalid link: token expired or already used",
       });
-
+    if (user.isEmailVerified)
+      return res.status(400).json({
+        success: false,
+        message: "User already verified",
+      });
     user.isEmailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationTokenExpiresAt = undefined;
