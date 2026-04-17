@@ -150,6 +150,12 @@ const [focused, setFocused] = useState<"email" | null>(null);
             type="submit"
             disabled={cooldown > 0 || isLoading}
           />
+            <button
+  onClick={() => navigate(user ? "/" : "/login")}
+  className="h-10 w-full bg-primary text-primary-foreground  rounded-md"
+>
+  {user ? "Back to Home" : "Back to Login"}
+</button>
         </form>
 
         {message && (
