@@ -9,15 +9,7 @@ export default function CheckEmailPage() {
   const user = useSelector((state: RootState) => state.auth.user);
    const navigate = useNavigate();
   
-    useEffect(() => {
-       if (user?.isEmailVerified) {
-        navigate("/");
-        return;
-      }
     
-    
-    },[user, navigate])
-  
    return (
     <div className="h-screen flex ">
         <LeftSectionStartPage />
