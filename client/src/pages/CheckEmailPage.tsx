@@ -41,6 +41,27 @@ export default function CheckEmailPage() {
     ">
           Resend email
         </Link>
+
+
+        <span className="text-sm text-muted-foreground">or</span>
+
+  <Link
+    to={user ? "/" : "/login"}
+    className="
+      relative inline-block text-foreground
+      after:content-['']
+      after:absolute after:h-[1.5px] after:w-full
+      after:bg-foreground
+      after:-bottom-0.5 after:right-0
+      after:scale-x-0
+      after:origin-right
+      after:transition-transform after:duration-300
+      hover:after:scale-x-100
+      hover:after:origin-left
+    "
+  >
+    {user ? "Back to Home" : "Back to Login"}
+  </Link>
       </div>
     </div>
   );
