@@ -111,7 +111,7 @@ const LeftSideBar = () => {
             className="w-7 h-7 rounded-full object-cover "
             alt="profile"
           />
-        </Link> */}
+        </Link> 
 
         {/* Menu / Settings */}
         <button className="mt-auto" onClick={() => setIsOpen(!isOpen)}>
