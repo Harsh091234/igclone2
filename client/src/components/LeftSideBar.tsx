@@ -99,9 +99,9 @@ const LeftSideBar = () => {
         </button>
 
         {/* Profile Pic */}
-        {/* {/* <Link 
-        // to={`/profile/${authUser?.userName}`
-        // }
+         <Link 
+         to={`/profile/${authUser?.userName}`
+        }
         > 
           <img
             src={
@@ -149,7 +149,7 @@ const LeftSideBar = () => {
         <Link to="/messages" className="flex items-center justify-center p-2">
           <Send className="w-5 h-5" />
         </Link>
-{/* 
+
         <Link
           to={`/profile/${authUser?.userName}`}
           className="flex items-center justify-center p-1"
@@ -162,7 +162,7 @@ const LeftSideBar = () => {
             className="w-6 h-6 rounded-full object-cover"
             alt="profile"
           />
-        </Link> */}
+        </Link> 
       </div>
 
        {isCreatePostModelOpen && (
