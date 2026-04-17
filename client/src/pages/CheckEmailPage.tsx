@@ -7,7 +7,7 @@ import type { RootState } from "../store/store";
 
 export default function CheckEmailPage() {
   const user = useSelector((state: RootState) => state.auth.user);
-   const navigate = useNavigate();
+   
   
     
    return (
