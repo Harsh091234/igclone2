@@ -58,7 +58,8 @@ export const register = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.log("error in register:", error.message);
     return res.status(500).json({ success: false, message: "Server Error" });
-  }
+  }}
+
    export const verifyEmail = async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
