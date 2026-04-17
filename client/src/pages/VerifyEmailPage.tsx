@@ -34,7 +34,12 @@ useEffect(() => {
 
         await verifyEmail(token).unwrap();
 
-        setMessage("Email Verified Successfully");
+        if (res?.message === "User already verified") {
+          setMessage("Your email is already verified.");
+        } else {
+          setMessage("Email verified successfully");
+        }
+      
         setType("success");
 
         setTimeout(() => navigate(user? "/": "/login"), 4000);
