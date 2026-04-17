@@ -123,6 +123,12 @@ console.log("Error verifying error", msg || "Something went wrong")
     >
       Resend Link
     </Button>
+    <Button
+      onClick={() => navigate(user? "/":"/login")}
+      className="w-full mt-2 bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900"
+    >
+  Back to {user? "Home":"Login"}
+    </Button>
   </>
 )}
        
