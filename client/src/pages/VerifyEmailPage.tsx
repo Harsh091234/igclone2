@@ -32,7 +32,7 @@ useEffect(() => {
     try {
       // ✅ If token exists → ALWAYS verify first
 
-        await verifyEmail(token).unwrap();
+     const res =   await verifyEmail(token).unwrap();
 
         if (res?.message === "User already verified") {
           setMessage("Your email is already verified.");
