@@ -49,7 +49,11 @@ const {
 
        dispatch(setCsrfToken(csrfRes.csrfToken));
     toast.success("User authenticated successfully")
-    navigate("/");
+    if (!res?.user?.isProfileComplete) {
+      navigate("/onboarding");
+    } else {
+      navigate("/");
+    }
 
 
   } catch (error: any) {

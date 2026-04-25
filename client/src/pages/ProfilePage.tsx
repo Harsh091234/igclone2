@@ -98,7 +98,11 @@ const ProfilePage = () => {
 );
 
   const displayPosts =
-    activeTab === "reels" ? (reelsData?.reels ?? []) : (postData?.posts ?? []);
+  activeTab === "posts"
+    ? (postData?.posts ?? [])
+    : activeTab === "reels"
+      ? (reelsData?.reels ?? [])
+      : []; // tagged empty
   const activePost = displayPosts.find((p: Post) => p._id === activePostId);
   const isLoading = isAuthLoading || isProfileLoading;
   const isAuthUser = authUser?._id === user?._id;

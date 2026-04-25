@@ -1,24 +1,29 @@
 import { Switch } from "../../components/ui/switch";
-import { Moon, Sun } from "lucide-react";
+import {  Moon, Sun } from "lucide-react";
 import { useTheme } from "../../utils/ThemeProvider";
+import BackButton from "../../components/BackButton";
+
 
 const SwitchAppearancePage = () => {
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
+  
 
   return (
-    <div className="h-screen px-4 sm:px-8 py-6 bg-background">
+    <div className="h-screen px-5 sm:px-8 py-6 bg-background">
       
       {/* PAGE HEADER */}
-      <div className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+      <div className="mb-8 flex justify-between">
+        <h1 className="text-xl items-center sm:text-2xl font-semibold text-foreground">
           Switch Appearance
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Choose how Instagram looks for you
-        </p>
+         <BackButton />
+        
       </div>
 
+    <p className="text-sm text-muted-foreground mb-2">
+          Choose how Instagram looks for you
+        </p>
       {/* CARD */}
       <div className="max-w-2xl">
         <div className="flex items-center justify-between p-4 sm:p-5 rounded-xl border border-border bg-card">

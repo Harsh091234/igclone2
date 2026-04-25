@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "pnpm install --filter ./server && pnpm install --filter ./client && pnpm --filter ./client run build && pnpm --filter ./server run build",
-    "start": "pnpm --filter ./server run start"
+    "start": "pnpm --filter ./server run start",
+     "seed:user": "tsx src/config/seeds/user.seed.ts" 
   },
   "keywords": [],
   "author": "",

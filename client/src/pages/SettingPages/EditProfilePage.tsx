@@ -14,8 +14,9 @@ import {
 } from "../../schemas/user.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EditProfileData } from "../../types/user.types";
-import { ChevronLeft } from "lucide-react";
+
 import { useGetMeQuery } from "../../services/authApi";
+import BackButton from "../../components/BackButton";
 
 const EditProfilePage = () => {
   const { data } = useGetMeQuery(undefined);
@@ -81,13 +82,7 @@ const EditProfilePage = () => {
     <div className="mx-auto max-w-3xl py-6 px-13 h-full overflow-y-auto">
       <h1 className="text-xl flex justify-between  font-semibold mb-8 text-foreground">
         Edit Profile
-        <button
-          onClick={() => navigate(-1)}
-          className="sm:hidden flex  gap-1 items-center text-sm font-medium"
-        >
-          <ChevronLeft size={18} />
-          Back
-        </button>
+       <BackButton />
       </h1>
 
       <div className="flex gap-7 sm:gap-12 flex-col">
