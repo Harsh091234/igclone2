@@ -25,6 +25,7 @@ import { ProtectedRoutes } from "./ProtectedRoutes";
 import { PublicOnlyRoute } from "./PublicOnlyRoutes";
 import SettingsIndexRedirect from "../utils/SettingIndexRedirect";
 import EditProfilePage from "../pages/SettingPages/EditProfilePage";
+import SwitchAppearancePage from "../pages/SettingPages/SwitchAppearancePage";
 
 const FeedPage = lazy(() => import("../pages/FeedPage"));
 const MessagePage = lazy(() => import("../pages/MessagePage"));
@@ -107,6 +108,7 @@ const AppRoutes = () => {
         >
           <Route index element={<SettingsIndexRedirect />} />
           <Route path="edit-profile" element={<EditProfilePage />} />
+           <Route path="appearance" element={<SwitchAppearancePage />} />
         </Route>
 
            {/* 404 */}

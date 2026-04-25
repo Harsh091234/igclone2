@@ -10,10 +10,10 @@ const SettingsPage = () => {
   const [isClicked, setIsClicked] = useState(false);
   console.log(isClicked);
   return (
-    <div className="grid h-[100dvh] w-full sm:grid-cols-[300px_1fr]">
+    <div className="grid h-screen w-full min-h-0 sm:grid-cols-[300px_1fr]">
       {/* LEFT PANEL */}
       <div
-        className={`md:border-r md:border-border
+        className={`md:border-r md:border-border overflow-y-auto
       ${isRoot ? "block" : "hidden"} 
       sm:block
     `}

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   User,
   Bell,
@@ -18,8 +18,17 @@ import {
   BadgeHelp,
   HelpCircle,
   ShieldCheck,
+   UserPlus,
+  LogOut,
+
+  ShieldOff,
   LayoutDashboard,
+  Sun,
 } from "lucide-react";
+import { useLogoutMutation } from "../services/authApi";
+import { setUser } from "../redux/authSlice";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../store/store";
 
 const sections = [
   {
@@ -72,12 +81,18 @@ const sections = [
         icon: Download,
         path: "/settings/archive",
       },
+
       {
         label: "Accessibility",
         icon: Accessibility,
         path: "/settings/accessibility",
       },
       { label: "Language", icon: Globe, path: "/settings/language" },
+       {
+        label: "Switch appearance",
+        icon: Sun,
+        path: "/settings/appearance",
+      },
       {
         label: "Website permissions",
         icon: Monitor,
@@ -116,6 +131,31 @@ const sections = [
       },
     ],
   },
+  {
+  title: "Account",
+  items: [
+    {
+      label: "Add Account",
+      icon: UserPlus,
+      path: "/auth/add-account",
+    },
+    {
+      label: "Switch Accounts",
+      icon: Users,
+      path: "/auth/switch-account",
+    },
+    {
+      label: "Logout",
+      icon: LogOut,
+         action: "logout",
+    },
+    {
+      label: "Logout All Accounts",
+      icon: ShieldOff,
+      action: "logout_all",
+    },
+  ],
+}
 ];
 
 interface SettingsMenuProps {
@@ -124,6 +164,17 @@ interface SettingsMenuProps {
 
 export default function SettingsMenu({ onClose }: SettingsMenuProps) {
   const location = useLocation();
+  const [logout] = useLogoutMutation()
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const handleLogout = async() => { try {
+      const res = await logout(undefined).unwrap();
+      console.log("Logged out", res.message);
+      dispatch(setUser(null));
+      navigate("/login");
+    } catch (err: any) {
+      console.log("Error logging out:", err?.data?.message || "Something went wrong!");
+    }}
 
   return (
     <div className="w-full h-full overflow-y-auto  p-4 flex flex-col gap-5 sm:gap-8">
@@ -133,36 +184,73 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
       <div className="flex flex-col gap-2 sm:gap-5">
         {/* MENU SECTIONS */}
         {sections.map((section, index) => (
+          
           <div key={index} className="flex flex-col  ">
             <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-0 sm:mb-2">
               {section.title}
             </h3>
 
-            <div className="-space-y-1 sm:space-x-2">
-              {section.items.map((item, i) => {
-                const Icon = item.icon;
-                const active = location.pathname === item.path;
+          <div className="-space-y-1 sm:space-x-2">
+  {section.items.map((item, i) => {
+    const Icon = item.icon;
+  
 
-                return (
-                  <Link
-                    onClick={onClose}
-                    key={i}
-                    to={item.path}
-                    className={`
-    flex items-center gap-2.5 p-2.5 rounded-md transition active:bg-accent active:text-accent-foreground
-    ${
-      active
-        ? "sm:bg-secondary sm:text-foreground sm:font-medium "
-        : "sm:hover:bg-accent sm:hover:text-accent-foreground"
+    const active = location.pathname === item.path;
+
+    // 🔴 ACTION BUTTONS (logout / logout all)
+    if (item.action) {
+      return (
+        <button
+          key={i}
+          onClick={() => {
+            onClose();
+
+            if (item.action === "logout") {
+              console.log("Logout user");
+             handleLogout();
+              // call logout API
+            }
+
+            if (item.action === "logout_all") {
+              console.log("Logout all accounts");
+              // call logout all API
+            }
+          }}
+          className="
+            flex items-center gap-2.5 p-2.5 rounded-md transition
+            text-red-500 hover:text-red-600 hover:bg-red-500/10
+            w-full text-left
+          "
+        >
+          <Icon className="w-4 h-4 sm:h-5 sm:w-5" />
+          <span className="text-xs sm:text-sm">{item.label}</span>
+        </button>
+      );
     }
-  `}
-                  >
-                    <Icon className="w-4 h-4 sm:h-5 sm:w-5" />
-                    <span className=" text-xs sm:text-sm">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+
+    // 🔵 NORMAL LINKS
+    return (
+      <Link
+        onClick={onClose}
+        key={i}
+        to={item.path}
+        className={`
+          flex items-center gap-2.5 p-2.5 rounded-md transition
+          active:bg-accent active:text-accent-foreground
+
+          ${
+            active
+              ? "sm:bg-secondary sm:text-foreground sm:font-medium"
+              : "sm:hover:bg-accent"
+          }
+        `}
+      >
+        <Icon className="w-4 h-4 sm:h-5 sm:w-5" />
+        <span className="text-xs sm:text-sm">{item.label}</span>
+      </Link>
+    );
+  })}
+</div>
           </div>
         ))}
       </div>
