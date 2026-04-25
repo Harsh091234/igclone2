@@ -5,7 +5,7 @@ let socket: Socket | null = null;
 export const connectSocket = (userId: string) => {
   if (!socket) {
     const url =
-      import.meta.env.MODE === "development"
+      import.meta.env.VITE_MODE === "development"
         ? import.meta.env.VITE_BASE_SOCKET_URI
         : "/"; // production uses same origin
 
