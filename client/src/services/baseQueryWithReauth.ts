@@ -1,10 +1,9 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-
 export const baseQueryWithReauth = fetchBaseQuery({
   baseUrl:
     import.meta.env.MODE === "development"
-      ? `http://localhost:4000/api`
+      ? import.meta.env.VITE_BASE_URI
       : "/api",
   credentials: "include", // send cookies
   prepareHeaders: (headers, { getState }) => {
@@ -14,7 +13,11 @@ export const baseQueryWithReauth = fetchBaseQuery({
   },
 });
 
-export const customBaseQuery = async (args: any, api: any, extraOptions: any) => {
+export const customBaseQuery = async (
+  args: any,
+  api: any,
+  extraOptions: any
+) => {
   let result = await baseQueryWithReauth(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {

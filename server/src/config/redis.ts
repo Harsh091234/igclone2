@@ -3,7 +3,7 @@ import { Redis } from "@upstash/redis";
 
 let redis: any;
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.REDIS_MODE === "production") {
   redis = new Redis({
     url: process.env.REDIS_URL,
     token: process.env.REDIS_TOKEN,

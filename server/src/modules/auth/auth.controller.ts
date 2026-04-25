@@ -160,6 +160,7 @@ export const resendVerificationUrl = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+  console.log("hi from login!!");
   try {
     const { email, password } = req.body;
 
