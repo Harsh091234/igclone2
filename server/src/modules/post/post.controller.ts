@@ -492,6 +492,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
     if (posts.length === 0)
       return res.status(200).json({
         success: true,
+        posts: [],
         message: "No posts found",
       });
 

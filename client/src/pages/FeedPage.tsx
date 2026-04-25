@@ -53,7 +53,7 @@ export default function FeedPage() {
   const isFetchingRef = useRef(false);
 
   const authUser = data?.user;
-  console.log(authUser)
+ 
   
   const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery({
     page,
@@ -62,9 +62,9 @@ export default function FeedPage() {
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
-  console.log("suggested users", suggestedUsers)
+  
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
-  console.log("visible uesrs", visibleSuggestedUsers)
+ 
   const { isLoading: isStoryLoading, data: storyData } =
     useGetAllUsersStoryQuery(undefined);
   const storyGroups = storyData?.stories ?? [];
@@ -80,12 +80,12 @@ export default function FeedPage() {
       ...story,
       user: activeGroup.user,
     })) ?? [];
-  // console.log("viewers story", viewerStories);
+
   const authUserStoryGroups = storyGroups.find(
     (group: any) => group.user._id === authUser?._id,
   );
   const hasAuthStory = authUserStoryGroups?.stories?.length > 0;
-  // console.log("auth user story:", authUserStoryGroups);
+
   const otherUsersStories = storyGroups.filter(
     (group: any) => group.user._id !== authUser?._id,
   );

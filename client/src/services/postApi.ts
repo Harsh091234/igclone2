@@ -187,13 +187,13 @@ export const postApi = api.injectEndpoints({
       serializeQueryArgs: ({ endpointName }) => endpointName,
       // 🔥 merge paginated data
       merge: (currentCache, newCache) => {
-        const newPosts = newCache.posts.filter(
+        const newPosts = (newCache.posts || []).filter(
           (newPost: Post) =>
             !currentCache.posts.some((p: Post) => p._id === newPost._id),
         );
 
         currentCache.posts.push(...newPosts);
-        currentCache.hasMore = newCache.hasMore;
+        currentCache.hasMore = newCache.hasMore?? false;
       },
 
       // 🔥 refetch when page changes

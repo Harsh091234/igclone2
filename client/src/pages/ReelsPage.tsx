@@ -44,7 +44,6 @@ const ReelsPage = () => {
   const [activeReelId, setActiveReelId] = useState<string | null>(null);
 
   const activeReel = reels?.find((r: Reel) => r._id === activeReelId);
-  console.log("reel data", reelData);
   let isLiked;
 
   const [isReelModalOpen, setIsReelModalOpen] = useState<boolean>(false);
@@ -58,7 +57,7 @@ const ReelsPage = () => {
     { skip: !activeReel },
   );
   const user = userData?.user;
-  console.log("user in reels", user);
+  
   const handleRouteToProfile = (userName: string) => {
     navigate(`/profile/${userName}`);
   };

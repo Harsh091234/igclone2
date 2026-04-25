@@ -57,7 +57,7 @@ const ProfilePage = () => {
   const authUser = authData?.user;
   
   const user = profileData?.user;
-  console.log("profile user", user)
+  
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
 
@@ -77,7 +77,7 @@ const ProfilePage = () => {
     },
   );
 
-  console.log("reels:", reelsData);
+  
 
   const isLoadingCurrent =
     activeTab === "reels" ? isReelsFetching : isPostsFetching;
@@ -87,7 +87,7 @@ const ProfilePage = () => {
   const [isFollowerModalOpen, setIsFollowerModalOpen] =
     useState<boolean>(false);
 
-  console.log("postdata", postData);
+  
 
   const [toggleFollow, { isLoading: followLoading }] =
     useFollowOrUnfollowUsersMutation();

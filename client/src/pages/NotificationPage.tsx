@@ -23,20 +23,20 @@ const NotificationPage = () => {
   const navigate = useNavigate();
   const notifications = notificationData?.notifications;
 
-  console.log("data", notifications);
+
   useEffect(() => {
-    console.log("📄 [NotificationPage] mounted");
+    
 
     const socket = getSocket();
     if (!socket) return;
 
-    console.log("🔌 [NotificationPage] socket found:", socket.id);
+    
     socket.onAny((event, ...args) => {
       console.log("📡 SOCKET EVENT:", event, args);
     });
 
     const handleNotification = (data: any) => {
-      console.log("🔔 notification received:", data);
+      
       dispatch(
         notificationApi.util.updateQueryData(
           "getNotifications",
@@ -72,7 +72,7 @@ const NotificationPage = () => {
       post: string;
       comment: string;
     }) => {
-      console.log("🗑️ remove notification received:", type, sender);
+      
       dispatch(
         notificationApi.util.updateQueryData(
           "getNotifications",
@@ -101,9 +101,7 @@ const NotificationPage = () => {
       socket.off("notification:remove", handleRemoveNotification);
     };
   }, [dispatch]);
-  useEffect(() => {
-    console.log("notification data", notificationData);
-  });
+
 
   return (
     <div className="min-h-screen  overflow-y-auto px-4 sm:px-45 py-4 sm:py-6 w-full  flex flex-col">
