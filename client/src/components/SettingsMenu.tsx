@@ -233,7 +233,7 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
       <Link
         onClick={onClose}
         key={i}
-        to={item.path}
+        to={item.path!}
         className={`
           flex items-center gap-2.5 p-2.5 rounded-md transition
           active:bg-accent active:text-accent-foreground
