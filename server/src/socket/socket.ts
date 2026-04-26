@@ -9,7 +9,7 @@ const io = new Server(server, {
   cors: {
     origin:
       process.env.NODE_ENV === "production" ? true : process.env.CLIENT_URL,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   },
 });
@@ -52,7 +52,7 @@ function emitOnlineUsers() {
     Object.entries(userSocketMap).map(([userId, data]) => ({
       userId,
       lastActive: data.lastActive,
-    })),
+    }))
   );
 }
 
