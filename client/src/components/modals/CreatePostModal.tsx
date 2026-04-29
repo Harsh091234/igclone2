@@ -1,309 +1,502 @@
 import React, { useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
-
-import UserAvatar from "../UserAvatar";
-import { ImagePlus } from "lucide-react";
-import { useCreatePostMutation } from "../../services/postApi";
+import { ArrowLeft, ImagePlus } from "lucide-react";
+import Cropper, { type Area } from "react-easy-crop";
 import toast from "react-hot-toast";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "../ui/carousel";
-import { useGetMeQuery } from "../../services/authApi";
+import { useCreatePostMutation } from "../../services/postApi";
 
-export interface CreatePostModalProps {
+type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
+
+type MediaType = "image" | "video";
+
+interface SelectedMedia {
+  file: File;
+  previewUrl: string;
+  type: MediaType;
+}
+
+interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export interface SelectedMedia {
-  file: File;
-  previewUrl: string;
-  type: "image" | "video";
-}
-export interface CreatePostPayload {
-  images: File[];
-  caption: string;
-}
+export default function CreatePostModal({
+  isOpen,
+  onClose,
+}: Props) {
+  const [step, setStep] =
+    useState<Step>("SELECT");
 
-export type CreatePostStep = "SELECT" | "PREVIEW" | "CAPTION";
+  const [contentType, setContentType] =
+    useState<"post" | "reel" | null>(
+      null
+    );
 
-const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
-  const [step, setStep] = useState<CreatePostStep>("SELECT");
-  const [media, setMedia] = useState<SelectedMedia[]>([]);
-  const [caption, setCaption] = useState<string>("");
-  const { data } = useGetMeQuery(undefined);
-  const authUser = data?.user;
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const [createPost, { isLoading }] = useCreatePostMutation();
+  const [media, setMedia] =
+    useState<SelectedMedia | null>(
+      null
+    );
+
+  const [caption, setCaption] =
+    useState("");
+
+  const [feedRatio, setFeedRatio] =
+    useState<"1/1" | "4/5" | "16/9">(
+      "4/5"
+    );
+
+  const [aspect, setAspect] =
+    useState(1);
+
+  const [crop, setCrop] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  const [zoom, setZoom] =
+    useState(1);
+
+  const [
+    croppedAreaPixels,
+    setCroppedAreaPixels,
+  ] = useState<Area | null>(null);
+
+  const fileRef =
+    useRef<HTMLInputElement | null>(
+      null
+    );
+
+  const [
+    createPost,
+    { isLoading },
+  ] = useCreatePostMutation();
+
   if (!isOpen) return null;
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files) return;
-
-    const selected = files.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-      type: file.type.startsWith("image")
-        ? "image"
-        : ("video" as "image" | "video"),
-    }));
-
-    setMedia(selected);
-
-    setStep("PREVIEW");
-  };
-
-  const handleClose = () => {
+  const resetAll = () => {
     setStep("SELECT");
-    setMedia([]);
+    setContentType(null);
+    setMedia(null);
     setCaption("");
+    setFeedRatio("4/5");
+    setAspect(1);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
     onClose();
   };
 
-  const handleImageShare = async () => {
-    const formData = new FormData();
-    media.forEach((item) => {
-      formData.append("media", item.file);
+  const handleBack = () => {
+    if (step === "CROP")
+      setStep("SELECT");
+    else if (step === "PREVIEW")
+      setStep("CROP");
+    else if (step === "CAPTION")
+      setStep("PREVIEW");
+  };
+
+  const handleFileSelect = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) return;
+
+    setMedia({
+      file,
+      previewUrl:
+        URL.createObjectURL(file),
+      type:
+        file.type.startsWith(
+          "video"
+        )
+          ? "video"
+          : "image",
     });
-    formData.append("caption", caption);
 
-    const res = await createPost(formData).unwrap();
-    console.log("post:", res.post);
-    toast.success("Post created successfully");
-    setMedia([]);
-    setStep("SELECT");
-    onClose();
+    setStep("CROP");
   };
 
-  if (!authUser) return;
+  const handleUpload =
+    async () => {
+      if (!media) return;
+
+      try {
+        const formData =
+          new FormData();
+
+        formData.append(
+          "media",
+          media.file
+        );
+
+        formData.append(
+          "caption",
+          caption
+        );
+
+        formData.append(
+          "isReel",
+          contentType === "reel"
+            ? "true"
+            : "false"
+        );
+
+        formData.append(
+          "feedRatio",
+          feedRatio
+        );
+
+        formData.append(
+          "cropData",
+          JSON.stringify(
+            croppedAreaPixels
+          )
+        );
+
+        await createPost(
+          formData
+        ).unwrap();
+
+        toast.success(
+          "Uploaded successfully"
+        );
+
+        resetAll();
+      } catch {
+        toast.error(
+          "Upload failed"
+        );
+      }
+    };
+
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center"
-      onClick={handleClose}
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+      onClick={resetAll}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="
-          bg-primary-foreground  rounded-xl
-         
-          mx-2 sm:mx-0 transition-all overflow-hidden
-        "
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+        className="bg-background w-[420px] max-w-full rounded-2xl overflow-hidden border"
       >
         {/* HEADER */}
-        <header
-          className="
-          grid grid-cols-3 items-center border-b px-3 py-2
-          sticky top-0 z-10
-        "
-        >
-          {/* LEFT */}
-          <div className="flex justify-start">
-            {step !== "SELECT" && (
-              <button onClick={() => setStep("SELECT")} className="p-2">
-                <ArrowLeft size={20} />
+        <header className="grid grid-cols-3 items-center border-b px-3 py-2">
+          <div>
+            {step !==
+              "SELECT" && (
+              <button
+                onClick={
+                  handleBack
+                }
+              >
+                <ArrowLeft />
               </button>
             )}
           </div>
 
-          {/* CENTER */}
-          <h2 className="text-center font-semibold text-sm sm:text-base">
-            {step === "SELECT" && "Create new post"}
-            {step === "PREVIEW" && "Preview"}
-            {step === "CAPTION" && "Create post"}
+          <h2 className="text-center font-semibold">
+            {step ===
+              "SELECT" &&
+              "Create"}
+            {step ===
+              "CROP" &&
+              "Crop"}
+            {step ===
+              "PREVIEW" &&
+              "Preview"}
+            {step ===
+              "CAPTION" &&
+              "Caption"}
           </h2>
 
-          {/* RIGHT */}
-          <div className="flex justify-end">
-            {step === "PREVIEW" && (
+          <div className="text-right">
+            {step ===
+              "CROP" && (
               <button
-                className="text-blue-500 font-semibold text-sm px-2"
-                onClick={() => setStep("CAPTION")}
+                onClick={() =>
+                  setStep(
+                    "PREVIEW"
+                  )
+                }
+                className="text-blue-500"
               >
                 Next
               </button>
             )}
 
-            {step === "CAPTION" && (
+            {step ===
+              "PREVIEW" && (
               <button
-                onClick={handleImageShare}
-                disabled={isLoading} // disables the button during upload
-                className={`
-      text-blue-500 font-semibold text-sm px-2
-      ${isLoading ? "opacity-50 cursor-not-allowed" : "hover:underline"}
-    `}
+                onClick={() =>
+                  setStep(
+                    "CAPTION"
+                  )
+                }
+                className="text-blue-500"
               >
-                {isLoading ? "Sharing..." : "Share"}
+                Next
+              </button>
+            )}
+
+            {step ===
+              "CAPTION" && (
+              <button
+                disabled={
+                  isLoading
+                }
+                onClick={
+                  handleUpload
+                }
+                className="text-blue-500"
+              >
+                {isLoading
+                  ? "Sharing..."
+                  : "Share"}
               </button>
             )}
           </div>
         </header>
 
         {/* BODY */}
-        <div className="flex  w-full  p-2">
+        <div className="p-4 min-h-[520px]">
           {/* SELECT */}
-          {step === "SELECT" && (
-            <div
-              className="
-               h-[50vh] 
-              flex flex-col gap-7 w-full justify-center items-center
-            "
-            >
-              <div className="p-7 rounded-full bg-muted">
-                <ImagePlus className="w-12 h-12 text-muted-foreground" />
-              </div>
+          {step ===
+            "SELECT" && (
+            <div className="h-[500px] flex flex-col items-center justify-center gap-4">
+              <ImagePlus
+                size={50}
+              />
 
               <button
-                onClick={() => fileRef.current?.click()}
-                className="
-                  px-5 py-1.5  sm:py-2 rounded-lg bg-blue-500 text-white text-xs sm:text-sm
-                  hover:bg-blue-600 active:scale-95 transition
-                "
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground"
+                onClick={() => {
+                  setContentType(
+                    "post"
+                  );
+                  setAspect(
+                    1
+                  );
+                  fileRef.current?.click();
+                }}
               >
-                Select from computer
+                Create Post
+              </button>
+
+              <button
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground"
+                onClick={() => {
+                  setContentType(
+                    "reel"
+                  );
+                  setAspect(
+                    9 / 16
+                  );
+                  fileRef.current?.click();
+                }}
+              >
+                Create Reel
               </button>
             </div>
           )}
 
+          {/* CROP */}
+          {step === "CROP" &&
+            media && (
+              <>
+                <div className="flex gap-2 mb-3">
+                  {contentType ===
+                  "post" ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setAspect(
+                            1
+                          );
+                          setFeedRatio(
+                            "1/1"
+                          );
+                        }}
+                      >
+                        1:1
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setAspect(
+                            4 /
+                              5
+                          );
+                          setFeedRatio(
+                            "4/5"
+                          );
+                        }}
+                      >
+                        4:5
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setAspect(
+                            16 /
+                              9
+                          );
+                          setFeedRatio(
+                            "16/9"
+                          );
+                        }}
+                      >
+                        16:9
+                      </button>
+                    </>
+                  ) : (
+                    <button>
+                      9:16
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative h-[460px] bg-black rounded-xl overflow-hidden">
+                  {media.type ===
+                  "image" ? (
+                    <Cropper
+                      image={
+                        media.previewUrl
+                      }
+                      crop={
+                        crop
+                      }
+                      zoom={
+                        zoom
+                      }
+                      aspect={
+                        aspect
+                      }
+                      onCropChange={
+                        setCrop
+                      }
+                      onZoomChange={
+                        setZoom
+                      }
+                      onCropComplete={(
+                        _,
+                        pixels
+                      ) =>
+                        setCroppedAreaPixels(
+                          pixels
+                        )
+                      }
+                    />
+                  ) : (
+                    <Cropper
+                      video={
+                        media.previewUrl
+                      }
+                      crop={
+                        crop
+                      }
+                      zoom={
+                        zoom
+                      }
+                      aspect={
+                        aspect
+                      }
+                      onCropChange={
+                        setCrop
+                      }
+                      onZoomChange={
+                        setZoom
+                      }
+                      onCropComplete={(
+                        _,
+                        pixels
+                      ) =>
+                        setCroppedAreaPixels(
+                          pixels
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
           {/* PREVIEW */}
-          {step === "PREVIEW" && media.length > 0 && (
-            <div className="max-h-[70vh] h-auto mt-1 flex items-center justify-center w-full sm:w-md rounded-lg overflow-hidden">
-              {media.length === 1 ? (
-                // 🔥 Single media (NO carousel)
-                media[0].type === "image" ? (
+          {step ===
+            "PREVIEW" &&
+            media && (
+              <div className="h-[500px] flex items-center justify-center">
+                {media.type ===
+                "image" ? (
                   <img
-                    src={media[0].previewUrl}
-                    alt="preview"
-                    className="aspect-square rounded-md"
+                    src={
+                      media.previewUrl
+                    }
+                    className="max-h-full rounded-xl"
                   />
                 ) : (
                   <video
-                    src={media[0].previewUrl}
+                    src={
+                      media.previewUrl
+                    }
                     controls
-                    className="aspect-video bg-black rounded-md"
+                    className="max-h-full rounded-xl"
                   />
-                )
-              ) : (
-                // 🔥 Multiple media (USE carousel)
-                <Carousel className="flex h-full">
-                  <CarouselContent className="h-full">
-                    {media.map((item, index) => (
-                      <CarouselItem
-                        key={index}
-                        className="flex items-center justify-center"
-                      >
-                        {item.type === "image" ? (
-                          <img
-                            src={item.previewUrl}
-                            alt={`preview-${index}`}
-                            className="aspect-square rounded-md"
-                          />
-                        ) : (
-                          <video
-                            src={item.previewUrl}
-                            controls
-                            className="aspect-video bg-black rounded-md"
-                          />
-                        )}
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-
-                  <CarouselPrevious className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
-                  <CarouselNext className="hidden sm:flex  absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full hover:bg-black/60 z-10" />
-                </Carousel>
-              )}
-            </div>
-          )}
-
-          {/* CAPTION */}
-          {step === "CAPTION" && media.length > 0 && (
-            <div className="flex flex-col items-center sm:flex-row w-full sm:w-2xl h-auto max-h-[70vh] sm:h-[60vh] gap-0 sm:gap-4">
-              {/* LEFT: MEDIA */}
-              <div className="relative w-full flex justify-center h-[60%] sm:h-[90%] min-[350px]:w-xs sm:w-[60%] items-center rounded-lg overflow-hidden">
-                {media.length === 1 ? (
-                  media[0].type === "image" ? (
-                    <img
-                      src={media[0].previewUrl}
-                      alt="preview"
-                      className="aspect-square h-full w-full rounded-md object-cover"
-                    />
-                  ) : (
-                    <video
-                      src={media[0].previewUrl}
-                      controls
-                      className="aspect-video bg-black rounded-md"
-                    />
-                  )
-                ) : (
-                  <Carousel className="flex h-full w-full">
-                    <CarouselContent className="h-full">
-                      {media.map((item, index) => (
-                        <CarouselItem
-                          key={index}
-                          className="flex h-full items-center overflow-hidden rounded-md"
-                        >
-                          {item.type === "image" ? (
-                            <img
-                              src={item.previewUrl}
-                              alt={`preview-${index}`}
-                              className="aspect-square h-full w-full rounded-md object-cover"
-                            />
-                          ) : (
-                            <video
-                              src={item.previewUrl}
-                              controls
-                              className="aspect-video bg-black rounded-md"
-                            />
-                          )}
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-
-                    <CarouselPrevious className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
-                    <CarouselNext className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full z-10 hover:bg-black/60" />
-                  </Carousel>
                 )}
               </div>
+            )}
 
-              {/* RIGHT: CAPTION */}
-              <div className="flex flex-col px-2 w-full sm:w-[40%] h-[40%] sm:h-full pt-5 gap-3 sm:gap-4 overflow-hidden">
-                <div className="flex items-center gap-2">
-                  <UserAvatar
-                    classes="h-8 w-8 sm:h-10 sm:w-10"
-                    user={authUser}
+          {/* CAPTION */}
+          {step ===
+            "CAPTION" &&
+            media && (
+              <div className="space-y-4">
+                {media.type ===
+                "image" ? (
+                  <img
+                    src={
+                      media.previewUrl
+                    }
+                    className="h-64 mx-auto rounded-xl"
                   />
-                  <p className="text-sm font-medium truncate">
-                    {authUser.userName}
-                  </p>
-                </div>
+                ) : (
+                  <video
+                    src={
+                      media.previewUrl
+                    }
+                    controls
+                    className="h-64 mx-auto rounded-xl"
+                  />
+                )}
 
                 <textarea
                   value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
+                  onChange={(
+                    e
+                  ) =>
+                    setCaption(
+                      e.target
+                        .value
+                    )
+                  }
                   placeholder="Write a caption..."
-                  className="w-full h-[55%] sm:h-[6rem] resize-none border rounded-lg p-2 text-sm overflow-y-auto"
+                  className="w-full border rounded-xl p-3 min-h-[120px]"
                 />
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*"
           hidden
-          multiple
-          onChange={handleImageSelect}
+          accept="image/*,video/*"
+          onChange={
+            handleFileSelect
+          }
         />
       </div>
     </div>
   );
-};
-
-export default CreatePostModal;
+}

@@ -3,18 +3,19 @@ import { uploadBase64Image } from "../../config/uploadPic.js";
 import { uploadVideo } from "../../config/uploadVideo.js";
 import Comment from "./comment.model.js";
 import Post from "./post.model.js";
+import fs from "fs";
 import User from "../user/user.model.js";
+import path from "path";
 import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
 import { Request, Response } from "express";
 import sharp from "sharp";
 import Notification from "../notification/notification.model.js";
 import { deleteCache, getCache, setCache } from "../../config/cache.js";
 import redis from "../../config/redis.js";
-
+import { cropVideo } from "../../config/ffmpeg.js";
 export const createPost = async (req: Request, res: Response) => {
   try {
-   
-    const { caption } = req.body;
+    const { caption, isReel, feedRatio, cropData } = req.body;
 
     const authUser = await User.findById(req.user?._id);
     if (!authUser) {
@@ -27,41 +28,75 @@ export const createPost = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Media is required" });
     }
 
+    const crop = cropData ? JSON.parse(cropData) : null;
+
     // ✅ FIXED: return values instead of push
     const media = await Promise.all(
       files.map(async (file) => {
         const isVideo = file.mimetype.startsWith("video");
 
         if (isVideo) {
+          const inputPath = file.path;
+
+          const outputPath = path.join(
+            "uploads",
+            `cropped-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`,
+          );
+
+          await cropVideo(inputPath, outputPath, crop);
           const cloudResponse = await uploadVideo(
-            file.buffer,
+            fs.readFileSync(outputPath),
             CLOUDINARY_FOLDERS.POST_VIDEOS,
           );
 
-          const aspectRatio = cloudResponse.width / cloudResponse.height;
+          fs.unlinkSync(outputPath);
+          fs.unlinkSync(inputPath);
+          
 
           return {
             url: cloudResponse.secure_url,
             publicId: cloudResponse.public_id,
             type: "video",
-            height: cloudResponse.height,
+            isReel: req.body.isReel === "true",
+            feedRatio: req.body.feedRatio,
             width: cloudResponse.width,
-            aspectRatio,
+            height: cloudResponse.height,
+            aspectRatio: cloudResponse.width / cloudResponse.height,
           };
         }
 
         // 🖼️ Image handling
-        const image = sharp(file.buffer);
+        const image = sharp(file.path);
         const metadata = await image.metadata();
 
-        const aspectRatio = (metadata.width || 1) / (metadata.height || 1);
+    
+let croppedBuffer: Buffer;
 
-        const optimizedBuffer = await image
-          .resize({ width: 800, height: 800, fit: "inside" })
-          .jpeg({ quality: 80 })
-          .toBuffer();
+if (crop) {
+  croppedBuffer = await image
+    .extract({
+      left: Math.round(crop.x),
+      top: Math.round(crop.y),
+      width: Math.round(crop.width),
+      height: Math.round(crop.height),
+    })
+    .resize({
+      width: 1080,
+    })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+} else {
+  croppedBuffer = await image
+    .resize({
+      width: 1080,
+    })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+} 
 
-        const base64Image = `data:image/jpeg;base64,${optimizedBuffer.toString(
+        const finalMeta = await sharp(croppedBuffer).metadata();
+        const aspectRatio = (finalMeta.width || 1) / (finalMeta.height || 1);
+        const base64Image = `data:image/jpeg;base64,${croppedBuffer.toString(
           "base64",
         )}`;
 
@@ -69,14 +104,16 @@ export const createPost = async (req: Request, res: Response) => {
           base64Image,
           CLOUDINARY_FOLDERS.POST_IMAGES,
         );
-
+        fs.unlinkSync(file.path);
         return {
           url: cloudResponse.secure_url,
           publicId: cloudResponse.public_id,
           type: "image",
-          height: metadata.height,
-          width: metadata.width,
+          height: finalMeta.height,
+          width: finalMeta.width,
           aspectRatio,
+          isReel: isReel === "true",
+          feedRatio: feedRatio || "4/5",
         };
       }),
     );
@@ -117,11 +154,11 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const toggleLikePost = async (req: Request, res: Response) => {
   try {
-   
     const { id } = req.params; //post id
 
     const authUser = await User.findById(req.user?._id);
-     if(!authUser) return res.status(401).json({
+    if (!authUser)
+      return res.status(401).json({
         success: false,
         message: "Auth user not found",
       });
@@ -217,11 +254,10 @@ export const toggleLikePost = async (req: Request, res: Response) => {
 
 export const commentPost = async (req: Request, res: Response) => {
   try {
-   
     const { id } = req.params; //post id
     const { text } = req.body;
 
-const authUser = await User.findById(req.user?._id);
+    const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res.status(401).json({
         success: false,
@@ -294,11 +330,9 @@ const authUser = await User.findById(req.user?._id);
 
 export const deleteComment = async (req: Request, res: Response) => {
   try {
-   
     const { id: commentId } = req.params;
 
-
-const authUser = await User.findById(req.user?._id);
+    const authUser = await User.findById(req.user?._id);
     if (!authUser) {
       return res.status(401).json({
         success: false,
@@ -373,8 +407,6 @@ export const deletePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; //post id
 
-
-  
     const authUser = await User.findById(req.user?._id);
 
     if (!authUser)
@@ -417,7 +449,6 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const toggleBookmarkPost = async (req: Request, res: Response) => {
   try {
-
     const { id } = req.params; //post id
 
     const post = await Post.findById(id);
@@ -426,7 +457,7 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
         message: "No post found",
       });
 
- const authUser = await User.findById(req.user?._id);
+    const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res.status(401).json({
         message: "No auth user found",

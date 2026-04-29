@@ -7,6 +7,8 @@ export interface IPost extends Document {
     url: string;
     type: "image" | "video";
     publicId: string;
+    isReel: boolean;
+    feedRatio:  "1/1" | "4/5" | "16/9";
     height: number;
     width: number;
     aspectRatio: number;
@@ -40,6 +42,15 @@ const postSchema = new Schema<IPost>(
           type: String,
           enum: ["image", "video"],
           required: true,
+        },
+        feedRatio:{
+          type: String,
+          enum: ["1/1", "4/5", "16/9"],
+          default: "4/5"
+        },
+        isReel: {
+          type: Boolean,
+          default: false,
         },
         height: Number,
         width: Number,

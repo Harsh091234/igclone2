@@ -30,7 +30,7 @@ router.post(
   csrfProtection,
   authorize("user"),
   upload.array("media", 5),
-  validate(createPostSchema),
+  // validate(createPostSchema),
   createPost,
 );
 

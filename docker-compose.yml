@@ -31,8 +31,8 @@ services:
     environment:
       - VITE_MODE=development
       - VITE_SERVER_PORT=4000
-      - VITE_BASE_URI=https://zsrh6d-4000.csb.app/api
-      - VITE_BASE_SOCKET_URI=https://zsrh6d-4000.csb.app
+      - VITE_BASE_URI=http://localhost:4000/api
+      - VITE_BASE_SOCKET_URI=http://localhost:4000
     depends_on:
       - server
 
