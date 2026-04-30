@@ -10,6 +10,14 @@ export interface Post {
     url: string;
     type: "image" | "video";
     publicId: string;
+
+    isReel?: boolean;
+
+    feedRatio?: "1/1" | "4/5" | "16/9";
+
+    width?: number;
+    height?: number;
+    aspectRatio?: number;
   }[];
   likes: string[];
   comments: CommentT[];

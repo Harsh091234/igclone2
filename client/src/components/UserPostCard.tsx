@@ -23,6 +23,7 @@ import {
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
 import { useGetMeQuery } from "../services/authApi";
+import { getAspectClass } from "../utils/aspectHelper";
 
 interface PostCardProps {
   post: Post;
@@ -30,7 +31,7 @@ interface PostCardProps {
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetMeQuery(undefined);
-
+  console.log("post",post)
   const authUser = authData?.user;
   const navigate = useNavigate();
   const [deleteComment] = useDeleteCommentMutation();
@@ -154,7 +155,9 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
 
       <div className="w-full overflow-hidden">
         {post.media.length === 1 ? (
-          <div className="flex justify-center items-center aspect-video">
+          <div className={`flex justify-center items-center`}  style={{
+    aspectRatio: post.media[0].feedRatio,
+  }}>
             {post.media[0].type === "image" ? (
               <img
                 src={post.media[0].url}

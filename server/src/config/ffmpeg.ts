@@ -51,7 +51,7 @@ export const cropVideo = (
       output,
     ];
 
-    const ffmpeg = spawn(ffmpegPath, args);
+    const ffmpeg = spawn("ffmpeg", [...args]);
 
     ffmpeg.stderr.on("data", (data) => {
       console.log(data.toString());

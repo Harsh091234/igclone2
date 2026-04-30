@@ -3,6 +3,7 @@ import { ArrowLeft, ImagePlus } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
 import toast from "react-hot-toast";
 import { useCreatePostMutation } from "../../services/postApi";
+import getCroppedImg from "../../utils/getCroppedItems";
 
 type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
 
@@ -25,7 +26,7 @@ export default function CreatePostModal({
 }: Props) {
   const [step, setStep] =
     useState<Step>("SELECT");
-
+  const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
   const [contentType, setContentType] =
     useState<"post" | "reel" | null>(
       null
@@ -113,7 +114,7 @@ export default function CreatePostModal({
           ? "video"
           : "image",
     });
-
+    setCroppedPreview(null);
     setStep("CROP");
   };
 
@@ -215,11 +216,21 @@ export default function CreatePostModal({
             {step ===
               "CROP" && (
               <button
-                onClick={() =>
-                  setStep(
-                    "PREVIEW"
-                  )
-                }
+                onClick={async () => {
+  if (
+    media?.type === "image" &&
+    croppedAreaPixels
+  ) {
+    const cropped = await getCroppedImg(
+      media.previewUrl,
+      croppedAreaPixels
+    );
+
+    setCroppedPreview(cropped);
+  }
+  
+  setStep("PREVIEW");
+}}
                 className="text-blue-500"
               >
                 Next
@@ -357,10 +368,11 @@ export default function CreatePostModal({
                   )}
                 </div>
 
-                <div className="relative h-[460px] bg-black rounded-xl overflow-hidden">
+                <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
                   {media.type ===
                   "image" ? (
-                    <Cropper
+                    <div className="relative w-full h-full">
+                            <Cropper
                       image={
                         media.previewUrl
                       }
@@ -388,6 +400,8 @@ export default function CreatePostModal({
                         )
                       }
                     />
+                    </div>
+                
                   ) : (
                     <Cropper
                       video={
@@ -426,23 +440,28 @@ export default function CreatePostModal({
           {step ===
             "PREVIEW" &&
             media && (
-              <div className="h-[500px] flex items-center justify-center">
+              <div className="h-[500px]  flex items-center justify-center">
                 {media.type ===
                 "image" ? (
                   <img
                     src={
-                      media.previewUrl
+                     croppedPreview ||
+    media.previewUrl
                     }
                     className="max-h-full rounded-xl"
                   />
                 ) : (
-                  <video
-                    src={
-                      media.previewUrl
-                    }
-                    controls
-                    className="max-h-full rounded-xl"
-                  />
+                 <div className="relative  w-full  bg-black overflow-hidden rounded-xl" style={{aspectRatio: aspect}}>
+  <video
+    src={media.previewUrl}
+    className="w-full h-full object-cover"
+    style={{
+      transform: `scale(${zoom}) translate(${crop.x}px, ${crop.y}px)`,
+      transformOrigin: "center",
+    }}
+    controls
+  />
+</div>
                 )}
               </div>
             )}
@@ -455,19 +474,20 @@ export default function CreatePostModal({
                 {media.type ===
                 "image" ? (
                   <img
-                    src={
-                      media.previewUrl
-                    }
+                   src={croppedPreview || media.previewUrl}
                     className="h-64 mx-auto rounded-xl"
                   />
                 ) : (
-                  <video
-                    src={
-                      media.previewUrl
-                    }
-                    controls
-                    className="h-64 mx-auto rounded-xl"
-                  />
+                <div
+  className="h-64 mx-auto overflow-hidden"
+  style={{ aspectRatio: aspect }}
+>
+  <video
+    src={media.previewUrl}
+    className="w-full h-full object-cover"
+    controls
+  />
+</div>
                 )}
 
                 <textarea
