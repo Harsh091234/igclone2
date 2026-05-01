@@ -62,7 +62,7 @@ export const register = async (req: Request, res: Response) => {
 
    export const verifyEmail = async (req: Request, res: Response) => {
   try {
-    const token = req.params.token;
+    const token = req.params.token as string;
 
     const hashedToken = crypto
       .createHash("sha256")
