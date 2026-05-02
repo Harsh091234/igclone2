@@ -4,6 +4,7 @@ import Cropper, { type Area } from "react-easy-crop";
 import toast from "react-hot-toast";
 import { useCreatePostMutation } from "../../services/postApi";
 import getCroppedImg from "../../utils/getCroppedItems";
+import { getVideoFrame } from "../../utils/getVideoFrame";
 
 type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
 
@@ -31,6 +32,10 @@ export default function CreatePostModal({
     useState<"post" | "reel" | null>(
       null
     );
+  const [videoMeta, setVideoMeta] = useState<{
+  width: number;
+  height: number;
+} | null>(null);
 
   const [media, setMedia] =
     useState<SelectedMedia | null>(
@@ -95,25 +100,36 @@ export default function CreatePostModal({
       setStep("PREVIEW");
   };
 
-  const handleFileSelect = (
+  const handleFileSelect = async(
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file =
       e.target.files?.[0];
 
     if (!file) return;
+    if (file.type.startsWith("video")) {
+  const { frame, width, height } =
+    await getVideoFrame(
+      URL.createObjectURL(file)
+    );
 
-    setMedia({
-      file,
-      previewUrl:
-        URL.createObjectURL(file),
-      type:
-        file.type.startsWith(
-          "video"
-        )
-          ? "video"
-          : "image",
-    });
+  setMedia({
+    file,
+    previewUrl: frame,
+    type: "video",
+  });
+
+  setVideoMeta({ width, height });
+} else {
+  setMedia({
+    file,
+    previewUrl: URL.createObjectURL(file),
+    type: "image",
+  });
+
+  setVideoMeta(null);
+}
+
     setCroppedPreview(null);
     setStep("CROP");
   };
@@ -154,7 +170,17 @@ export default function CreatePostModal({
             croppedAreaPixels
           )
         );
+      if (media.type === "video" && videoMeta) {
+  formData.append(
+    "originalWidth",
+    videoMeta.width.toString()
+  );
 
+  formData.append(
+    "originalHeight",
+    videoMeta.height.toString()
+  );
+};
         await createPost(
           formData
         ).unwrap();
@@ -217,18 +243,14 @@ export default function CreatePostModal({
               "CROP" && (
               <button
                 onClick={async () => {
-  if (
-    media?.type === "image" &&
+if (croppedAreaPixels) {
+  const cropped = await getCroppedImg(
+    media.previewUrl,
     croppedAreaPixels
-  ) {
-    const cropped = await getCroppedImg(
-      media.previewUrl,
-      croppedAreaPixels
-    );
+  );
 
-    setCroppedPreview(cropped);
-  }
-  
+  setCroppedPreview(cropped);
+}
   setStep("PREVIEW");
 }}
                 className="text-blue-500"
@@ -369,69 +391,17 @@ export default function CreatePostModal({
                 </div>
 
                 <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
-                  {media.type ===
-                  "image" ? (
-                    <div className="relative w-full h-full">
-                            <Cropper
-                      image={
-                        media.previewUrl
-                      }
-                      crop={
-                        crop
-                      }
-                      zoom={
-                        zoom
-                      }
-                      aspect={
-                        aspect
-                      }
-                      onCropChange={
-                        setCrop
-                      }
-                      onZoomChange={
-                        setZoom
-                      }
-                      onCropComplete={(
-                        _,
-                        pixels
-                      ) =>
-                        setCroppedAreaPixels(
-                          pixels
-                        )
-                      }
-                    />
-                    </div>
-                
-                  ) : (
-                    <Cropper
-                      video={
-                        media.previewUrl
-                      }
-                      crop={
-                        crop
-                      }
-                      zoom={
-                        zoom
-                      }
-                      aspect={
-                        aspect
-                      }
-                      onCropChange={
-                        setCrop
-                      }
-                      onZoomChange={
-                        setZoom
-                      }
-                      onCropComplete={(
-                        _,
-                        pixels
-                      ) =>
-                        setCroppedAreaPixels(
-                          pixels
-                        )
-                      }
-                    />
-                  )}
+                 <Cropper
+  image={media.previewUrl} // always image now
+  crop={crop}
+  zoom={zoom}
+  aspect={aspect}
+  onCropChange={setCrop}
+  onZoomChange={setZoom}
+  onCropComplete={(_, pixels) =>
+    setCroppedAreaPixels(pixels)
+  }
+/>
                 </div>
               </>
             )}
@@ -452,15 +422,10 @@ export default function CreatePostModal({
                   />
                 ) : (
                  <div className="relative  w-full  bg-black overflow-hidden rounded-xl" style={{aspectRatio: aspect}}>
-  <video
-    src={media.previewUrl}
-    className="w-full h-full object-cover"
-    style={{
-      transform: `scale(${zoom}) translate(${crop.x}px, ${crop.y}px)`,
-      transformOrigin: "center",
-    }}
-    controls
-  />
+ <img
+  src={croppedPreview || media.previewUrl}
+  className="max-h-full rounded-xl"
+/>
 </div>
                 )}
               </div>
@@ -478,15 +443,17 @@ export default function CreatePostModal({
                     className="h-64 mx-auto rounded-xl"
                   />
                 ) : (
-                <div
-  className="h-64 mx-auto overflow-hidden"
+               <div
+  className="relative h-64 mx-auto overflow-hidden rounded-xl"
   style={{ aspectRatio: aspect }}
 >
-  <video
-    src={media.previewUrl}
+  <img
+    src={croppedPreview || media.previewUrl}
     className="w-full h-full object-cover"
-    controls
   />
+
+  {/* Dark overlay */}
+  <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"  />
 </div>
                 )}
 
