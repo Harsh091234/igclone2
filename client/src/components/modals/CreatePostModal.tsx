@@ -26,7 +26,15 @@ const getFeedRatioFromAspect = (aspect: number) => {
   if (aspect === 4 / 5) return "4/5";
   if (aspect === 16 / 9) return "16/9";
   if (aspect === 9 / 16) return "9/16";
-  return "1/1"; // fallback
+  return "1/1";
+};
+
+const getAspectLabel = (aspect: number) => {
+  if (aspect === 1) return "1/1";
+  if (aspect === 4 / 5) return "4/5";
+  if (aspect === 16 / 9) return "16/9";
+  if (aspect === 9 / 16) return "9/16";
+  return "1/1";
 };
 
 export default function CreatePostModal({
@@ -49,7 +57,7 @@ export default function CreatePostModal({
     useState<SelectedMedia | null>(
       null
     );
-
+    console.log("current media:", media)
   const [caption, setCaption] =
     useState("");
 
@@ -90,6 +98,14 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
   ] = useCreatePostMutation();
 
   if (!isOpen) return null;
+
+
+  const previewMaxWidth =
+  aspect === 9 / 16
+    ? 270
+    :420
+    
+
 
   const resetAll = () => {
     setStep("SELECT");
@@ -171,10 +187,11 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
             ? "true"
             : "false"
         );
+      formData.append("aspect", getAspectLabel(aspect));
 
         formData.append(
           "feedRatio",
-          getFeedRatioFromAspect(aspect)
+           aspect === 9 / 16 ? "4/5" : getFeedRatioFromAspect(aspect)
         );
 
         formData.append(
@@ -408,9 +425,11 @@ if (croppedAreaPixels) {
                       </button>
                     </>
                   ) : (
-                    <button>
-                      9:16
-                    </button>
+                     <>
+    <button onClick={() => setAspect(9 / 16)}>9:16</button>
+    <button onClick={() => setAspect(4 / 5)}>4:5</button>
+    <button onClick={() => setAspect(16 / 9)}>16:9</button>
+  </>
                   )}
                 </div>
 
@@ -461,8 +480,10 @@ if (croppedAreaPixels) {
          {step === "PREVIEW" && media && (
   <div className="h-[500px] flex items-center justify-center">
     <div
-      className="w-full max-w-[360px] bg-black rounded-xl overflow-hidden"
-      style={{ aspectRatio: getFeedRatioFromAspect(aspect) }}
+      className="w-full    bg-black rounded-xl overflow-hidden"
+      style={{ aspectRatio: getFeedRatioFromAspect(aspect),
+        maxWidth: previewMaxWidth
+       }}
     >
       {media.type === "image" ? (
         <img
@@ -492,8 +513,10 @@ if (croppedAreaPixels) {
                   />
                 ) : (
                <div
-  className="relative h-64 mx-auto overflow-hidden rounded-xl"
-  style={{ aspectRatio: getFeedRatioFromAspect(aspect) }}
+  className="relative  mx-auto overflow-hidden rounded-xl"
+  style={{ aspectRatio: getFeedRatioFromAspect(aspect),
+    maxWidth: previewMaxWidth
+   }}
 >
   <img
     src={croppedPreview || media.previewUrl}

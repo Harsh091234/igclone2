@@ -56,5 +56,6 @@ export interface Reel {
   video: {
     publicId: string;
     url: string;
+    aspect: string;
   };
 }

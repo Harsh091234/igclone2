@@ -11,6 +11,7 @@ export interface IPost extends Document {
     feedRatio:  "1/1" | "4/5" | "16/9";
     height: number;
     width: number;
+    aspect: "1/1" | "4/5" | "16/9" | "9/16";
     aspectRatio: number;
   }[];
   likes: mongoose.Types.ObjectId[];
@@ -43,14 +44,19 @@ const postSchema = new Schema<IPost>(
           enum: ["image", "video"],
           required: true,
         },
-        feedRatio:{
+        feedRatio: {
           type: String,
           enum: ["1/1", "4/5", "16/9"],
-          default: "4/5"
+          default: "4/5",
         },
         isReel: {
           type: Boolean,
           default: false,
+        },
+        aspect: {
+          type: String,
+          enum: ["1/1", "4/5", "16/9", "9/16"],
+          required: true,
         },
         height: Number,
         width: Number,

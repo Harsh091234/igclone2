@@ -44,7 +44,7 @@ function sanitizeCrop(crop: any, videoW: number, videoH: number) {
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { caption, isReel, feedRatio, cropData, originalWidth, originalHeight, mediaWidth, mediaHeight } = req.body;
+    const { caption, isReel, feedRatio, aspect, cropData, originalWidth, originalHeight, mediaWidth, mediaHeight } = req.body;
     console.log("req.body", req.body)
 
     const authUser = await User.findById(req.user?._id);
@@ -143,6 +143,7 @@ export const createPost = async (req: Request, res: Response) => {
          type: "video",
          isReel: isReel === "true",
          feedRatio,
+         aspect,
          width: cloudResponse.width,
          height: cloudResponse.height,
          aspectRatio: cloudResponse.width / cloudResponse.height,
@@ -775,21 +776,28 @@ export const getUserReels = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     // 🔥 ONLY VIDEO POSTS
-    const reels = await Post.find({
-      author: id,
-      "media.type": "video",
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({ path: "author", select: "userName profilePic" })
-      .lean();
+   const posts = await Post.find({
+     author: id,
+     "media.type": "video",
+   })
+     .sort({ createdAt: -1 })
+     .skip(skip)
+     .limit(limit)
+     .populate({ path: "author", select: "userName profilePic" })
+     .lean();
+  const reels = posts.map((post) => {
+    const video = post.media.find((m: any) => m.type === "video");
 
+    return {
+      ...post,
+      video, // 👈 now frontend gets reel.video.aspect
+    };
+  });
     const total = await Post.countDocuments({
       author: id,
       "media.type": "video",
     });
-
+    console.log("reels in backend:", reels)
     res.status(200).json({
       reels,
       hasMore: skip + reels.length < total,
@@ -869,6 +877,7 @@ export const getAllReels = async (req: Request, res: Response) => {
           video: {
             url: reel.media[0].url,
             publicId: reel.media[0].publicId,
+            aspect: reel.media[0].aspect
           },
 
           author: reel.author,

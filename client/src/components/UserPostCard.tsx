@@ -134,7 +134,7 @@ const MediaBox = ({
   }, [post.media.length]);
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5 max-w-2xl">
+    <article className="bg-card border border-border rounded-lg mb-5 max-w-xl">
       {/* HEADER */}
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
