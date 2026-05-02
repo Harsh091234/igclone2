@@ -3,7 +3,8 @@ import { ArrowLeft, ImagePlus } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
 import toast from "react-hot-toast";
 import { useCreatePostMutation } from "../../services/postApi";
-import getCroppedImg from "../../utils/getCroppedItems";
+import getCroppedImg, { getAdjustedCrop } from "../../utils/getCroppedItems";
+import { cropVideo } from "../../utils/ffmpeg";
 
 type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
 
@@ -47,7 +48,11 @@ export default function CreatePostModal({
 
   const [aspect, setAspect] =
     useState(1);
-
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+const [processing, setProcessing] = useState(false);
+const [mediaSize, setMediaSize] = useState<any>(null);
+const videoWidth = mediaSize?.naturalWidth || mediaSize?.width || 0;
+const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
   const [crop, setCrop] = useState({
     x: 0,
     y: 0,
@@ -171,6 +176,12 @@ export default function CreatePostModal({
       }
     };
 
+    const containerWidth = 420; // your modal width approx
+const containerHeight = 460; // crop area height
+
+const scaleX = containerWidth / (mediaSize?.width || 1);
+const scaleY = containerHeight / (mediaSize?.height || 1);
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
@@ -216,20 +227,30 @@ export default function CreatePostModal({
             {step ===
               "CROP" && (
               <button
-                onClick={async () => {
-  if (
-    media?.type === "image" &&
-    croppedAreaPixels
-  ) {
-    const cropped = await getCroppedImg(
-      media.previewUrl,
-      croppedAreaPixels
-    );
+               onClick={async () => {
+  if (!media || !croppedAreaPixels) return;
 
-    setCroppedPreview(cropped);
+  try {
+    
+
+    // 🖼 IMAGE
+    if (media.type === "image") {
+      const cropped = await getCroppedImg(
+        media.previewUrl,
+        croppedAreaPixels
+      );
+      setCroppedPreview(cropped);
+    }
+
+    // 🎥 VIDEO
+    
+
+    setStep("PREVIEW");
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setProcessing(false);
   }
-  
-  setStep("PREVIEW");
 }}
                 className="text-blue-500"
               >
@@ -369,6 +390,19 @@ export default function CreatePostModal({
                 </div>
 
                 <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
+                 {media.type === "video" && (
+    <video
+      ref={videoRef}
+      src={media.previewUrl}
+    style={{
+  position: "absolute",
+  opacity: 0,
+  pointerEvents: "none",
+  width: "100%",
+  height: "100%",
+}}
+    />
+  )}
                   {media.type ===
                   "image" ? (
                     <div className="relative w-full h-full">
@@ -430,6 +464,16 @@ export default function CreatePostModal({
                           pixels
                         )
                       }
+                      onMediaLoaded={(media) => {
+  console.log("video loaded", media);
+
+  setMediaSize({
+    width: media.width,
+    height: media.height,
+    naturalWidth: media.naturalWidth,
+    naturalHeight: media.naturalHeight,
+  });
+}}
                     />
                   )}
                 </div>
@@ -437,34 +481,40 @@ export default function CreatePostModal({
             )}
 
           {/* PREVIEW */}
-          {step ===
-            "PREVIEW" &&
-            media && (
-              <div className="h-[500px]  flex items-center justify-center">
-                {media.type ===
-                "image" ? (
-                  <img
-                    src={
-                     croppedPreview ||
-    media.previewUrl
-                    }
-                    className="max-h-full rounded-xl"
-                  />
-                ) : (
-                 <div className="relative  w-full  bg-black overflow-hidden rounded-xl" style={{aspectRatio: aspect}}>
-  <video
-    src={media.previewUrl}
-    className="w-full h-full object-cover"
+{step === "PREVIEW" && media && (
+  <div className="h-[500px] flex items-center justify-center">
+   {media.type === "video" && croppedAreaPixels && mediaSize && (
+  <div
+    className="relative bg-black overflow-hidden rounded-xl"
     style={{
-      transform: `scale(${zoom}) translate(${crop.x}px, ${crop.y}px)`,
-      transformOrigin: "center",
+      aspectRatio: aspect || 1,
+      width: "100%",
     }}
-    controls
-  />
-</div>
-                )}
-              </div>
-            )}
+  >
+    <video
+      src={media.previewUrl}
+      className="absolute"
+      style={{
+        width: `${mediaSize.width * zoom}px`,
+        height: `${mediaSize.height * zoom}px`,
+
+        transform: `
+          translate(
+            -${croppedAreaPixels.x * zoom}px,
+            -${croppedAreaPixels.y * zoom}px
+          )
+        `,
+        transformOrigin: "top left",
+      }}
+      muted
+      autoPlay
+      loop
+    />
+  </div>
+)}
+
+  </div>
+)}
 
           {/* CAPTION */}
           {step ===

@@ -8,6 +8,12 @@ export default defineConfig({
   server: {
     allowedHosts: ["zsrh6d-5173.csb.app"],
   },
+  optimizeDeps: {
+    exclude: ["@ffmpeg/ffmpeg"], // 🔥 IMPORTANT
+  },
+  worker: {
+    format: "es",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
