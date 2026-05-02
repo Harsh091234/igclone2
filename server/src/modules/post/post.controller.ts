@@ -13,9 +13,10 @@ import Notification from "../notification/notification.model.js";
 import { deleteCache, getCache, setCache } from "../../config/cache.js";
 import redis from "../../config/redis.js";
 import { cropVideo } from "../../config/ffmpeg.js";
+
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { caption, isReel, feedRatio, cropData } = req.body;
+    const { caption, isReel, feedRatio, cropData, originalWidth, originalHeight } = req.body;
 
     const authUser = await User.findById(req.user?._id);
     if (!authUser) {
@@ -23,88 +24,132 @@ export const createPost = async (req: Request, res: Response) => {
     }
 
     const files = req.files as Express.Multer.File[];
-
     if (!files || files.length === 0) {
       return res.status(400).json({ message: "Media is required" });
     }
 
-    const crop = cropData ? JSON.parse(cropData) : null;
+    let crop = null;
+    try {
+      crop = cropData ? JSON.parse(cropData) : null;
+    } catch {
+      crop = null;
+    }
 
-    // ✅ FIXED: return values instead of push
     const media = await Promise.all(
       files.map(async (file) => {
         const isVideo = file.mimetype.startsWith("video");
 
+        // =========================
+        // 🎬 VIDEO HANDLING (SAFE)
+        // =========================
         if (isVideo) {
           const inputPath = file.path;
 
           const outputPath = path.join(
             "uploads",
-            `cropped-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`,
+            `cropped-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`
           );
 
-          await cropVideo(inputPath, outputPath, crop);
+          let scaledCrop = null;
+
+          if (crop && originalWidth && originalHeight) {
+            const oW = Number(originalWidth);
+            const oH = Number(originalHeight);
+
+            if (oW > 0 && oH > 0) {
+              scaledCrop = {
+                x: Math.max(0, Math.round((crop.x / 1080) * oW)),
+                y: Math.max(0, Math.round((crop.y / 1080) * oH)),
+                width: Math.max(1, Math.round((crop.width / 1080) * oW)),
+                height: Math.max(1, Math.round((crop.height / 1080) * oH)),
+              };
+            }
+          }
+
+          await cropVideo(inputPath, outputPath, scaledCrop);
+
           const cloudResponse = await uploadVideo(
             fs.readFileSync(outputPath),
-            CLOUDINARY_FOLDERS.POST_VIDEOS,
+            CLOUDINARY_FOLDERS.POST_VIDEOS
           );
 
           fs.unlinkSync(outputPath);
           fs.unlinkSync(inputPath);
-          
 
           return {
             url: cloudResponse.secure_url,
             publicId: cloudResponse.public_id,
             type: "video",
-            isReel: req.body.isReel === "true",
-            feedRatio: req.body.feedRatio,
+            isReel: isReel === "true",
+            feedRatio,
             width: cloudResponse.width,
             height: cloudResponse.height,
             aspectRatio: cloudResponse.width / cloudResponse.height,
           };
         }
 
-        // 🖼️ Image handling
+        // =========================
+        // 🖼️ IMAGE HANDLING (FIXED)
+        // =========================
         const image = sharp(file.path);
         const metadata = await image.metadata();
 
-    
-let croppedBuffer: Buffer;
+        let croppedBuffer: Buffer;
 
-if (crop) {
-  croppedBuffer = await image
-    .extract({
-      left: Math.round(crop.x),
-      top: Math.round(crop.y),
-      width: Math.round(crop.width),
-      height: Math.round(crop.height),
-    })
-    .resize({
-      width: 1080,
-    })
-    .jpeg({ quality: 85 })
-    .toBuffer();
-} else {
-  croppedBuffer = await image
-    .resize({
-      width: 1080,
-    })
-    .jpeg({ quality: 85 })
-    .toBuffer();
-} 
+        if (
+          crop &&
+          metadata.width &&
+          metadata.height &&
+          crop.width > 0 &&
+          crop.height > 0
+        ) {
+          const left = Math.max(0, Math.round(crop.x));
+          const top = Math.max(0, Math.round(crop.y));
+
+          let width = Math.round(crop.width);
+          let height = Math.round(crop.height);
+
+          // clamp inside image bounds
+          width = Math.min(width, metadata.width - left);
+          height = Math.min(height, metadata.height - top);
+
+          if (width <= 0 || height <= 0) {
+            throw new Error("Invalid crop area");
+          }
+
+          croppedBuffer = await image
+            .extract({
+              left,
+              top,
+              width,
+              height,
+            })
+            .resize({ width: 1080 })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+        } else {
+          croppedBuffer = await image
+            .resize({ width: 1080 })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+        }
 
         const finalMeta = await sharp(croppedBuffer).metadata();
-        const aspectRatio = (finalMeta.width || 1) / (finalMeta.height || 1);
+
+        const aspectRatio =
+          (finalMeta.width || 1) / (finalMeta.height || 1);
+
         const base64Image = `data:image/jpeg;base64,${croppedBuffer.toString(
-          "base64",
+          "base64"
         )}`;
 
         const cloudResponse = await uploadBase64Image(
           base64Image,
-          CLOUDINARY_FOLDERS.POST_IMAGES,
+          CLOUDINARY_FOLDERS.POST_IMAGES
         );
+
         fs.unlinkSync(file.path);
+
         return {
           url: cloudResponse.secure_url,
           publicId: cloudResponse.public_id,
@@ -115,7 +160,7 @@ if (crop) {
           isReel: isReel === "true",
           feedRatio: feedRatio || "4/5",
         };
-      }),
+      })
     );
 
     const post = new Post({
@@ -134,7 +179,6 @@ if (crop) {
       select: "userName fullName profilePic",
     });
 
-    // 🧹 invalidate cache
     await deleteCache(`igclone2_user_posts:${authUser._id}:*`);
 
     return res.status(200).json({
