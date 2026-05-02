@@ -8,67 +8,58 @@ type CropArea = {
   y: number;
 };
 
-export const cropVideo = (
-  input: string,
-  output: string,
-  crop: CropArea
-): Promise<void> => {
+export const cropVideo = async (
+  inputPath: string,
+  outputPath: string,
+  crop?: CropArea,
+) => {
   return new Promise((resolve, reject) => {
-    if (!ffmpegStatic) {
-      return reject(new Error("FFmpeg binary not found"));
+    const args = ["-i", inputPath];
+
+    if (crop) {
+      let { x, y, width, height } = crop;
+
+      // ✅ sanitize
+      x = Math.floor(x);
+      y = Math.floor(y);
+      width = Math.floor(width);
+      height = Math.floor(height);
+
+      // ✅ EVEN dimensions (CRITICAL)
+      width = width - (width % 2);
+      height = height - (height % 2);
+
+      if (width <= 0 || height <= 0) {
+        return reject(new Error("Invalid crop size"));
+      }
+
+      args.push("-vf", `crop=${width}:${height}:${x}:${y}`);
     }
 
-    // ✅ TypeScript-safe fix
-    const ffmpegPath = ffmpegStatic as unknown as string;
-
-    const args = [
-      "-i",
-      input,
-
-      "-vf",
-      `crop=${Math.round(crop.width)}:${Math.round(
-        crop.height
-      )}:${Math.round(crop.x)}:${Math.round(
-        crop.y
-      )},scale=1080:1920`,
-
+    args.push(
       "-c:v",
       "libx264",
-
       "-preset",
       "fast",
-
       "-crf",
       "23",
-
       "-c:a",
       "aac",
-
       "-movflags",
       "+faststart",
-
       "-y",
-      output,
-    ];
+      outputPath,
+    );
 
-    const ffmpeg = spawn("ffmpeg", [...args]);
+    console.log("FFmpeg args:", args.join(" "));
 
-    ffmpeg.stderr.on("data", (data) => {
-      console.log(data.toString());
-    });
+    const ff = spawn("ffmpeg", args);
 
-    ffmpeg.on("error", (err) => {
-      reject(err);
-    });
+    ff.stderr.on("data", (d) => console.log(d.toString()));
 
-    ffmpeg.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(
-          new Error(`FFmpeg exited with code ${code}`)
-        );
-      }
+    ff.on("close", (code) => {
+      if (code === 0) resolve(true);
+      else reject(new Error(`FFmpeg failed with code ${code}`));
     });
   });
 };

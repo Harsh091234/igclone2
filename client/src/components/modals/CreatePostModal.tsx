@@ -3,8 +3,8 @@ import { ArrowLeft, ImagePlus } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
 import toast from "react-hot-toast";
 import { useCreatePostMutation } from "../../services/postApi";
-import getCroppedImg, { getAdjustedCrop } from "../../utils/getCroppedItems";
-import { cropVideo } from "../../utils/ffmpeg";
+import getCroppedImg from "../../utils/getCroppedItems";
+import { getVideoFrame } from "../../utils/getVideoFrame";
 
 type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
 
@@ -21,6 +21,14 @@ interface Props {
   onClose: () => void;
 }
 
+const getFeedRatioFromAspect = (aspect: number) => {
+  if (aspect === 1) return "1/1";
+  if (aspect === 4 / 5) return "4/5";
+  if (aspect === 16 / 9) return "16/9";
+  if (aspect === 9 / 16) return "9/16";
+  return "1/1"; // fallback
+};
+
 export default function CreatePostModal({
   isOpen,
   onClose,
@@ -32,6 +40,10 @@ export default function CreatePostModal({
     useState<"post" | "reel" | null>(
       null
     );
+  const [videoMeta, setVideoMeta] = useState<{
+  width: number;
+  height: number;
+} | null>(null);
 
   const [media, setMedia] =
     useState<SelectedMedia | null>(
@@ -50,6 +62,7 @@ export default function CreatePostModal({
     useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 const [processing, setProcessing] = useState(false);
+
 const [mediaSize, setMediaSize] = useState<any>(null);
 const videoWidth = mediaSize?.naturalWidth || mediaSize?.width || 0;
 const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
@@ -100,25 +113,36 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
       setStep("PREVIEW");
   };
 
-  const handleFileSelect = (
+  const handleFileSelect = async(
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file =
       e.target.files?.[0];
 
     if (!file) return;
+    if (file.type.startsWith("video")) {
+  const { frame, width, height } =
+    await getVideoFrame(
+      URL.createObjectURL(file)
+    );
 
-    setMedia({
-      file,
-      previewUrl:
-        URL.createObjectURL(file),
-      type:
-        file.type.startsWith(
-          "video"
-        )
-          ? "video"
-          : "image",
-    });
+  setMedia({
+    file,
+    previewUrl: frame,
+    type: "video",
+  });
+
+  setVideoMeta({ width, height });
+} else {
+  setMedia({
+    file,
+    previewUrl: URL.createObjectURL(file),
+    type: "image",
+  });
+
+  setVideoMeta(null);
+}
+
     setCroppedPreview(null);
     setStep("CROP");
   };
@@ -150,7 +174,7 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
 
         formData.append(
           "feedRatio",
-          feedRatio
+          getFeedRatioFromAspect(aspect)
         );
 
         formData.append(
@@ -159,7 +183,19 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
             croppedAreaPixels
           )
         );
+      if (media.type === "video" && videoMeta) {
+  formData.append(
+    "originalWidth",
+    videoMeta.width.toString()
+  );
 
+  formData.append(
+    "originalHeight",
+    videoMeta.height.toString()
+  );
+};
+formData.append("mediaWidth", mediaSize.width.toString());
+formData.append("mediaHeight", mediaSize.height.toString());
         await createPost(
           formData
         ).unwrap();
@@ -227,30 +263,25 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
             {step ===
               "CROP" && (
               <button
-               onClick={async () => {
-  if (!media || !croppedAreaPixels) return;
-
-  try {
-    
-
-    // 🖼 IMAGE
-    if (media.type === "image") {
-      const cropped = await getCroppedImg(
-        media.previewUrl,
-        croppedAreaPixels
-      );
-      setCroppedPreview(cropped);
-    }
-
-    // 🎥 VIDEO
-    
-
-    setStep("PREVIEW");
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setProcessing(false);
+                onClick={async () => {
+if (croppedAreaPixels) {
+  if(!media) return;
+  if (media.type === "image") {
+    const cropped = await getCroppedImg(
+      media.previewUrl,
+      croppedAreaPixels
+    );
+    setCroppedPreview(cropped);
+  } else {
+    // 👉 VIDEO: simulate crop using frame
+    const cropped = await getCroppedImg(
+      media.previewUrl, // already frame image
+      croppedAreaPixels
+    );
+    setCroppedPreview(cropped);
   }
+}
+  setStep("PREVIEW");
 }}
                 className="text-blue-500"
               >
@@ -346,9 +377,7 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                           setAspect(
                             1
                           );
-                          setFeedRatio(
-                            "1/1"
-                          );
+
                         }}
                       >
                         1:1
@@ -360,9 +389,7 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                             4 /
                               5
                           );
-                          setFeedRatio(
-                            "4/5"
-                          );
+
                         }}
                       >
                         4:5
@@ -374,9 +401,7 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                             16 /
                               9
                           );
-                          setFeedRatio(
-                            "16/9"
-                          );
+                         
                         }}
                       >
                         16:9
@@ -390,32 +415,17 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                 </div>
 
                 <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
-                 {media.type === "video" && (
-    <video
-      ref={videoRef}
-      src={media.previewUrl}
-    style={{
-  position: "absolute",
-  opacity: 0,
-  pointerEvents: "none",
-  width: "100%",
-  height: "100%",
-}}
-    />
-  )}
-                  {media.type ===
-                  "image" ? (
+                      
                     <div className="relative w-full h-full">
                             <Cropper
-                      image={
-                        media.previewUrl
-                      }
+                      image={media.previewUrl}
                       crop={
                         crop
                       }
                       zoom={
                         zoom
                       }
+                        objectFit="contain" 
                       aspect={
                         aspect
                       }
@@ -433,86 +443,39 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                           pixels
                         )
                       }
-                    />
-                    </div>
-                
-                  ) : (
-                    <Cropper
-                      video={
-                        media.previewUrl
-                      }
-                      crop={
-                        crop
-                      }
-                      zoom={
-                        zoom
-                      }
-                      aspect={
-                        aspect
-                      }
-                      onCropChange={
-                        setCrop
-                      }
-                      onZoomChange={
-                        setZoom
-                      }
-                      onCropComplete={(
-                        _,
-                        pixels
-                      ) =>
-                        setCroppedAreaPixels(
-                          pixels
-                        )
-                      }
-                      onMediaLoaded={(media) => {
-  console.log("video loaded", media);
-
+                     onMediaLoaded={(mediaSize) => {
   setMediaSize({
-    width: media.width,
-    height: media.height,
-    naturalWidth: media.naturalWidth,
-    naturalHeight: media.naturalHeight,
+    width: mediaSize.naturalWidth || mediaSize.width,
+    height: mediaSize.naturalHeight || mediaSize.height,
   });
 }}
                     />
-                  )}
+                    </div>
+                
+                  
                 </div>
               </>
             )}
 
           {/* PREVIEW */}
-{step === "PREVIEW" && media && (
+         {step === "PREVIEW" && media && (
   <div className="h-[500px] flex items-center justify-center">
-   {media.type === "video" && croppedAreaPixels && mediaSize && (
-  <div
-    className="relative bg-black overflow-hidden rounded-xl"
-    style={{
-      aspectRatio: aspect || 1,
-      width: "100%",
-    }}
-  >
-    <video
-      src={media.previewUrl}
-      className="absolute"
-      style={{
-        width: `${mediaSize.width * zoom}px`,
-        height: `${mediaSize.height * zoom}px`,
-
-        transform: `
-          translate(
-            -${croppedAreaPixels.x * zoom}px,
-            -${croppedAreaPixels.y * zoom}px
-          )
-        `,
-        transformOrigin: "top left",
-      }}
-      muted
-      autoPlay
-      loop
-    />
-  </div>
-)}
-
+    <div
+      className="w-full max-w-[360px] bg-black rounded-xl overflow-hidden"
+      style={{ aspectRatio: getFeedRatioFromAspect(aspect) }}
+    >
+      {media.type === "image" ? (
+        <img
+          src={croppedPreview || media.previewUrl}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+       <img
+  src={croppedPreview || media.previewUrl}
+  className="w-full h-full object-cover"
+/>
+      )}
+    </div>
   </div>
 )}
 
@@ -528,15 +491,17 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
                     className="h-64 mx-auto rounded-xl"
                   />
                 ) : (
-                <div
-  className="h-64 mx-auto overflow-hidden"
-  style={{ aspectRatio: aspect }}
+               <div
+  className="relative h-64 mx-auto overflow-hidden rounded-xl"
+  style={{ aspectRatio: getFeedRatioFromAspect(aspect) }}
 >
-  <video
-    src={media.previewUrl}
+  <img
+    src={croppedPreview || media.previewUrl}
     className="w-full h-full object-cover"
-    controls
   />
+
+  {/* Dark overlay */}
+  <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"  />
 </div>
                 )}
 

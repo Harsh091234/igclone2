@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Bookmark, MoreHorizontal } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Bookmark,
+  MoreHorizontal,
+} from "lucide-react";
 import type { Post } from "../types/post.types";
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
@@ -23,7 +28,6 @@ import {
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
 import { useGetMeQuery } from "../services/authApi";
-import { getAspectClass } from "../utils/aspectHelper";
 
 interface PostCardProps {
   post: Post;
@@ -31,35 +35,55 @@ interface PostCardProps {
 
 const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetMeQuery(undefined);
-  console.log("post",post)
   const authUser = authData?.user;
   const navigate = useNavigate();
+  console.log("post in card:", post)
   const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const [isPostMenuOpen, setIsPostMenuOpen] = useState<boolean>(false);
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
-  let isLiked = post.likes?.some(
-    (id) => id.toString() === authUser?._id?.toString(),
-  );
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
-  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
-    null,
+
+  const isLiked = post.likes?.some(
+    (id) => id.toString() === authUser?._id?.toString()
   );
-  let isBookmarked = authUser?.bookmarks?.some(
-    (id: string) => id.toString() === post._id.toString(),
+
+  const isBookmarked = authUser?.bookmarks?.some(
+    (id: string) => id.toString() === post._id.toString()
   );
-  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
-    null,
-  );
+
+const MediaBox = ({
+  children,
+  ratio,
+}: {
+  children: React.ReactNode;
+  ratio?: string;
+}) => (
+  <div className="w-full bg-black overflow-hidden flex items-center justify-center">
+    <div
+      className="w-full"
+      style={{
+        aspectRatio: ratio || "1 / 1",
+        position: "relative",
+      }}
+    >
+      {children}
+    </div>
+  </div>
+);
 
   const handleBookmark = async () => {
     await toggleBookmarkPost(post._id).unwrap();
-
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
@@ -79,7 +103,6 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
 
     try {
       setDeletingCommentId(selectedCommentId);
-
       await deleteComment(selectedCommentId).unwrap();
       setOpen(false);
     } catch (error: any) {
@@ -88,6 +111,8 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
       setDeletingCommentId(null);
     }
   };
+
+  // ✅ Carousel observer
   useEffect(() => {
     const items = carouselRef.current?.querySelectorAll("[data-carousel-item]");
     if (!items) return;
@@ -101,48 +126,39 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
           }
         });
       },
-      { threshold: 0.5 }, // 50% visible triggers
+      { threshold: 0.5 }
     );
 
     items.forEach((item) => observer.observe(item));
-
     return () => observer.disconnect();
   }, [post.media.length]);
 
   return (
-    <article className="bg-card border border-border rounded-lg mb-5  sm:w-lg lg:w-md xl:w-full   max-w-2xl">
-      <div
-        className="flex 
-      
-      
-      items-center justify-between px-3 py-2"
-      >
+    <article className="bg-card border border-border rounded-lg mb-5 max-w-2xl">
+      {/* HEADER */}
+      <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <div
             onClick={handleRouteToProfile}
-            className="cursor-pointer w-6.5 h-6.5 sm:w-8 sm:h-8 rounded-full overflow-hidden "
+            className="cursor-pointer w-8 h-8 rounded-full overflow-hidden"
           >
             <img
               src={post.author?.profilePic}
               className="w-full h-full object-cover"
-              alt=""
             />
           </div>
-          <div>
-            <p
-              onClick={handleRouteToProfile}
-              className=" cursor-pointer font-semibold text-xs sm:text-sm text-foreground"
-            >
-              {post.author?.userName}
-            </p>
-            {/* {post.location && (
-              <p className="text-xs text-muted-foreground">{post.location}</p>
-            )} */}
-          </div>
+
+          <p
+            onClick={handleRouteToProfile}
+            className="cursor-pointer font-semibold text-sm"
+          >
+            {post.author?.userName}
+          </p>
         </div>
+
         <MoreHorizontal
           onClick={() => setIsPostMenuOpen(true)}
-          className="w-4 h-4 cursor-pointer text-muted-foreground"
+          className="w-5 h-5 cursor-pointer"
         />
       </div>
 
@@ -153,133 +169,107 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
         onClose={() => setIsPostMenuOpen(false)}
       />
 
-      <div className="w-full overflow-hidden">
+      {/* MEDIA */}
+      <div className="w-full">
         {post.media.length === 1 ? (
-          <div className={`flex justify-center items-center`}  style={{
-    aspectRatio: post.media[0].feedRatio,
-  }}>
+          <MediaBox ratio={post.media[0].feedRatio}>
             {post.media[0].type === "image" ? (
               <img
                 src={post.media[0].url}
-                alt="post-media"
-                className="h-full w-full object-cover"
+               className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
-              <VideoPlayer src={post.media[0].url} className="h-full w-full" />
+              <VideoPlayer
+                src={post.media[0].url}
+               className="absolute inset-0 w-full h-full object-cover"
+              />
             )}
-          </div>
+          </MediaBox>
         ) : (
-          <>
-            <Carousel className="w-full ">
-              <CarouselContent ref={carouselRef} className="-ml-0">
-                {post.media.map((item, index) => (
-                  <CarouselItem
-                    key={index}
-                    data-carousel-item
-                    data-index={index}
-                    className="pl-0"
-                  >
-                    <div className="flex justify-center items-center aspect-video">
-                      {item.type === "image" ? (
-                        <img
-                          src={item.url}
-                          alt={`post-media-${index}`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <VideoPlayer
-                          src={item.url}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+          <Carousel className="w-full">
+            <CarouselContent ref={carouselRef} className="-ml-0">
+              {post.media.map((item, index) => (
+                <CarouselItem
+                  key={index}
+                  data-carousel-item
+                  data-index={index}
+                  className="pl-0"
+                >
+                  <MediaBox ratio={item.feedRatio}>
+                    {item.type === "image" ? (
+                      <img
+                        src={item.url}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <VideoPlayer
+                        src={item.url}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </MediaBox>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
 
-              <CarouselPrevious className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-              <CarouselNext className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition z-10" />
-              <div className="flex absolute  bottom-3 sm:bottom-4 w-full justify-center   gap-1">
-                {post.media.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`h-1.5 w-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
-                      index === currentSlide
-                        ? "bg-primary"
-                        : "bg-muted-foreground"
-                    }`}
-                  ></span>
-                ))}
-              </div>
-            </Carousel>
-          </>
+            <CarouselPrevious className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full" />
+            <CarouselNext className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full" />
+
+            {/* DOTS */}
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
+              {post.media.map((_, index) => (
+                <span
+                  key={index}
+                  className={`h-2 w-2 rounded-full ${
+                    index === currentSlide ? "bg-white" : "bg-gray-400"
+                  }`}
+                />
+              ))}
+            </div>
+          </Carousel>
         )}
       </div>
 
+      {/* ACTIONS */}
       <div className="px-3 py-2">
-        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-3">
             <button disabled={isLikeLoading} onClick={handleLike}>
-              <Heart
-                className={`h-4.5 w-4.5 sm:h-5 sm:w-5 transition-colors text-primary
-   ${
-     isLiked
-       ? "fill-primary " // filled when liked
-       : ""
-   }     
-  `}
-              />
+              <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
             </button>
 
             <button onClick={() => setIsCommentModalOpen(true)}>
-              <MessageCircle
-                className={`h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary `}
-              />
+              <MessageCircle className="w-5 h-5" />
             </button>
-
-            {/* <Send className="w-5 h-5 cursor-pointer text-foreground" /> */}
           </div>
+
           <button onClick={handleBookmark} disabled={isBookmarkLoading}>
-            <Bookmark
-              className={`h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary transition-colors ${
-                isBookmarked ? "fill-primary" : ""
-              }`}
-            />
+            <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-black" : ""}`} />
           </button>
         </div>
-        {isCommentModalOpen && (
-          <CommentPostModal
-            handleRouteToProfile={handleRouteToProfile}
-            isOpen={isCommentModalOpen}
-            onClose={() => setIsCommentModalOpen(false)}
-            post={post}
-            isBookmarked={isBookmarked}
-            isBookmarkLoading={isBookmarkLoading}
-            isLiked={isLiked}
-            isLikeLoading={isLikeLoading}
-            handleLike={handleLike}
-            handleBookmark={handleBookmark}
-          />
-        )}
-        <p className="font-semibold text-xs sm:text-sm mb-1 text-foreground">
-          {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
+
+        <p className="font-semibold text-sm mt-1">
+          {post.likes.length} likes
         </p>
 
         {post.caption && (
-          <p className="text-xs wrap-break-word sm:text-sm mb-0 sm:mb-1 text-foreground">
-            <span className="font-semibold mr-1">{post.author?.userName}</span>
+          <p className="text-sm">
+            <span className="font-semibold mr-1">
+              {post.author?.userName}
+            </span>
             {post.caption}
           </p>
         )}
 
-        <p className="text-[0.68rem] sm:text-xs text-muted-foreground ">
+        <p className="text-xs text-gray-500">
           {formatTimeAgo(post.createdAt)}
         </p>
       </div>
 
+      {/* COMMENTS */}
       {post.comments.length > 0 && (
-        <div className="px-4 pb-1.5 sm:pb-3 space-y-0.5 sm:space-y-1.5">
-          {post?.comments?.map((comment) => (
+        <div className="px-3 pb-3">
+          {post.comments.map((comment) => (
             <Comment
               key={comment._id}
               isDeleting={deletingCommentId === comment._id}
@@ -287,28 +277,37 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
                 setSelectedCommentId(comment._id);
                 setOpen(true);
               }}
-              text={comment.text}
-              author={comment.author}
-              likes={comment.likes}
-              createdAt={comment.createdAt}
+              {...comment}
               handleRouteToProfile={handleRouteToProfile}
             />
           ))}
         </div>
       )}
-      {
-        <CustomConfirmModal
-          open={open}
-          onConfirm={() => {
-            handleDeleteComment();
-          }}
-          onCancel={() => {
-            setSelectedCommentId(null);
-            setOpen(false);
-          }}
-          text={"Are u sure want to delete?"}
+
+      <CustomConfirmModal
+        open={open}
+        onConfirm={handleDeleteComment}
+        onCancel={() => {
+          setSelectedCommentId(null);
+          setOpen(false);
+        }}
+        text="Are you sure want to delete?"
+      />
+
+      {isCommentModalOpen && (
+        <CommentPostModal
+          isOpen={isCommentModalOpen}
+          onClose={() => setIsCommentModalOpen(false)}
+          post={post}
+          isBookmarked={isBookmarked}
+          isBookmarkLoading={isBookmarkLoading}
+          isLiked={isLiked}
+          isLikeLoading={isLikeLoading}
+          handleLike={handleLike}
+          handleBookmark={handleBookmark}
+          handleRouteToProfile={handleRouteToProfile}
         />
-      }
+      )}
     </article>
   );
 };
