@@ -218,6 +218,7 @@ export const createPost = async (req: Request, res: Response) => {
           height: finalMeta.height,
           width: finalMeta.width,
           aspectRatio,
+          aspect,
           isReel: isReel === "true",
           feedRatio: feedRatio || "4/5",
         };

@@ -92,7 +92,7 @@ export default function CreatePostModal({
     console.log("current media:", media)
   const [caption, setCaption] =
     useState("");
-    const [activeAspect, setActiveAspect] = useState(null);
+    
   const [feedRatio, setFeedRatio] =
     useState<"1/1" | "4/5" | "16/9">(
       "4/5"
@@ -245,6 +245,8 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
 };
 formData.append("mediaWidth", mediaSize.width.toString());
 formData.append("mediaHeight", mediaSize.height.toString());
+
+console.log("current form data:", formData)
         await createPost(
           formData
         ).unwrap();
