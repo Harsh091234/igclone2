@@ -57,17 +57,27 @@ export const createPost = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Media is required" });
     }
 
-    let crop = null;
-    try {
-      crop = cropData ? JSON.parse(cropData) : null;
-    } catch {
-      crop = null;
-    }
+   let crops: any[] = [];
 
+try {
+  const raw = req.body.cropData;
+
+  if (Array.isArray(raw)) {
+    crops = raw.map((c) => JSON.parse(c));
+  } else if (raw) {
+    crops = [JSON.parse(raw)];
+  }
+} catch (err) {
+  console.log("Crop parse error:", err);
+  crops = [];
+}
     const media = await Promise.all(
-      files.map(async (file) => {
+      files.map(async (file, index) => {
         const isVideo = file.mimetype.startsWith("video");
-
+  const cropItem = crops.find((c) => c.index === index);
+  const crop = cropItem?.crop || null;
+  const oW = cropItem?.originalWidth;
+  const oH = cropItem?.originalHeight;
         // =========================
         // 🎬 VIDEO HANDLING (SAFE)
         // =========================
@@ -80,51 +90,42 @@ export const createPost = async (req: Request, res: Response) => {
        );
 
        let scaledCrop: any = null;
+   
 
-       if (
-         crop &&
-         originalWidth &&
-         originalHeight &&
-         mediaWidth &&
-         mediaHeight
-       ) {
-         const oW = Number(originalWidth);
-         const oH = Number(originalHeight);
-         const mW = Number(mediaWidth);
-         const mH = Number(mediaHeight);
+    if (crop && originalWidth && originalHeight && mediaWidth && mediaHeight) {
+    
+      const mW = Number(mediaWidth);
+      const mH = Number(mediaHeight);
 
-         if (!oW || !oH || !mW || !mH) {
-           throw new Error("Invalid dimensions");
-         }
+      if (!oW || !oH || !mW || !mH) {
+        throw new Error("Invalid dimensions");
+      }
 
-         // 🔥 SAFE SCALE
-         const scaleX = oW / mW;
-         const scaleY = oH / mH;
+      const scaleX = oW / mW;
+      const scaleY = oH / mH;
 
-         const rawCrop = {
-           x: crop.x * scaleX,
-           y: crop.y * scaleY,
-           width: crop.width * scaleX,
-           height: crop.height * scaleY,
-         };
+      const rawCrop = {
+        x: crop.x * scaleX,
+        y: crop.y * scaleY,
+        width: crop.width * scaleX,
+        height: crop.height * scaleY,
+      };
 
-         // 🔥 CLAMP (CRITICAL FIX)
-         const x = Math.max(0, Math.floor(rawCrop.x));
-         const y = Math.max(0, Math.floor(rawCrop.y));
+      const x = Math.max(0, Math.floor(rawCrop.x));
+      const y = Math.max(0, Math.floor(rawCrop.y));
 
-         let width = Math.floor(rawCrop.width);
-         let height = Math.floor(rawCrop.height);
+      let width = Math.floor(rawCrop.width);
+      let height = Math.floor(rawCrop.height);
 
-         width = Math.min(width, oW - x);
-         height = Math.min(height, oH - y);
+      width = Math.min(width, oW - x);
+      height = Math.min(height, oH - y);
 
-         // ❗ FINAL VALIDATION
-         if (width <= 0 || height <= 0) {
-           throw new Error("Invalid crop after scaling");
-         }
+      if (width <= 0 || height <= 0) {
+        throw new Error("Invalid crop after scaling");
+      }
 
-         scaledCrop = { x, y, width, height };
-       }
+      scaledCrop = { x, y, width, height };
+    }
 
        // 🔥 SAFE FFmpeg CALL
        await cropVideo(inputPath, outputPath, scaledCrop);

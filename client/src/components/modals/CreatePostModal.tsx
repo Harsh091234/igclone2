@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useCreatePostMutation } from "../../services/postApi";
 import getCroppedImg from "../../utils/getCroppedItems";
 import { getVideoFrame } from "../../utils/getVideoFrame";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
 
 type Step = "SELECT" | "CROP" | "PREVIEW" | "CAPTION";
 
@@ -14,6 +15,13 @@ interface SelectedMedia {
   file: File;
   previewUrl: string;
   type: MediaType;
+   width?: number;   // ✅ add this
+  height?: number;  // ✅ add this
+
+  crop?: { x: number; y: number };
+  zoom?: number;
+  croppedAreaPixels?: Area | null;
+  croppedPreview?: string | null;
 }
 
 interface Props {
@@ -43,6 +51,7 @@ type AspectBtnProps = {
   value: number;
   activeAspect: number;
   onChange: (value: number) => void;
+  disabled?: boolean;
 };
 
 const AspectBtn = ({
@@ -50,18 +59,26 @@ const AspectBtn = ({
   value,
   activeAspect,
   onChange,
+  disabled,
 }: AspectBtnProps) => {
   const isActive = activeAspect === value;
 
   return (
     <button
       onClick={() => onChange(value)}
-      className={`w-13 h-13 border text-sm rounded-lg transition
-        ${
-          isActive
-            ? "bg-primary border-primary text-primary-foreground"
-            : "bg-background border-border hover:bg-primary/5"
-        }`}
+      disabled={disabled}
+     className={`w-13 h-13 border text-sm rounded-lg transition
+    ${
+      isActive
+        ? "bg-primary border-primary text-primary-foreground"
+        : "bg-background border-border"
+    }
+    ${
+      disabled
+        ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground border-muted"
+        : "hover:bg-primary/5"
+    }
+  `}
     >
       {label}
     </button>
@@ -75,20 +92,23 @@ export default function CreatePostModal({
 }: Props) {
   const [step, setStep] =
     useState<Step>("SELECT");
-  const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
+  // const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
   const [contentType, setContentType] =
     useState<"post" | "reel" | null>(
       null
     );
+    const [lockedAspect, setLockedAspect] = useState<number | null>(null);
+    const [carousalApi, setCarousalApi] = useState<any>(null);
   const [videoMeta, setVideoMeta] = useState<{
   width: number;
   height: number;
 } | null>(null);
 
   const [media, setMedia] =
-    useState<SelectedMedia | null>(
-      null
+    useState<SelectedMedia[]>(
+      []
     );
+    const [currentIndex, setCurrentIndex] = useState(0);
     console.log("current media:", media)
   const [caption, setCaption] =
     useState("");
@@ -106,19 +126,19 @@ const [processing, setProcessing] = useState(false);
 const [mediaSize, setMediaSize] = useState<any>(null);
 const videoWidth = mediaSize?.naturalWidth || mediaSize?.width || 0;
 const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
-  const [crop, setCrop] = useState({
-    x: 0,
-    y: 0,
-  });
+  // const [crop, setCrop] = useState({
+  //   x: 0,
+  //   y: 0,
+  // });
 
-  const [zoom, setZoom] =
-    useState(1);
+  // const [zoom, setZoom] =
+  //   useState(1);
 
-  const [
-    croppedAreaPixels,
-    setCroppedAreaPixels,
-  ] = useState<Area | null>(null);
-
+  // const [
+  //   croppedAreaPixels,
+  //   setCroppedAreaPixels,
+  // ] = useState<Area | null>(null);
+    const currentMedia = media[currentIndex];
   const fileRef =
     useRef<HTMLInputElement | null>(
       null
@@ -128,7 +148,7 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
     createPost,
     { isLoading },
   ] = useCreatePostMutation();
-
+const effectiveAspect = lockedAspect ?? aspect;
   if (!isOpen) return null;
 
 
@@ -136,19 +156,19 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
   aspect === 9 / 16
     ? 270
     :420
-    
+const isLocked = media.length > 1 && lockedAspect !== null;
 
 
   const resetAll = () => {
     setStep("SELECT");
     setContentType(null);
-    setMedia(null);
+    setMedia([]);
     setCaption("");
     setFeedRatio("4/5");
     setAspect(1);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
+    // setCrop({ x: 0, y: 0 });
+    // setZoom(1);
+    // setCroppedAreaPixels(null);
     onClose();
   };
 
@@ -164,35 +184,43 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
   const handleFileSelect = async(
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file =
-      e.target.files?.[0];
-
-    if (!file) return;
+    const files = Array.from
+      (e.target.files || [] );
+ const processed: SelectedMedia[] = [];
+if (!files.length) return;
+  if (contentType === "reel" && files.length > 1) {
+    toast.error("Reels support only one video");
+    return;
+  }
+    if (contentType === "post" && files.length > 5) {
+    toast.error("You can upload maximum 5 items");
+    return;
+  }
+  for (const file of files) {
     if (file.type.startsWith("video")) {
-  const { frame, width, height } =
-    await getVideoFrame(
-      URL.createObjectURL(file)
-    );
+      const { frame, width, height } = await getVideoFrame(
+        URL.createObjectURL(file)
+      );
 
-  setMedia({
-    file,
-    previewUrl: frame,
-    type: "video",
-  });
+      processed.push({
+        file,
+        previewUrl: frame,
+        type: "video",
+      });
 
-  setVideoMeta({ width, height });
-} else {
-  setMedia({
-    file,
-    previewUrl: URL.createObjectURL(file),
-    type: "image",
-  });
+      setVideoMeta({ width, height }); // ⚠️ only stores last one (we’ll fix later if needed)
+    } else {
+      processed.push({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        type: "image",
+      });
+    }
+  }
 
-  setVideoMeta(null);
-}
-
-    setCroppedPreview(null);
-    setStep("CROP");
+     setMedia(processed);
+  setCurrentIndex(0);
+  setStep("CROP");
   };
 
   const handleUpload =
@@ -203,10 +231,19 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
         const formData =
           new FormData();
 
-        formData.append(
-          "media",
-          media.file
-        );
+    media.forEach((item, index) => {
+  formData.append("media", item.file);
+
+ formData.append(
+  "cropData",
+  JSON.stringify({
+    index,
+    crop: item.croppedAreaPixels,
+          originalWidth: item.width,
+      originalHeight: item.height,
+  })
+);
+});
 
         formData.append(
           "caption",
@@ -226,25 +263,10 @@ const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
            aspect === 9 / 16 ? "4/5" : getFeedRatioFromAspect(aspect)
         );
 
-        formData.append(
-          "cropData",
-          JSON.stringify(
-            croppedAreaPixels
-          )
-        );
-      if (media.type === "video" && videoMeta) {
-  formData.append(
-    "originalWidth",
-    videoMeta.width.toString()
-  );
-
-  formData.append(
-    "originalHeight",
-    videoMeta.height.toString()
-  );
-};
-formData.append("mediaWidth", mediaSize.width.toString());
-formData.append("mediaHeight", mediaSize.height.toString());
+       
+    
+formData.append("mediaWidth", String(mediaSize?.width || 0));
+formData.append("mediaHeight", String(mediaSize?.height || 0));
 
 console.log("current form data:", formData)
         await createPost(
@@ -266,8 +288,6 @@ console.log("current form data:", formData)
     const containerWidth = 420; // your modal width approx
 const containerHeight = 460; // crop area height
 
-const scaleX = containerWidth / (mediaSize?.width || 1);
-const scaleY = containerHeight / (mediaSize?.height || 1);
 
   return (
     <div
@@ -315,24 +335,29 @@ const scaleY = containerHeight / (mediaSize?.height || 1);
               "CROP" && (
               <button
                 onClick={async () => {
-if (croppedAreaPixels) {
-  if(!media) return;
-  if (media.type === "image") {
-    const cropped = await getCroppedImg(
-      media.previewUrl,
-      croppedAreaPixels
-    );
-    setCroppedPreview(cropped);
-  } else {
-    // 👉 VIDEO: simulate crop using frame
-    const cropped = await getCroppedImg(
-      media.previewUrl, // already frame image
-      croppedAreaPixels
-    );
-    setCroppedPreview(cropped);
-  }
+  const current = media[currentIndex];
+
+  if (!current.croppedAreaPixels) return;
+
+  const cropped = await getCroppedImg(
+    current.previewUrl,
+    current.croppedAreaPixels
+  );
+
+  setMedia((prev) => {
+    const copy = [...prev];
+    copy[currentIndex].croppedPreview = cropped;
+    return copy;
+  });
+   if (media.length > 1 && lockedAspect === null) {
+  setLockedAspect(aspect);
 }
-  setStep("PREVIEW");
+  // Move to next image OR preview step
+  if (currentIndex < media.length - 1) {
+    setCurrentIndex((prev) => prev + 1);
+  } else {
+    setStep("PREVIEW");
+  }
 }}
                 className="text-blue-500"
               >
@@ -380,7 +405,7 @@ if (croppedAreaPixels) {
   <div className="h-[500px] flex flex-col items-center justify-center gap-6">
     
     <div className="text-center space-y-2">
-      <ImagePlus size={48} className="mx-auto text-gray-500" />
+      <ImagePlus size={48} className="mx-auto text-muted-foreground" />
       <h2 className="text-lg font-semibold">Create new</h2>
       <p className="text-sm text-gray-500">
         Choose what you want to upload
@@ -396,9 +421,9 @@ if (croppedAreaPixels) {
           setAspect(1);
           fileRef.current?.click();
         }}
-        className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 transition group"
+        className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-primary/5  transition group"
       >
-        <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 group-hover:bg-gray-200">
+        <div className="w-12 h-12 flex items-center justify-center rounded-lg border bg-muted">
           📸
         </div>
 
@@ -417,9 +442,9 @@ if (croppedAreaPixels) {
           setAspect(9 / 16);
           fileRef.current?.click();
         }}
-        className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 transition group"
+        className="w-full flex items-center gap-4 p-4 rounded-xl border  hover:bg-primary/5 transition group"
       >
-        <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 group-hover:bg-gray-200">
+        <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-muted">
           🎬
         </div>
 
@@ -446,18 +471,22 @@ if (croppedAreaPixels) {
         value={1}
         activeAspect={aspect}
         onChange={setAspect}
+          disabled={isLocked && lockedAspect !== 1}
       />
       <AspectBtn
         label="4:5"
         value={4 / 5}
         activeAspect={aspect}
         onChange={setAspect}
+
+  disabled={isLocked && lockedAspect !== 4 / 5}
       />
       <AspectBtn
         label="16:9"
         value={16 / 9}
         activeAspect={aspect}
         onChange={setAspect}
+          disabled={isLocked && lockedAspect !== 16 / 9}
       />
     </>
   ) : (
@@ -487,39 +516,37 @@ if (croppedAreaPixels) {
                 <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
                       
                     <div className="relative w-full h-full">
-                            <Cropper
-                      image={media.previewUrl}
-                      crop={
-                        crop
-                      }
-                      zoom={
-                        zoom
-                      }
-                        objectFit="contain" 
-                      aspect={
-                        aspect
-                      }
-                      onCropChange={
-                        setCrop
-                      }
-                      onZoomChange={
-                        setZoom
-                      }
-                      onCropComplete={(
-                        _,
-                        pixels
-                      ) =>
-                        setCroppedAreaPixels(
-                          pixels
-                        )
-                      }
-                     onMediaLoaded={(mediaSize) => {
-  setMediaSize({
-    width: mediaSize.naturalWidth || mediaSize.width,
-    height: mediaSize.naturalHeight || mediaSize.height,
-  });
-}}
-                    />
+<Cropper
+  image={currentMedia.previewUrl}
+  crop={currentMedia.crop || { x: 0, y: 0 }}
+  zoom={currentMedia.zoom || 1}
+  aspect={aspect}
+  objectFit="contain"
+
+  onCropChange={(newCrop) => {
+    setMedia((prev) => {
+      const copy = [...prev];
+      copy[currentIndex].crop = newCrop;
+      return copy;
+    });
+  }}
+
+  onZoomChange={(newZoom) => {
+    setMedia((prev) => {
+      const copy = [...prev];
+      copy[currentIndex].zoom = newZoom;
+      return copy;
+    });
+  }}
+
+  onCropComplete={(_, pixels) => {
+    setMedia((prev) => {
+      const copy = [...prev];
+      copy[currentIndex].croppedAreaPixels = pixels;
+      return copy;
+    });
+  }}
+/>
                     </div>
                 
                   
@@ -528,24 +555,67 @@ if (croppedAreaPixels) {
             )}
 
           {/* PREVIEW */}
-         {step === "PREVIEW" && media && (
+       {step === "PREVIEW" && media && (
   <div className="h-[500px] flex items-center justify-center">
     <div
-      className="w-full    bg-black rounded-xl overflow-hidden"
-      style={{ aspectRatio: getFeedRatioFromAspect(aspect),
-        maxWidth: previewMaxWidth
-       }}
+      className="w-full bg-black rounded-xl overflow-hidden"
+      style={{
+        aspectRatio: getFeedRatioFromAspect(aspect),
+        maxWidth: previewMaxWidth,
+      }}
     >
-      {media.type === "image" ? (
+      {media.length === 1 ? (
+        // ✅ SINGLE
         <img
-          src={croppedPreview || media.previewUrl}
+          src={media[0].croppedPreview || media[0].previewUrl}
           className="w-full h-full object-cover"
         />
       ) : (
-       <img
-  src={croppedPreview || media.previewUrl}
-  className="w-full h-full object-cover"
-/>
+        // ✅ MULTIPLE → SHADCN CAROUSEL
+       <Carousel
+  setApi={(api) => {
+    if (!api) return;
+
+    api.on("select", () => {
+      setCurrentIndex(api.selectedScrollSnap());
+    });
+  }}
+  opts={{ align: "start" }}
+  className="w-full h-full relative"
+>
+          <CarouselContent>
+            {media.map((item, index) => (
+              <CarouselItem key={index}>
+                <div className="w-full h-full">
+                  <img
+                    src={item.croppedPreview || item.previewUrl}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+
+    {/* dots */}
+    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+      {media.map((_, i) => (
+        <button
+          key={i}
+          onClick={() => carousalApi?.scrollTo(i)}
+          className={`w-2 h-2 rounded-full ${
+            i === currentIndex ? "bg-white" : "bg-white/40"
+          }`}
+        />
+      ))}
+    </div>
+
+
+
+        </Carousel>
+        
       )}
     </div>
   </div>
@@ -556,28 +626,69 @@ if (croppedAreaPixels) {
             "CAPTION" &&
             media && (
               <div className="space-y-4">
-                {media.type ===
-                "image" ? (
-                  <img
-                   src={croppedPreview || media.previewUrl}
-                    className="h-64 mx-auto rounded-xl"
-                  />
-                ) : (
                <div
-  className="relative  mx-auto overflow-hidden rounded-xl"
-  style={{ aspectRatio: getFeedRatioFromAspect(aspect),
-    maxWidth: previewMaxWidth
-   }}
+  className="relative mx-auto overflow-hidden rounded-xl"
+  style={{
+    aspectRatio: getFeedRatioFromAspect(aspect),
+    maxWidth: previewMaxWidth,
+  }}
 >
-  <img
-    src={croppedPreview || media.previewUrl}
-    className="w-full h-full object-cover"
-  />
+  {media.length === 1 ? (
+    // ✅ SINGLE
+    <img
+      src={media[0].croppedPreview || media[0].previewUrl}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    // ✅ MULTIPLE → CAROUSEL
+    <Carousel
+      setApi={(api) => {
+        if (!api) return;
 
-  {/* Dark overlay */}
-  <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"  />
+        setCarousalApi(api);
+
+        api.on("select", () => {
+          setCurrentIndex(api.selectedScrollSnap());
+        });
+      }}
+      opts={{ align: "start" }}
+      className="w-full h-full relative"
+    >
+      <CarouselContent>
+        {media.map((item, index) => (
+          <CarouselItem key={index}>
+            <img
+              src={item.croppedPreview || item.previewUrl}
+              className="w-full h-full object-cover"
+            />
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+
+      {/* ✅ Arrows */}
+      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 " />
+      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+
+      {/* ✅ Dots */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+        {media.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => carousalApi?.scrollTo(i)}
+            className={`w-2 h-2 rounded-full ${
+              i === currentIndex ? "bg-white" : "bg-white/40"
+            }`}
+          />
+        ))}
+      </div>
+    </Carousel>
+  )}
+
+  {/* ✅ Optional overlay for videos only */}
+  {media[currentIndex].type === "video" && (
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+  )}
 </div>
-                )}
 
                 <textarea
                   value={caption}
@@ -599,6 +710,7 @@ if (croppedAreaPixels) {
         <input
           ref={fileRef}
           type="file"
+          multiple={contentType !== "reel"}
           hidden
            accept={contentType === "reel" ? "video/*" : "image/*,video/*"}
           onChange={
