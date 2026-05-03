@@ -37,6 +37,38 @@ const getAspectLabel = (aspect: number) => {
   return "1/1";
 };
 
+
+type AspectBtnProps = {
+  label: string;
+  value: number;
+  activeAspect: number;
+  onChange: (value: number) => void;
+};
+
+const AspectBtn = ({
+  label,
+  value,
+  activeAspect,
+  onChange,
+}: AspectBtnProps) => {
+  const isActive = activeAspect === value;
+
+  return (
+    <button
+      onClick={() => onChange(value)}
+      className={`w-13 h-13 border text-sm rounded-lg transition
+        ${
+          isActive
+            ? "bg-primary border-primary text-primary-foreground"
+            : "bg-background border-border hover:bg-primary/5"
+        }`}
+    >
+      {label}
+    </button>
+  );
+};
+
+
 export default function CreatePostModal({
   isOpen,
   onClose,
@@ -60,7 +92,7 @@ export default function CreatePostModal({
     console.log("current media:", media)
   const [caption, setCaption] =
     useState("");
-
+    const [activeAspect, setActiveAspect] = useState(null);
   const [feedRatio, setFeedRatio] =
     useState<"1/1" | "4/5" | "16/9">(
       "4/5"
@@ -342,96 +374,113 @@ if (croppedAreaPixels) {
         {/* BODY */}
         <div className="p-4 min-h-[520px]">
           {/* SELECT */}
-          {step ===
-            "SELECT" && (
-            <div className="h-[500px] flex flex-col items-center justify-center gap-4">
-              <ImagePlus
-                size={50}
-              />
+         {step === "SELECT" && (
+  <div className="h-[500px] flex flex-col items-center justify-center gap-6">
+    
+    <div className="text-center space-y-2">
+      <ImagePlus size={48} className="mx-auto text-gray-500" />
+      <h2 className="text-lg font-semibold">Create new</h2>
+      <p className="text-sm text-gray-500">
+        Choose what you want to upload
+      </p>
+    </div>
 
-              <button
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground"
-                onClick={() => {
-                  setContentType(
-                    "post"
-                  );
-                  setAspect(
-                    1
-                  );
-                  fileRef.current?.click();
-                }}
-              >
-                Create Post
-              </button>
+    <div className="w-full space-y-3">
+      
+      {/* POST CARD */}
+      <button
+        onClick={() => {
+          setContentType("post");
+          setAspect(1);
+          fileRef.current?.click();
+        }}
+        className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 transition group"
+      >
+        <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 group-hover:bg-gray-200">
+          📸
+        </div>
 
-              <button
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground"
-                onClick={() => {
-                  setContentType(
-                    "reel"
-                  );
-                  setAspect(
-                    9 / 16
-                  );
-                  fileRef.current?.click();
-                }}
-              >
-                Create Reel
-              </button>
-            </div>
-          )}
+        <div className="text-left">
+          <p className="font-medium">Create Post</p>
+          <p className="text-sm text-gray-500">
+            Upload photos or videos
+          </p>
+        </div>
+      </button>
 
+      {/* REEL CARD */}
+      <button
+        onClick={() => {
+          setContentType("reel");
+          setAspect(9 / 16);
+          fileRef.current?.click();
+        }}
+        className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-gray-50 transition group"
+      >
+        <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 group-hover:bg-gray-200">
+          🎬
+        </div>
+
+        <div className="text-left">
+          <p className="font-medium">Create Reel</p>
+          <p className="text-sm text-gray-500">
+            Upload vertical videos
+          </p>
+        </div>
+      </button>
+
+    </div>
+  </div>
+)}
           {/* CROP */}
           {step === "CROP" &&
             media && (
               <>
-                <div className="flex gap-2 mb-3">
-                  {contentType ===
-                  "post" ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setAspect(
-                            1
-                          );
-
-                        }}
-                      >
-                        1:1
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setAspect(
-                            4 /
-                              5
-                          );
-
-                        }}
-                      >
-                        4:5
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setAspect(
-                            16 /
-                              9
-                          );
-                         
-                        }}
-                      >
-                        16:9
-                      </button>
-                    </>
-                  ) : (
-                     <>
-    <button onClick={() => setAspect(9 / 16)}>9:16</button>
-    <button onClick={() => setAspect(4 / 5)}>4:5</button>
-    <button onClick={() => setAspect(16 / 9)}>16:9</button>
-  </>
-                  )}
-                </div>
+               <div className="flex gap-2 mb-3">
+  {contentType === "post" ? (
+    <>
+      <AspectBtn
+        label="1:1"
+        value={1}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+      <AspectBtn
+        label="4:5"
+        value={4 / 5}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+      <AspectBtn
+        label="16:9"
+        value={16 / 9}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+    </>
+  ) : (
+    <>
+      <AspectBtn
+        label="9:16"
+        value={9 / 16}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+      <AspectBtn
+        label="4:5"
+        value={4 / 5}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+      <AspectBtn
+        label="16:9"
+        value={16 / 9}
+        activeAspect={aspect}
+        onChange={setAspect}
+      />
+    </>
+  )}
+</div>
 
                 <div className="relative h-[460px] w-full bg-black rounded-xl overflow-hidden">
                       
@@ -549,7 +598,7 @@ if (croppedAreaPixels) {
           ref={fileRef}
           type="file"
           hidden
-          accept="image/*,video/*"
+           accept={contentType === "reel" ? "video/*" : "image/*,video/*"}
           onChange={
             handleFileSelect
           }
