@@ -41,19 +41,24 @@ export default function AddStoryPanel({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [createStory, { isLoading: isCreating }] = useCreateStoryMutation();
   const [media, setMedia] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
   const [activeTextId, setActiveTextId] = useState<string | null>(null);
-
+  console.log("media", media)
+  
+  
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    setFile(selectedFile);
 
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(selectedFile);
     setMedia(url);
 
-    if (file.type.startsWith("image")) setMediaType("image");
-    else if (file.type.startsWith("video")) setMediaType("video");
+    if (selectedFile.type.startsWith("image")) setMediaType("image");
+    else if (selectedFile.type.startsWith("video")) setMediaType("video");
   };
 
   // const handleAddText = () => {
@@ -89,14 +94,17 @@ export default function AddStoryPanel({
         mediaType,
         textLayers,
       });
-
+       if (!file) {
+      console.log("No file selected");
+      return;
+    }
       const formdata = new FormData();
-      if (!fileRef.current?.files?.[0]) return;
-      formdata.append("media", fileRef.current.files[0]);
+   
+      formdata.append("media", file);
       formdata.append("textLayers", JSON.stringify(textLayers));
-      console.log("hi");
+      
       const story = await createStory(formdata).unwrap();
-      console.log("st", story);
+      
 
       setAnimateRing(true);
       setTimeout(() => {
@@ -165,7 +173,9 @@ export default function AddStoryPanel({
           <div className="relative h-full flex-1 flex items-center justify-center p-2">
             <div className="relative   w-full max-w-2xl h-98  md:h-110 overflow-hidden rounded-xl   flex items-center justify-center">
               {media ? (
-                <div className="relative flex items-center justify-center w-full h-full ">
+                <div className="relative flex items-center justify-center aspect-auto  h-full "
+
+                >
                   {/* MEDIA */}
                   {mediaType === "image" ? (
                     <img
@@ -174,10 +184,10 @@ export default function AddStoryPanel({
                     />
                   ) : (
                     <video
-                      src={media}
-                      className="max-h-full  max-w-full object-contain rounded-xl"
+                     src={media}
+                      className="object-cover h-full w-full rounded-xl"
                       controls
-                    />
+                    /> 
                   )}
 
                   {/* TEXT LAYERS */}

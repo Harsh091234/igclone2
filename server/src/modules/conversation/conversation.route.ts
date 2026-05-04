@@ -5,7 +5,7 @@ import {
   getAllMessages,
   getLastMessages,
 } from "./conversation.controller.js";
-import { upload } from "../../config/multer.js";
+import { uploadThroughMemory } from "../../config/multer.js";
 import { Router } from "express";
 import { requireAuth } from "@clerk/express";
 import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
@@ -22,7 +22,7 @@ apiLimiter,
   protectRoutes,
   csrfProtection,
   authorize("user"),
-  upload.array("media", 5),
+  uploadThroughMemory.array("media", 5),
 
   createMessage,
 );

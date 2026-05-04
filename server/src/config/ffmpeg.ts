@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
-import ffmpegStatic from "ffmpeg-static";
 
+import ffmpeg from "fluent-ffmpeg";
+import ffprobeStatic from "ffprobe-static";
 type CropArea = {
   width: number;
   height: number;
@@ -52,6 +53,9 @@ export const cropVideo = async (
     );
 
     console.log("FFmpeg args:", args.join(" "));
+    if (!inputPath) {
+      return reject(new Error("Input path is missing"));
+    }
 
     const ff = spawn("ffmpeg", args);
 
@@ -60,6 +64,26 @@ export const cropVideo = async (
     ff.on("close", (code) => {
       if (code === 0) resolve(true);
       else reject(new Error(`FFmpeg failed with code ${code}`));
+    });
+  });
+};
+
+
+export const getVideoDimensions = (filePath: string) => {
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) return reject(err);
+
+      const stream = metadata.streams.find((s: any) => s.width && s.height);
+
+      if (!stream) {
+        return reject(new Error("No video stream found"));
+      }
+
+      resolve({
+        width: stream.width!,
+        height: stream.height!,
+      });
     });
   });
 };

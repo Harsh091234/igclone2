@@ -1,4 +1,4 @@
-import { upload } from "../../config/multer.js";
+import { uploadThroughMemory } from "../../config/multer.js";
 import { editProfileSchema } from "./user.validator.js";
 import {
   editProfile,
@@ -25,7 +25,7 @@ router.patch(
   csrfProtection,
   authorize("user"),
  
-  upload.single("profilePic"),
+  uploadThroughMemory.single("profilePic"),
   validate(editProfileSchema),
   editProfile,
 );

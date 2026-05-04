@@ -95,7 +95,7 @@ export default function CreatePostModal({
   // const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
   const [contentType, setContentType] =
     useState<"post" | "reel" | null>(
-      null
+      "post"
     );
     const [lockedAspect, setLockedAspect] = useState<number | null>(null);
     const [carousalApi, setCarousalApi] = useState<any>(null);
@@ -239,8 +239,7 @@ if (!files.length) return;
   JSON.stringify({
     index,
     crop: item.croppedAreaPixels,
-          originalWidth: item.width,
-      originalHeight: item.height,
+        
   })
 );
 });
@@ -264,9 +263,7 @@ if (!files.length) return;
         );
 
        
-    
-formData.append("mediaWidth", String(mediaSize?.width || 0));
-formData.append("mediaHeight", String(mediaSize?.height || 0));
+
 
 console.log("current form data:", formData)
         await createPost(
@@ -419,7 +416,10 @@ const containerHeight = 460; // crop area height
         onClick={() => {
           setContentType("post");
           setAspect(1);
-          fileRef.current?.click();
+         
+  setTimeout(() => {
+    fileRef.current?.click();
+  }, 0);
         }}
         className="w-full flex items-center gap-4 p-4 rounded-xl border hover:bg-primary/5  transition group"
       >
@@ -440,7 +440,9 @@ const containerHeight = 460; // crop area height
         onClick={() => {
           setContentType("reel");
           setAspect(9 / 16);
-          fileRef.current?.click();
+         setTimeout(() => {
+    fileRef.current?.click();
+  }, 0);
         }}
         className="w-full flex items-center gap-4 p-4 rounded-xl border  hover:bg-primary/5 transition group"
       >
@@ -521,31 +523,33 @@ const containerHeight = 460; // crop area height
   crop={currentMedia.crop || { x: 0, y: 0 }}
   zoom={currentMedia.zoom || 1}
   aspect={aspect}
-  objectFit="contain"
+  objectFit="cover"
 
-  onCropChange={(newCrop) => {
-    setMedia((prev) => {
-      const copy = [...prev];
-      copy[currentIndex].crop = newCrop;
-      return copy;
-    });
-  }}
+ onCropChange={(newCrop) => {
+  setMedia((prev) =>
+    prev.map((m, i) =>
+      i === currentIndex ? { ...m, crop: newCrop } : m
+    )
+  );
+}}
 
-  onZoomChange={(newZoom) => {
-    setMedia((prev) => {
-      const copy = [...prev];
-      copy[currentIndex].zoom = newZoom;
-      return copy;
-    });
-  }}
+onZoomChange={(newZoom) => {
+  setMedia((prev) =>
+    prev.map((m, i) =>
+      i === currentIndex ? { ...m, zoom: newZoom } : m
+    )
+  );
+}}
 
-  onCropComplete={(_, pixels) => {
-    setMedia((prev) => {
-      const copy = [...prev];
-      copy[currentIndex].croppedAreaPixels = pixels;
-      return copy;
-    });
-  }}
+onCropComplete={(_, pixels) => {
+  setMedia((prev) =>
+    prev.map((m, i) =>
+      i === currentIndex
+        ? { ...m, croppedAreaPixels: pixels }
+        : m
+    )
+  );
+}}
 />
                     </div>
                 
@@ -712,7 +716,13 @@ const containerHeight = 460; // crop area height
           type="file"
           multiple={contentType !== "reel"}
           hidden
-           accept={contentType === "reel" ? "video/*" : "image/*,video/*"}
+         accept={
+  contentType === "reel"
+    ? "video/*"
+    : contentType === "post"
+      ? "image/*,video/*"
+      : ""
+}
           onChange={
             handleFileSelect
           }

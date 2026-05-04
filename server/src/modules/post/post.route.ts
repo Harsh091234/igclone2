@@ -1,4 +1,4 @@
-import { upload } from "../../config/multer.js";
+import { uploadThroughDisk } from "../../config/multer.js";
 import { commentPostSchema, createPostSchema } from "./post.validator.js";
 import {
   commentPost,
@@ -29,7 +29,7 @@ router.post(
   protectRoutes,
   csrfProtection,
   authorize("user"),
-  upload.array("media", 5),
+  uploadThroughDisk.array("media", 5),
   // validate(createPostSchema),
   createPost,
 );

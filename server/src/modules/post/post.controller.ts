@@ -12,7 +12,7 @@ import sharp from "sharp";
 import Notification from "../notification/notification.model.js";
 import { deleteCache, getCache, setCache } from "../../config/cache.js";
 import redis from "../../config/redis.js";
-import { cropVideo } from "../../config/ffmpeg.js";
+import { cropVideo, getVideoDimensions } from "../../config/ffmpeg.js";
 
 type CropArea = {
   x: number;
@@ -83,7 +83,7 @@ try {
         // =========================
      if (isVideo) {
        const inputPath = file.path;
-
+      const videoSize = await getVideoDimensions(file.path);
        const outputPath = path.join(
          "uploads",
          `cropped-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`,
@@ -92,41 +92,24 @@ try {
        let scaledCrop: any = null;
    
 
-    if (crop && originalWidth && originalHeight && mediaWidth && mediaHeight) {
-    
-      const mW = Number(mediaWidth);
-      const mH = Number(mediaHeight);
+   
+      if (crop) {
+        const x = Math.max(0, Math.floor(crop.x));
+        const y = Math.max(0, Math.floor(crop.y));
 
-      if (!oW || !oH || !mW || !mH) {
-        throw new Error("Invalid dimensions");
+        let width = Math.floor(crop.width);
+        let height = Math.floor(crop.height);
+
+        // 👇 USE REAL VIDEO SIZE HERE
+        width = Math.min(width, videoSize.width - x);
+        height = Math.min(height, videoSize.height - y);
+
+        if (width <= 0 || height <= 0) {
+          throw new Error("Invalid crop");
+        }
+
+        scaledCrop = { x, y, width, height };
       }
-
-      const scaleX = oW / mW;
-      const scaleY = oH / mH;
-
-      const rawCrop = {
-        x: crop.x * scaleX,
-        y: crop.y * scaleY,
-        width: crop.width * scaleX,
-        height: crop.height * scaleY,
-      };
-
-      const x = Math.max(0, Math.floor(rawCrop.x));
-      const y = Math.max(0, Math.floor(rawCrop.y));
-
-      let width = Math.floor(rawCrop.width);
-      let height = Math.floor(rawCrop.height);
-
-      width = Math.min(width, oW - x);
-      height = Math.min(height, oH - y);
-
-      if (width <= 0 || height <= 0) {
-        throw new Error("Invalid crop after scaling");
-      }
-
-      scaledCrop = { x, y, width, height };
-    }
-
        // 🔥 SAFE FFmpeg CALL
        await cropVideo(inputPath, outputPath, scaledCrop);
 

@@ -28,7 +28,7 @@ export async function createStory(req: Request, res: Response) {
 
   
     const file = req.file;
-
+    console.log("file in backend:", file)
   
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
