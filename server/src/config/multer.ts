@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import os from "os";
 import path from "path";
@@ -24,6 +25,19 @@ const memoryStorage = multer.memoryStorage();
 export const uploadThroughMemory = multer({
   storage: memoryStorage,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2 MB
+    fileSize: 20 * 1024 * 1024, // 2 MB
   },
 });
+
+export const handleMulterError = (maxSizeMB: number) => {
+  return (err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          message: `File too large. Max allowed size is ${maxSizeMB}MB.`,
+        });
+      }
+    }
+    next(err);
+  };
+};

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { ImagePlus, Trash2 } from "lucide-react";
 
 import { Sheet, SheetContent } from "../ui/sheet";
 import { useEffect } from "react";
@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import DraggableText from "../DraggableText";
 import CustomButton from "../CustomButton";
 import { useCreateStoryMutation } from "../../services/storyApi";
+import toast from "react-hot-toast";
 
 interface Props {
   open: boolean;
@@ -45,6 +46,7 @@ export default function AddStoryPanel({
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
   const [activeTextId, setActiveTextId] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   console.log("media", media)
   
   
@@ -52,13 +54,31 @@ export default function AddStoryPanel({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
+    if(selectedFile.size > 20 * 1024 * 1024){
+      toast.error("Max file size is 20MB");
+  return;
+    }
     setFile(selectedFile);
 
     const url = URL.createObjectURL(selectedFile);
     setMedia(url);
+if (selectedFile.type.startsWith("image")) {
+    setMediaType("image");
 
-    if (selectedFile.type.startsWith("image")) setMediaType("image");
-    else if (selectedFile.type.startsWith("video")) setMediaType("video");
+    const img = new Image();
+    img.onload = () => {
+      setAspectRatio(img.width / img.height);
+    };
+    img.src = url;
+  } else if (selectedFile.type.startsWith("video")) {
+    setMediaType("video");
+
+    const video = document.createElement("video");
+    video.onloadedmetadata = () => {
+      setAspectRatio(video.videoWidth / video.videoHeight);
+    };
+    video.src = url;
+  }
   };
 
   // const handleAddText = () => {
@@ -170,26 +190,31 @@ export default function AddStoryPanel({
             />
           </div>
 
-          <div className="relative h-full flex-1 flex items-center justify-center p-2">
-            <div className="relative   w-full max-w-2xl h-98  md:h-110 overflow-hidden rounded-xl   flex items-center justify-center">
+          <div className="relative  flex-1 flex items-center justify-center p-2">
+            <div className="relative   w-full max-w-2xl h-110  overflow-hidden   flex items-center justify-center">
               {media ? (
-                <div className="relative flex items-center justify-center aspect-auto  h-full "
-
+                <div 
+                  className="relative flex items-center justify-center"
+  style={{
+    width: "100%",
+    maxWidth: aspectRatio && aspectRatio > 1 ? "100%" : "400px",
+  }}
                 >
                   {/* MEDIA */}
-                  {mediaType === "image" ? (
-                    <img
-                      src={media}
-                      className="object-cover h-full w-full rounded-xl"
-                    />
-                  ) : (
-                    <video
-                     src={media}
-                      className="object-cover h-full w-full rounded-xl"
-                      controls
-                    /> 
-                  )}
-
+                <div className=" overflow-hidden">
+  {mediaType === "image" ? (
+    <img
+      src={media}
+      className="object-contain max-h-[60vh] w-full"
+    />
+  ) : (
+    <video
+      src={media}
+      className="object-contain max-h-[60vh] w-full"
+      controls
+    />
+  )}
+</div>
                   {/* TEXT LAYERS */}
                   {textLayers.map((layer) => (
                     <DraggableText
@@ -206,12 +231,21 @@ export default function AddStoryPanel({
                   ))}
                 </div>
               ) : (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="border border-white/30 px-4 py-2 rounded-md"
-                >
-                  Upload Image / Video
-                </button>
+             <div
+  onClick={() => fileRef.current?.click()}
+  className="group flex flex-col items-center justify-center gap-3
+             w-full h-44 rounded-xl
+             border border-dashed border-border
+             bg-muted/30
+             cursor-pointer
+             transition-all duration-200
+             hover:bg-muted/50 hover:border-primary hover:shadow-sm"
+>
+  <ImagePlus className="w-7 h-7 text-muted-foreground group-hover:text-primary transition" />
+  <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition">
+    Upload Image or Video
+  </span>
+</div>
               )}
             </div>
           </div>

@@ -67,6 +67,7 @@ export default function StoryViewerModal({
   const [fetchStoryViews, { data: viewsData, isLoading: viewsLoading }] =
     useLazyGetStoryViewsQuery();
   const [progress, setProgress] = useState(0);
+  const [aspectMap, setAspectMap] = useState<Record<string, number>>({});
   const currentStory = stories[currentIndex];
   const viewersCount =
     viewsData?.viewers?.length ?? currentStory?.viewersCount ?? 0;
@@ -141,6 +142,33 @@ export default function StoryViewerModal({
   // useEffect(() => {
   //    console.log("stories in modal tsxddd:", stories);
   // });
+
+  useEffect(() => {
+  stories.forEach((s) => {
+    if (aspectMap[s._id]) return;
+
+    if (s.media.type === "image") {
+      const img = new Image();
+      img.onload = () => {
+        setAspectMap((prev) => ({
+          ...prev,
+          [s._id]: img.width / img.height,
+        }));
+      };
+      img.src = s.media.url;
+    } else {
+      const video = document.createElement("video");
+      video.onloadedmetadata = () => {
+        setAspectMap((prev) => ({
+          ...prev,
+          [s._id]: video.videoWidth / video.videoHeight,
+        }));
+      };
+      video.src = s.media.url;
+    }
+  });
+}, [stories]);
+
   useEffect(() => {
     setIsAnimating(true);
 
@@ -277,63 +305,67 @@ export default function StoryViewerModal({
             />
           </div>
           {/* Slider */}
-          <div
-            className="flex  h-full transition-transform duration-300 ease-out"
+      <div
+  className="flex h-full transition-transform duration-300 ease-out"
+  style={{
+    transform: `translateX(-${currentIndex * 100}%)`,
+  }}
+>
+  {stories.map((s, index) => {
+    const aspect = aspectMap[s._id];
+  const isFullScreen = aspect && Math.abs(aspect - 9 / 16) < 0.05;
+
+    return (
+      <div key={s._id} className="min-w-full h-full relative">
+        {/* MEDIA */}
+      <div className="h-full w-full flex items-center justify-center bg-black">
+  {s.media.type === "image" ? (
+    <img
+      src={s.media.url}
+      className="w-full h-auto max-h-full object-contain"
+    />
+  ) : (
+    <video
+      key={index === currentIndex ? "active" : "inactive"}
+      src={s.media.url}
+      className="w-full h-auto max-h-full object-contain"
+      autoPlay={index === currentIndex}
+      muted
+      playsInline
+      onTimeUpdate={(e) => {
+        if (index !== currentIndex) return;
+
+        const video = e.currentTarget;
+        const percent =
+          (video.currentTime / video.duration) * 100;
+        setProgress(percent);
+      }}
+      onEnded={() => {
+        if (index === currentIndex) goNext();
+      }}
+    />
+  )}
+</div>
+
+        {/* TEXT */}
+        {s.textLayers?.map((layer, i) => (
+          <span
+            key={i}
+            className="absolute"
             style={{
-              transform: `translateX(-${currentIndex * 100}%)`,
+              left: `${layer.x}%`,
+              top: `${layer.y}%`,
+              transform: "translate(-50%, -50%)",
+              color: layer.color,
             }}
           >
-            {stories.map((s, index) => (
-              <div key={s._id} className="min-w-full h-full relative">
-                {s.media.type === "image" ? (
-                  <img
-                    src={s.media.url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full flex items-center">
-                    <video
-                      key={index === currentIndex ? "active" : "inactive"}
-                      src={s.media.url}
-                      className=" aspect-video bg-black"
-                      autoPlay={index === currentIndex}
-                      muted
-                      onTimeUpdate={(e) => {
-                        if (index !== currentIndex) return;
-
-                        const video = e.currentTarget;
-                        const percent =
-                          (video.currentTime / video.duration) * 100;
-                        setProgress(percent);
-                      }}
-                      playsInline
-                      onEnded={() => {
-                        if (index === currentIndex) goNext();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Text Layers */}
-                {s.textLayers?.map((layer, i) => (
-                  <span
-                    key={i}
-                    className="absolute"
-                    style={{
-                      left: `${layer.x}%`,
-                      top: `${layer.y}%`,
-                      transform: "translate(-50%, -50%)",
-                      color: layer.color,
-                    }}
-                  >
-                    {layer.text}
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-
+            {layer.text}
+          </span>
+        ))}
+      </div>
+    );
+  })}
+</div>
           {/* Bottom Overlay */}
           <div className="absolute bottom-0 left-0 w-full p-4 z-50 text-white bg-gradient-to-t from-black/80 to-transparent">
             {isStoryOwner ? (

@@ -1,5 +1,5 @@
-import { requireAuth } from "@clerk/express";
-import {  uploadThroughMemory } from "../../config/multer.js";
+
+import {  handleMulterError, uploadThroughMemory } from "../../config/multer.js";
 import {
   createStory,
   deleteStory,
@@ -20,7 +20,9 @@ const router = express.Router();
 router.post("/create",apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  uploadThroughMemory.single("media"), createStory);
+  authorize("user"),  uploadThroughMemory.single("media"),
+  handleMulterError(20)
+  , createStory);
 router.get("/get-all",apiLimiter,
   protectRoutes,
   csrfProtection,
