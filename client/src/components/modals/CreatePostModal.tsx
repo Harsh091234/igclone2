@@ -523,7 +523,7 @@ const containerHeight = 460; // crop area height
   crop={currentMedia.crop || { x: 0, y: 0 }}
   zoom={currentMedia.zoom || 1}
   aspect={aspect}
-  objectFit="cover"
+  objectFit="contain"
 
  onCropChange={(newCrop) => {
   setMedia((prev) =>

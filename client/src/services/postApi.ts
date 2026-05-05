@@ -12,6 +12,7 @@ export const postApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["UserReels"],
       async onQueryStarted(_, { dispatch, queryFulfilled, getState }) {
         const patchResults: any[] = [];
 
@@ -277,7 +278,7 @@ export const postApi = api.injectEndpoints({
 
     getAllReels: builder.query({
       query: () => "/post/reels",
-      providesTags: ["UserPosts"],
+      providesTags: ["UserReels"],
     }),
 
     toggleLikePost: builder.mutation({

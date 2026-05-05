@@ -15,7 +15,7 @@ const diskStorage = multer.diskStorage({
 export const uploadThroughDisk = multer({
   storage: diskStorage,
   limits: {
-    fileSize: 20 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // each file size 5mb
   },
 });
 
@@ -25,7 +25,7 @@ const memoryStorage = multer.memoryStorage();
 export const uploadThroughMemory = multer({
   storage: memoryStorage,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 2 MB
+    fileSize: 5 * 1024 * 1024, // 5 MB
   },
 });
 

@@ -8,6 +8,7 @@ export const api = createApi({
   tagTypes: [
     "User",
     "UserPosts",
+    "UserReels",
     "UserComments",
     "Conversation",
     "Messages",

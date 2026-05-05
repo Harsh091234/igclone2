@@ -54,8 +54,8 @@ export default function AddStoryPanel({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-    if(selectedFile.size > 20 * 1024 * 1024){
-      toast.error("Max file size is 20MB");
+    if(selectedFile.size > 5 * 1024 * 1024){
+      toast.error("Max file size is 5MB");
   return;
     }
     setFile(selectedFile);

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-// components/PostDialog.tsx
 
-import { Bookmark, Heart, X } from "lucide-react";
+
+import { Bookmark,Heart, X } from "lucide-react";
 import Comment from "../Comment";
 import {
   Carousel,
@@ -84,7 +84,7 @@ const CommentPostModal = ({
       console.log("error:", error?.data?.message || error.message);
     }
   };
-
+console.log("post", post)
   const mediaList = (() => {
     // Reel → single video
     if ("video" in post && post.video) {
@@ -92,6 +92,7 @@ const CommentPostModal = ({
         {
           type: "video",
           url: post.video.url,
+          aspect: post.video.aspect || "9/16"
         },
       ];
     }
@@ -148,18 +149,21 @@ const CommentPostModal = ({
         <div className="w-full sm:w-1/2  h-[280px] sm:h-full flex items-center justify-center p-2">
           {mediaList.length === 1 ? (
             // ✅ SINGLE MEDIA (no carousel)
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="h-full  aspect-auto ">
+            <div className="w-full h-full flex items-center justify-center p-5">
+              <div
+                className="w-full max-h-full"
+                style={{ aspectRatio: mediaList[0]?.aspect || "1/1" }}
+              >
                 {mediaList[0].type === "image" ? (
                   <img
                     src={mediaList[0].url}
                     alt="preview"
-                    className="w-full h-full object-cover rounded-md"
+                    className="w-full h-full object-contain "
                   />
                 ) : (
                   <VideoPlayer
                     src={mediaList[0].url}
-                    className="w-full h-full  rounded-md overflow-hidden bg-black"
+                    className="w-full h-full object-contain  bg-black"
                   />
                 )}
               </div>
@@ -168,26 +172,31 @@ const CommentPostModal = ({
             // ✅ MULTIPLE MEDIA (carousel)
             <Carousel
               setApi={setApi}
-              className="flex h-full w-full justify-center rounded-lg overflow-hidden"
+              className="flex h-full w-full justify-center overflow-hidden"
             >
-              <CarouselContent className="h-full flex items-center">
+              <CarouselContent className="h-full  flex items-center">
                 {mediaList.map((item, index) => (
                   <CarouselItem
                     key={index}
                     className="h-full flex items-center justify-center"
                   >
-                    {item.type === "image" ? (
-                      <img
-                        src={item.url}
-                        alt={`preview-${index}`}
-                        className="h-full w-auto max-w-full object-contain rounded-md"
-                      />
-                    ) : (
-                      <VideoPlayer
-                        className="h-full w-auto max-w-full overflow-hidden object-contain md:w-full rounded-md bg-black"
-                        src={item.url}
-                      />
-                    )}
+                    <div
+                      className="w-full  "
+                      style={{ aspectRatio: mediaList[0]?.aspect || "1/1" }}
+                    >
+                      {item.type === "image" ? (
+                        <img
+                          src={item.url}
+                          alt={`preview-${index}`}
+                          className="w-full h-full object-contain "
+                        />
+                      ) : (
+                        <VideoPlayer
+                          className="w-full h-full object-contain"
+                          src={item.url}
+                        />
+                      )}
+                    </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>

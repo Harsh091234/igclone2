@@ -1,3 +1,19 @@
+export interface Media {
+  url: string;
+  type: "image" | "video";
+  publicId: string;
+
+  isReel?: boolean;
+
+  feedRatio?: "1/1" | "4/5" | "16/9";
+  aspect?: "1/1" | "4/5" | "16/9" | "9/16";
+
+  width?: number;
+  height?: number;
+  aspectRatio?: number;
+}
+
+
 export interface Post {
   _id: string;
   author: {
@@ -6,19 +22,7 @@ export interface Post {
     profilePic?: string;
   };
   caption: string;
-  media: {
-    url: string;
-    type: "image" | "video";
-    publicId: string;
-
-    isReel?: boolean;
-
-    feedRatio?: "1/1" | "4/5" | "16/9";
-
-    width?: number;
-    height?: number;
-    aspectRatio?: number;
-  }[];
+  media: Media[];
   likes: string[];
   comments: CommentT[];
 
@@ -56,6 +60,6 @@ export interface Reel {
   video: {
     publicId: string;
     url: string;
-    aspect: string;
+    aspect?:"1/1" | "4/5" | "16/9" | "9/16";
   };
 }
