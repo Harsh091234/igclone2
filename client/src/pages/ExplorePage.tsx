@@ -26,9 +26,10 @@ const ExplorePage = () => {
   const [currentAuthorName, setCurrentAuthorName] = useState<string>("");
   const [likePost, { isLoading: isLikeLoading }] = useToggleLikePostMutation();
   const { data: authData } = useGetMeQuery(undefined);
-
-  const { isFetching, data: postData } = useGetAllPostsQuery(page);
+  const LIMIT = 20;
+  const { isFetching, data: postData } = useGetAllPostsQuery({page, limit: LIMIT});
   const isFetchingRef = useRef(false);
+  const [layoutKey, setLayoutKey] = useState(0);
 
   const authUser = authData?.user;
   const breakpoints = {
@@ -42,8 +43,9 @@ const ExplorePage = () => {
   const isBookmarked = authUser?.bookmarks?.some(
     (id: any) => id.toString() === selectedPost?._id.toString(),
   );
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+ 
   const hasMounted = useRef(false);
   const handleLike = async () => {
     if (!selectedPost || !authUser?._id) return;
@@ -87,6 +89,18 @@ const ExplorePage = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (page === 1 && postData?.posts) {
+      setAllPosts(postData.posts);
+    }
+  }, [postData, page]);
+  useEffect(() => {
+    if (postData?.posts) {
+      setLayoutKey((prev) => prev + 1); // 👈 force re-layout
+    }
+  }, [postData]);
+
   useEffect(() => {
     if (!isFetching) {
       isFetchingRef.current = false;
@@ -94,7 +108,6 @@ const ExplorePage = () => {
   }, [isFetching]);
   useEffect(() => {
     if (postData?.posts) {
-   
       setAllPosts((prev) => {
         const newPosts = postData.posts.filter(
           (newPost: any) => !prev.some((p) => p._id === newPost._id),
@@ -103,36 +116,42 @@ const ExplorePage = () => {
         return [...prev, ...newPosts];
       });
 
-      setHasMore(postData.hasMore);
+      if (postData.posts.length < LIMIT) {
+        setHasMore(false);
+      } else {
+        setHasMore(postData.hasMore); // fallback
+      }
     }
   }, [postData]);
 
-  const lastPageRef = useRef(1);
-
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          hasMore &&
-          !isFetchingRef.current &&
-          hasMounted.current &&
-          lastPageRef.current === page
-        ) {
+    const container = containerRef.current;
+    if (!container) return;
+
+ let timeout: ReturnType<typeof setTimeout>;
+
+    const handleScroll = () => {
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        const nearBottom =
+          container.scrollTop + container.clientHeight >=
+          container.scrollHeight - 300; // 👈 increase buffer
+
+        if (nearBottom && hasMore && !isFetchingRef.current) {
           isFetchingRef.current = true;
-          lastPageRef.current = page + 1;
           setPage((prev) => prev + 1);
         }
-      },
-      { threshold: 0.2 },
-    );
+      }, 100); // 👈 debounce
+    };
 
-    if (loaderRef.current) observer.observe(loaderRef.current);
+    container.addEventListener("scroll", handleScroll);
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      container.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeout);
     };
-  }, [hasMore, page]);
+  }, [hasMore]);
 
   useEffect(() => {
     hasMounted.current = true;
@@ -175,67 +194,69 @@ const ExplorePage = () => {
       );
     }
   };
-
+  
   return (
-    <div className="h-screen overflow-y-auto px-5 pb-15 sm:pb-0 pt-7">
-     {allPosts.length === 0 && !isFetching ? (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground text-lg font-medium">
-          No posts present
-        </p>
-      </div>
-    ) : (
-      <>
-        <Masonry
-          breakpointCols={breakpoints}
-          className="my-masonry-grid"
-          columnClassName="my-masonry-grid_column"
-        >
-          {allPosts?.flatMap(
-            (post: any) =>
-              post.media?.map((item: any, i: number) => (
+    <div
+      ref={containerRef}
+      className="h-screen overflow-y-auto px-5 pb-15 sm:pb-0 pt-7"
+    >
+      {allPosts.length === 0 && !isFetching ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-muted-foreground text-lg font-medium">
+            No posts present
+          </p>
+        </div>
+      ) : (
+        <>
+          <Masonry
+            key={layoutKey}
+            breakpointCols={breakpoints}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
+            {allPosts?.map((post: any) => {
+              return (
                 <ExploreItem
-                  key={`${post._id}-${i}`}
-                  item={item}
+                  key={post._id}
+                  item={post.media[0]} // 👈 preview (first media)
+                  aspect={post.media[0].aspect}
                   onClick={() => {
                     setSelectedPost(post);
                     setCurrentAuthorName(post.author.userName);
                     setIsModalOpen(true);
                   }}
                 />
-              )) || [],
-          )}
-
-          {isFetching &&
-            allPosts.length > 0 &&
-            Array.from({ length: 6 }).map((_, i) => {
-              const types = ["portrait", "square", "landscape"] as const;
-              const randomType = types[i % types.length];
-
-              return <SkeletonCard key={i} type={randomType} />;
+              );
             })}
-        </Masonry>
 
-        {hasMore && <div ref={loaderRef} className="h-10" />}
-      </>
-    )}
+            {isFetching &&
+              allPosts.length > 0 &&
+              Array.from({ length: 6 }).map((_, i) => {
+                const types = ["portrait", "square", "landscape"] as const;
+                const randomType = types[i % types.length];
 
-    {selectedPost && (
-      <CommentPostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        post={selectedPost}
-        isLikeLoading={isLikeLoading}
-        handleLike={handleLike}
-        handleBookmark={handleBookmark}
-        isBookmarkLoading={isBookmarking}
-        isBookmarked={isBookmarked}
-        isLiked={isLiked}
-        handleRouteToProfile={() =>
-          navigate(`/profile/${currentAuthorName}`)
-        }
-      />
-    )}
+                return <SkeletonCard key={i} type={randomType} />;
+              })}
+          </Masonry>
+
+         
+        </>
+      )}
+
+      {selectedPost && (
+        <CommentPostModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          post={selectedPost}
+          isLikeLoading={isLikeLoading}
+          handleLike={handleLike}
+          handleBookmark={handleBookmark}
+          isBookmarkLoading={isBookmarking}
+          isBookmarked={isBookmarked}
+          isLiked={isLiked}
+          handleRouteToProfile={() => navigate(`/profile/${currentAuthorName}`)}
+        />
+      )}
     </div>
   );
 };

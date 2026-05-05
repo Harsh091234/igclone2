@@ -84,7 +84,7 @@ const CommentPostModal = ({
       console.log("error:", error?.data?.message || error.message);
     }
   };
-console.log("post", post)
+  
   const mediaList = (() => {
     // Reel → single video
     if ("video" in post && post.video) {

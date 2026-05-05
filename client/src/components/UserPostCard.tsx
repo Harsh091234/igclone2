@@ -37,7 +37,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const { data: authData } = useGetMeQuery(undefined);
   const authUser = authData?.user;
   const navigate = useNavigate();
-  console.log("post in card:", post)
+  
   const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();

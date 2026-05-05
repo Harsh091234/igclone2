@@ -39,7 +39,7 @@ const ReelsPage = () => {
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
   const reels = reelData?.videos;
-  console.log("reels", reels)
+  
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [activeReelId, setActiveReelId] = useState<string | null>(null);
@@ -82,7 +82,7 @@ const ReelsPage = () => {
  const handleFollow = async (userId: string, userName: string) => {
   await toggleFollow({ userId, userName }).unwrap();
 };
-  console.log("current reel:", activeReel)
+  
   return (
     <div className="flex justify-center pb-30 md:pb-0 lg:pb-0 min-[390px]:px-2 items-start lg:items-center text-foreground h-screen   bg-primary-foreground">
       <Carousel

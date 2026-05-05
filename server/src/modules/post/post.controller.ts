@@ -587,7 +587,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
   try {
     const MAX_PAGE = 99;
     const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-    const MAX_LIMIT = 5;
+    const MAX_LIMIT = 20;
     const limit = Math.min(
       MAX_LIMIT,
       Math.max(5, Number(req.query.limit) || 5),

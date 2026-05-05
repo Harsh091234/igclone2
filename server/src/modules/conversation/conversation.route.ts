@@ -5,7 +5,7 @@ import {
   getAllMessages,
   getLastMessages,
 } from "./conversation.controller.js";
-import { uploadThroughMemory } from "../../config/multer.js";
+import { handleMulterError, uploadThroughMemory } from "../../config/multer.js";
 import { Router } from "express";
 import { requireAuth } from "@clerk/express";
 import { apiLimiter } from "../../middlewares/rateLimitMiddleware.js";
@@ -18,12 +18,12 @@ const router = Router();
 
 router.post(
   "/send/:receiverId",
-apiLimiter,
+  apiLimiter,
   protectRoutes,
   csrfProtection,
   authorize("user"),
   uploadThroughMemory.array("media", 5),
-
+  handleMulterError(Number(process.env.SIZE_LIMIT)),
   createMessage,
 );
 

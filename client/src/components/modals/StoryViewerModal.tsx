@@ -1,5 +1,5 @@
 import { X, Heart, Eye, Trash2, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import UserAvatar from "../UserAvatar";
 import StoryViewsPanel from "../panels/StoryViewPanel";
 import { StoryViewsModal } from "./StoryViewsModal";
@@ -59,7 +59,7 @@ export default function StoryViewerModal({
   isStoryOwner,
   initialIndex,
   authUserId,
- 
+
   onPrevGroup,
   onAllStoriesEnd,
 }: Props) {
@@ -84,6 +84,7 @@ export default function StoryViewerModal({
   const [viewsOpen, setViewsOpen] = useState(false);
   const [likeStory, { isLoading: isLiking }] = useLikeStoryMutation();
   const [viewStory] = useViewStoryMutation();
+  const prevFirstStoryId = useRef<string | null>(null);
   const goNext = () => {
     if (viewsOpen) return; // prevent navigation when modal open
     if (currentIndex < stories.length - 1) {
@@ -144,40 +145,31 @@ export default function StoryViewerModal({
   // });
 
   useEffect(() => {
-  stories.forEach((s) => {
-    if (aspectMap[s._id]) return;
+    if (!stories.length) return;
 
-    if (s.media.type === "image") {
-      const img = new Image();
-      img.onload = () => {
-        setAspectMap((prev) => ({
-          ...prev,
-          [s._id]: img.width / img.height,
-        }));
-      };
-      img.src = s.media.url;
-    } else {
-      const video = document.createElement("video");
-      video.onloadedmetadata = () => {
-        setAspectMap((prev) => ({
-          ...prev,
-          [s._id]: video.videoWidth / video.videoHeight,
-        }));
-      };
-      video.src = s.media.url;
-    }
-  });
-}, [stories]);
+    stories.forEach((s) => {
+      if (aspectMap[s._id]) return;
 
-  useEffect(() => {
-    setIsAnimating(true);
-
-    const timeout = setTimeout(() => {
-      setIsAnimating(false);
-    }, 300);
-
-    return () => clearTimeout(timeout);
+      if (s.media.type === "image") {
+        const img = new Image();
+        img.onload = () => {
+          setAspectMap((prev) => ({
+            ...prev,
+            [s._id]: img.width / img.height,
+          }));
+        };
+        img.src = s.media.url;
+      }
+    });
   }, [stories]);
+
+  
+
+ useEffect(() => {
+   setIsAnimating(true);
+   const t = setTimeout(() => setIsAnimating(false), 200);
+   return () => clearTimeout(t);
+ }, [currentIndex]);
 
   useEffect(() => {
     if (currentStory) {
@@ -187,11 +179,34 @@ export default function StoryViewerModal({
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
+    setProgress(0);
+    prevFirstStoryId.current = stories[0]?._id ?? null;
   }, [initialIndex]);
+  
+  useEffect(() => {
+    const nextStory = stories[currentIndex + 1];
+    if (!nextStory) return;
+
+    if (nextStory.media.type === "image") {
+      const img = new Image();
+      img.src = nextStory.media.url;
+    } else {
+      const video = document.createElement("video");
+      video.src = nextStory.media.url;
+      video.preload = "metadata";
+    }
+  }, [currentIndex]);
 
   useEffect(() => {
-    setCurrentIndex(0);
-    setProgress(0);
+    if (!stories.length) return;
+
+    const firstId = stories[0]._id;
+
+    if (prevFirstStoryId.current !== firstId) {
+      setCurrentIndex(0);
+      setProgress(0);
+      prevFirstStoryId.current = firstId;
+    }
   }, [stories]);
 
   useEffect(() => {
@@ -228,9 +243,17 @@ export default function StoryViewerModal({
       {/* Header */}
       <div className="flex items-center justify-between  p-2 text-primary">
         <div className="flex items-center gap-3 ">
-          <UserAvatar onClick={() => navigate(`/profile/${currentStory.user.userName}`)} user={currentStory.user} classes="w-10 h-10" />
+          <UserAvatar
+            onClick={() => navigate(`/profile/${currentStory.user.userName}`)}
+            user={currentStory.user}
+            classes="w-10 h-10"
+          />
           <div>
-            <AnimatedLink path={`/profile/${currentStory.user.userName}`} text={currentStory.user.userName} className="mb-1 text-sm font-medium" />
+            <AnimatedLink
+              path={`/profile/${currentStory.user.userName}`}
+              text={currentStory.user.userName}
+              className="mb-1 text-sm font-medium"
+            />
             <p className="text-xs text-secondary-foreground">
               {" "}
               {`${formatTimeAgo(currentStory.createdAt)}   `}
@@ -274,26 +297,27 @@ export default function StoryViewerModal({
               )}
             </button>
           )}
-<div className="absolute top-2 left-0 right-0 px-2 flex items-center gap-1.5 z-50">
-  {stories.map((_, i) => (
-    <div
-      key={i}
-      className="flex-1 h-[4px] bg-black/25 rounded-full overflow-hidden backdrop-blur-[2px] flex items-center"
-    >
-      <div
-        className="h-[2.5px] bg-white/90 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.4)] transition-all duration-150 ease-linear"
-        style={{
-          width:
-            i < currentIndex
-              ? "100%"
-              : i === currentIndex
-              ? `${progress}%`
-              : "0%",
-        }}
-      />
-    </div>
-  ))}
-</div>    {/* Click Areas */}
+          <div className="absolute top-2 left-0 right-0 px-2 flex items-center gap-1.5 z-50">
+            {stories.map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 h-[4px] bg-black/25 rounded-full overflow-hidden backdrop-blur-[2px] flex items-center"
+              >
+                <div
+                  className="h-[2.5px] bg-white/90 rounded-full shadow-[0_0_4px_rgba(255,255,255,0.4)] transition-all duration-150 ease-linear"
+                  style={{
+                    width:
+                      i < currentIndex
+                        ? "100%"
+                        : i === currentIndex
+                          ? `${progress}%`
+                          : "0%",
+                  }}
+                />
+              </div>
+            ))}
+          </div>{" "}
+          {/* Click Areas */}
           <div className="absolute inset-0 z-40 pointer-events-none">
             <div
               onClick={goPrev}
@@ -305,67 +329,69 @@ export default function StoryViewerModal({
             />
           </div>
           {/* Slider */}
-      <div
-  className="flex h-full transition-transform duration-300 ease-out"
-  style={{
-    transform: `translateX(-${currentIndex * 100}%)`,
-  }}
->
-  {stories.map((s, index) => {
-    const aspect = aspectMap[s._id];
-  const isFullScreen = aspect && Math.abs(aspect - 9 / 16) < 0.05;
-
-    return (
-      <div key={s._id} className="min-w-full h-full relative">
-        {/* MEDIA */}
-      <div className="h-full w-full flex items-center justify-center bg-black">
-  {s.media.type === "image" ? (
-    <img
-      src={s.media.url}
-      className="w-full h-auto max-h-full object-contain"
-    />
-  ) : (
-    <video
-      key={index === currentIndex ? "active" : "inactive"}
-      src={s.media.url}
-      className="w-full h-auto max-h-full object-contain"
-      autoPlay={index === currentIndex}
-      muted
-      playsInline
-      onTimeUpdate={(e) => {
-        if (index !== currentIndex) return;
-
-        const video = e.currentTarget;
-        const percent =
-          (video.currentTime / video.duration) * 100;
-        setProgress(percent);
-      }}
-      onEnded={() => {
-        if (index === currentIndex) goNext();
-      }}
-    />
-  )}
-</div>
-
-        {/* TEXT */}
-        {s.textLayers?.map((layer, i) => (
-          <span
-            key={i}
-            className="absolute"
+          <div
+            className="flex h-full transition-transform duration-300 ease-out"
             style={{
-              left: `${layer.x}%`,
-              top: `${layer.y}%`,
-              transform: "translate(-50%, -50%)",
-              color: layer.color,
+              transform: `translateX(-${currentIndex * 100}%)`,
             }}
           >
-            {layer.text}
-          </span>
-        ))}
-      </div>
-    );
-  })}
-</div>
+            {stories.map((s, index) => {
+              if (Math.abs(index - currentIndex) > 1) {
+                return <div key={s._id} className="min-w-full h-full" />;
+              }
+
+              return (
+                <div key={s._id} className="min-w-full h-full relative">
+                  {/* MEDIA */}
+                  <div className="h-full w-full flex items-center justify-center bg-black">
+                    {s.media.type === "image" ? (
+                      <img
+                        src={s.media.url}
+                        className="w-full h-auto max-h-full object-contain"
+                      />
+                    ) : (
+                      <video
+                        preload="metadata"
+                        key={index === currentIndex ? "active" : "inactive"}
+                        src={s.media.url}
+                        className="w-full h-auto max-h-full object-contain"
+                        autoPlay={index === currentIndex}
+                        muted
+                        playsInline
+                        onTimeUpdate={(e) => {
+                          if (index !== currentIndex) return;
+
+                          const video = e.currentTarget;
+                          const percent =
+                            (video.currentTime / video.duration) * 100;
+                          setProgress(percent);
+                        }}
+                        onEnded={() => {
+                          if (index === currentIndex) goNext();
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* TEXT */}
+                  {s.textLayers?.map((layer, i) => (
+                    <span
+                      key={i}
+                      className="absolute"
+                      style={{
+                        left: `${layer.x}%`,
+                        top: `${layer.y}%`,
+                        transform: "translate(-50%, -50%)",
+                        color: layer.color,
+                      }}
+                    >
+                      {layer.text}
+                    </span>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
           {/* Bottom Overlay */}
           <div className="absolute bottom-0 left-0 w-full p-4 z-50 text-white bg-gradient-to-t from-black/80 to-transparent">
             {isStoryOwner ? (
@@ -390,7 +416,7 @@ export default function StoryViewerModal({
                   handleLike();
                 }}
                 disabled={isLiking}
-                className="flex ml-auto  z-50 "
+                className="flex ml-auto  z-70 "
               >
                 <Heart
                   size={22}
@@ -401,7 +427,6 @@ export default function StoryViewerModal({
               </button>
             )}
           </div>
-
           {/* Mobile Bottom Sheet */}
           <div className="sm:hidden">
             <StoryViewsPanel
@@ -411,7 +436,6 @@ export default function StoryViewerModal({
               loading={viewsLoading}
             />
           </div>
-
           {/* Desktop Modal */}
           <div className="hidden sm:block">
             <StoryViewsModal

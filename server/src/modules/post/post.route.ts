@@ -1,4 +1,4 @@
-import { uploadThroughDisk } from "../../config/multer.js";
+import { handleMulterError, uploadThroughDisk } from "../../config/multer.js";
 import { commentPostSchema, createPostSchema } from "./post.validator.js";
 import {
   commentPost,
@@ -30,6 +30,7 @@ router.post(
   csrfProtection,
   authorize("user"),
   uploadThroughDisk.array("media", 5),
+  handleMulterError(Number(process.env.SIZE_LIMIT)),
   // validate(createPostSchema),
   createPost,
 );

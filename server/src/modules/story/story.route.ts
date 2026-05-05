@@ -1,5 +1,4 @@
-
-import {  handleMulterError, uploadThroughMemory } from "../../config/multer.js";
+import { handleMulterError, uploadThroughMemory } from "../../config/multer.js";
 import {
   createStory,
   deleteStory,
@@ -17,35 +16,63 @@ import { authorize } from "../../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/create",apiLimiter,
+router.post(
+  "/create",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  uploadThroughMemory.single("media"),
-  handleMulterError(20)
-  , createStory);
-router.get("/get-all",apiLimiter,
+  authorize("user"),
+  uploadThroughMemory.single("media"),
+  handleMulterError(Number(process.env.SIZE_LIMIT)),
+  createStory,
+);
+router.get(
+  "/get-all",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  getStories);
-router.get("/get", apiLimiter,
+  authorize("user"),
+  getStories,
+);
+router.get(
+  "/get",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"), getSingleUserStories);
-router.post("/view/:storyId",apiLimiter,
+  authorize("user"),
+  getSingleUserStories,
+);
+router.post(
+  "/view/:storyId",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  viewStory);
+  authorize("user"),
+  viewStory,
+);
 
-router.post("/like/:storyId",apiLimiter,
+router.post(
+  "/like/:storyId",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  likeStory);
-router.get("/get-views/:storyId",apiLimiter,
+  authorize("user"),
+  likeStory,
+);
+router.get(
+  "/get-views/:storyId",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  getStoryViews);
-router.delete("/delete/:storyId",apiLimiter,
+  authorize("user"),
+  getStoryViews,
+);
+router.delete(
+  "/delete/:storyId",
+  apiLimiter,
   protectRoutes,
   csrfProtection,
-  authorize("user"),  deleteStory);
+  authorize("user"),
+  deleteStory,
+);
 export default router;

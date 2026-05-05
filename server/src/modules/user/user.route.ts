@@ -1,4 +1,4 @@
-import { uploadThroughMemory } from "../../config/multer.js";
+import { handleMulterError, uploadThroughMemory } from "../../config/multer.js";
 import { editProfileSchema } from "./user.validator.js";
 import {
   editProfile,
@@ -26,6 +26,7 @@ router.patch(
   authorize("user"),
  
   uploadThroughMemory.single("profilePic"),
+  handleMulterError(Number(process.env.SIZE_LIMIT)),
   validate(editProfileSchema),
   editProfile,
 );

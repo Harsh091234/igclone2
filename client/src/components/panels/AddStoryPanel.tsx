@@ -47,7 +47,7 @@ export default function AddStoryPanel({
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
   const [activeTextId, setActiveTextId] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-  console.log("media", media)
+  
   
   
   
@@ -136,7 +136,7 @@ if (selectedFile.type.startsWith("image")) {
         (error?.error as string) ||
         "Something went wrong";
 
-      console.error("error in handleSubmit: addstorypanel =>", message);
+      console.log("error in handleSubmit: addstorypanel =>", message);
     }
 
     onOpenChange(false);

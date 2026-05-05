@@ -8,7 +8,8 @@
     "dev": "tsx --watch   src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
-    "seed:user": "tsx src/config/seeds/user.seed.ts"
+    "seed:user": "tsx src/config/seeds/user.seed.ts",
+    "seed:post": "tsx src/config/seeds/post.seed.ts"
   },
   "keywords": [],
   "author": "",

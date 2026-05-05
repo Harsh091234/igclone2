@@ -120,32 +120,43 @@ export const postApi = api.injectEndpoints({
         }
       },
     }),
-
     getUserPosts: builder.query({
       query: ({ id, page, limit }) => ({
         url: `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
         method: "GET",
       }),
+
+      // ✅ include limit in cache key
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.id}`;
+        return `${endpointName}-${queryArgs.id}-${queryArgs.limit}`;
       },
 
-      merge: (currentCache, newCache) => {
-        const newPosts = newCache.posts.filter(
-          (newPost: Post) =>
-            !currentCache.posts.some((p: Post) => p._id === newPost._id),
-        );
+      merge: (currentCache, newCache, { arg }) => {
+        const newPosts = newCache?.posts ?? [];
 
-        currentCache.posts.push(...newPosts);
-        currentCache.hasMore = newCache.hasMore;
+        // ✅ reset on first page
+        if (arg.page === 1) {
+          currentCache.posts = newPosts;
+          return;
+        }
+
+        const currentPosts = currentCache?.posts ?? [];
+        const existingIds = new Set(currentPosts.map((p: any) => p._id));
+
+        const filtered = newPosts.filter((p: any) => !existingIds.has(p._id));
+
+        currentCache.posts = [...currentPosts, ...filtered];
       },
 
       forceRefetch({ currentArg, previousArg }) {
-        return currentArg?.page !== previousArg?.page;
+        return (
+          currentArg?.page !== previousArg?.page ||
+          currentArg?.limit !== previousArg?.limit
+        );
       },
+
       providesTags: ["UserPosts", "UserComments"],
     }),
-
     getUserReels: builder.query({
       query: ({ id, page, limit }) => ({
         url: `/post/get-user-reels/${id}?page=${page}&limit=${limit}`,
@@ -185,7 +196,9 @@ export const postApi = api.injectEndpoints({
       query: ({ page, limit }) =>
         `/post/get-all-posts?page=${page}&limit=${limit}`,
       // 🔥 single cache for all pages
-      serializeQueryArgs: ({ endpointName }) => endpointName,
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        return `${endpointName}-${queryArgs.page}-${queryArgs.limit}`;
+      },
       // 🔥 merge paginated data
       merge: (currentCache, newCache) => {
         const newPosts = (newCache.posts || []).filter(
@@ -194,7 +207,7 @@ export const postApi = api.injectEndpoints({
         );
 
         currentCache.posts.push(...newPosts);
-        currentCache.hasMore = newCache.hasMore?? false;
+        currentCache.hasMore = newCache.hasMore ?? false;
       },
 
       // 🔥 refetch when page changes
@@ -369,7 +382,7 @@ export const postApi = api.injectEndpoints({
       //Optimistic
       async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
         const patches = [];
-        const state:any= getState();
+        const state: any = getState();
         // AUTH USER
         patches.push(
           dispatch(
@@ -378,7 +391,7 @@ export const postApi = api.injectEndpoints({
 
               const bookmarks = draft.user.bookmarks ?? [];
               const index = bookmarks.findIndex(
-                (id:any) => id.toString() === postId.toString(),
+                (id: any) => id.toString() === postId.toString(),
               );
 
               if (index !== -1) bookmarks.splice(index, 1);
@@ -389,19 +402,19 @@ export const postApi = api.injectEndpoints({
 
         // PROFILE POSTS
         Object.values(state.api.queries).forEach((query: any) => {
-    const args = query.originalArgs;
+          const args = query.originalArgs;
 
-    if (query.endpointName === "getUserPosts") {
-      patches.push(
-        dispatch(
-          postApi.util.updateQueryData("getUserPosts", args, (draft) => {
-            const post = draft.posts?.find((p: Post) => p._id === postId);
-            if (post) post.isBookmarked = !post.isBookmarked;
-          })
-        )
-      );
-    }
-  });
+          if (query.endpointName === "getUserPosts") {
+            patches.push(
+              dispatch(
+                postApi.util.updateQueryData("getUserPosts", args, (draft) => {
+                  const post = draft.posts?.find((p: Post) => p._id === postId);
+                  if (post) post.isBookmarked = !post.isBookmarked;
+                }),
+              ),
+            );
+          }
+        });
 
         try {
           await queryFulfilled;

@@ -1,13 +1,14 @@
 interface ExploreItemProps {
   item: any;
+  aspect: "1/1" | "4/5" | "16/9"| "9/16";
   onClick: () => void;
 }
 
-function ExploreItem({ item, onClick }: ExploreItemProps) {
-  // console.log("ello from explore items", item);
+function ExploreItem({ item, onClick, aspect }: ExploreItemProps) {
+ 
   return (
     <div
-      style={{ aspectRatio: item.aspectRatio || "1 / 1" }}
+      style={{ aspectRatio: aspect }}
       className="relative w-full overflow-hidden rounded-xl cursor-pointer "
       onClick={onClick}
     >
