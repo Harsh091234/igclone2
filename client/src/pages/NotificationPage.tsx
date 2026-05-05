@@ -102,6 +102,27 @@ const NotificationPage = () => {
     };
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!notifications) return;
+
+    notifications.forEach((n: any) => {
+      if (!n.isRead) {
+        // call API OR update cache
+        dispatch(
+          notificationApi.util.updateQueryData(
+            "getNotifications",
+            undefined,
+            (draft: any) => {
+              const item = draft.notifications.find(
+                (d: any) => d._id === n._id,
+              );
+              if (item) item.isRead = true;
+            },
+          ),
+        );
+      }
+    });
+  }, [notifications]);
 
   return (
     <div className="min-h-screen  overflow-y-auto px-4 sm:px-45 py-4 sm:py-6 w-full  flex flex-col">

@@ -28,6 +28,7 @@ import { useGetAllUsersStoryQuery } from "../services/storyApi";
 import { StoriesSkeleton } from "../components/Skeletons/StoriesSkeleton";
 
 import { useGetMeQuery } from "../services/authApi";
+import { useGetNotificationsQuery } from "../services/notificationApi";
 
 const getLimit = () => {
   if (window.innerWidth < 640) {
@@ -62,7 +63,11 @@ export default function FeedPage() {
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
+    const { data: notificationData } = useGetNotificationsQuery(undefined);
   
+      const hasUnread = notificationData?.notifications?.some(
+        (n: any) => !n.isRead,
+      );
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
  
   const { isLoading: isStoryLoading, data: storyData } =
@@ -197,9 +202,21 @@ export default function FeedPage() {
   if (!authUser) return <CenterLoading />;
 
   return (
-
     <div className="min-h-screen pt-0 relative">
-      <button className="z-50 absolute top-7 right-7 md:hidden" onClick={() => navigate("/notifications")}><HeartIcon className="h-7 w-7 text-primary"/></button>
+      <button
+        className="z-50 absolute top-7 right-7 md:hidden"
+        onClick={() => navigate("/notifications")}
+      >
+        <HeartIcon className="h-7 w-7 text-primary" />
+
+        {hasUnread && (
+          <span
+            className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full 
+      bg-gradient-to-tr from-orange-400 to-purple-500 
+      border border-card"
+          />
+        )}
+      </button>
       {/* Main wrapper */}
       <div className="h-full px-0 md:px-4    mx-auto w-full ">
         <div className=" grid grid-cols-1   h-full lg:grid-cols-[1fr_450px]  ">
@@ -364,65 +381,66 @@ export default function FeedPage() {
 
               {/* Suggestions */}
               <div>
-               
-<div className="flex items-center justify-between mb-4">
-  <p className="text-muted-foreground font-semibold text-sm">
-    Suggestions For You
-  </p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-muted-foreground font-semibold text-sm">
+                    Suggestions For You
+                  </p>
 
-  {suggestedUsers.length > 0 && (
-    <button
-      onClick={handleVisibleCount}
-      className="text-xs mr-4 font-semibold text-muted-foreground hover:text-foreground hover:underline transition"
-    >
-      {visibleCount === 14 ? "See Less" : "See More"}
-    </button>
-  )}
-</div>
+                  {suggestedUsers.length > 0 && (
+                    <button
+                      onClick={handleVisibleCount}
+                      className="text-xs mr-4 font-semibold text-muted-foreground hover:text-foreground hover:underline transition"
+                    >
+                      {visibleCount === 14 ? "See Less" : "See More"}
+                    </button>
+                  )}
+                </div>
 
                 {isSuggestedUsersLoading ? (
                   <FollowersFollowingSkeleton />
                 ) : (
                   <ScrollArea className="h-80 pr-4">
-  {visibleSuggestedUsers.length > 0 ? (
-    visibleSuggestedUsers.map((user: any) => (
-      <div
-        key={user._id}
-        className="relative mb-3 rounded-lg hover:bg-accent transition-colors"
-      >
-        <Link
-          to={`/profile/${user.userName}`}
-          className="flex items-center gap-3 py-2 px-3 flex-1"
-        >
-          <UserAvatar classes="" user={user} />
+                    {visibleSuggestedUsers.length > 0 ? (
+                      visibleSuggestedUsers.map((user: any) => (
+                        <div
+                          key={user._id}
+                          className="relative mb-3 rounded-lg hover:bg-accent transition-colors"
+                        >
+                          <Link
+                            to={`/profile/${user.userName}`}
+                            className="flex items-center gap-3 py-2 px-3 flex-1"
+                          >
+                            <UserAvatar classes="" user={user} />
 
-          <div>
-            <p className="font-semibold text-sm text-foreground">
-              {user.userName}
-            </p>
+                            <div>
+                              <p className="font-semibold text-sm text-foreground">
+                                {user.userName}
+                              </p>
 
-            <p className="text-xs text-muted-foreground">
-              {user.fullName}
-            </p>
-          </div>
-        </Link>
+                              <p className="text-xs text-muted-foreground">
+                                {user.fullName}
+                              </p>
+                            </div>
+                          </Link>
 
-        <button
-          className="text-foreground/70 absolute right-3 top-0 bottom-0 text-xs font-semibold hover:text-foreground hover:underline transition-colors"
-          onClick={() => handleFollow(user._id, user.userName!)}
-        >
-          {authUser.following.includes(user._id)
-            ? "Unfollow"
-            : "Follow"}
-        </button>
-      </div>
-    ))
-  ) : (
-    <div className="text-sm text-muted-foreground px-2 py-3">
-      No suggestions found
-    </div>
-  )}
-</ScrollArea>
+                          <button
+                            className="text-foreground/70 absolute right-3 top-0 bottom-0 text-xs font-semibold hover:text-foreground hover:underline transition-colors"
+                            onClick={() =>
+                              handleFollow(user._id, user.userName!)
+                            }
+                          >
+                            {authUser.following.includes(user._id)
+                              ? "Unfollow"
+                              : "Follow"}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground px-2 py-3">
+                        No suggestions found
+                      </div>
+                    )}
+                  </ScrollArea>
                 )}
               </div>
 
@@ -457,7 +475,6 @@ export default function FeedPage() {
           isStoryOwner={activeGroup?.user._id === authUser?._id}
           onPrevGroup={goToPrevGroup}
           onAllStoriesEnd={goToNextGroup}
-         
         />
       }
     </div>
