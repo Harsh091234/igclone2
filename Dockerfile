@@ -12,8 +12,8 @@ COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
 RUN pnpm install
-RUN cd client &&  pnpm run build
-RUN cd server && pnpm run build
+RUN cd client && pnpm install &&  pnpm run build
+RUN cd server && pnpm install && pnpm run build
 
 COPY . .
 
