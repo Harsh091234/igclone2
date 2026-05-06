@@ -7,15 +7,14 @@ dotenv.config();
 
 // Step 1: Create transporter using Gmail SMTP
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+
   host: "smtp.gmail.com",
   auth: {
     user: process.env.EMAIL, // your email
     pass: process.env.APP_PASSWORD, // the app password you generated, paste without spaces
   },
   secure: false,
-  port: 465,
-  tls: { rejectUnauthorized: false },
+  port: 587,
 });
 
 export const sendEmail = async (
