@@ -1,20 +1,27 @@
-# production dockerfile
+FROM node:20
 
-FROM node:24
-
+# Install ffmpeg
 RUN apt-get update && apt-get install -y ffmpeg
 
 WORKDIR /app
 
+# Install pnpm
 RUN npm install -g pnpm
-COPY package*.json ./
-COPY client/package*.json ./client/
-COPY server/package*.json ./server/
 
+# 1️⃣ Copy only package files (for caching)
+COPY package.json pnpm-lock.yaml ./
+COPY client/package.json ./client/
+COPY server/package.json ./server/
+
+# 2️⃣ Install dependencies
 RUN pnpm install
-RUN cd client && pnpm install &&  pnpm run build
-RUN cd server && pnpm install && pnpm run build
 
+# 3️⃣ NOW copy full source code
 COPY . .
 
+# 4️⃣ Build client + server
+RUN cd client && pnpm run build
+RUN cd server && pnpm run build
+
+# 5️⃣ Start app
 CMD ["pnpm", "start"]
