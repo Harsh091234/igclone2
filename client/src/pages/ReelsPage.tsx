@@ -49,7 +49,7 @@ const ReelsPage = () => {
   let isLiked;
 
   const [isReelModalOpen, setIsReelModalOpen] = useState<boolean>(false);
-  const [toggleFollow, { isLoading: isFollowLoading }] =
+  const [toggleFollow] =
     useFollowOrUnfollowUsersMutation();
   const isFollowedForModal =
     activeReel?.author.followers?.some((id: string) => id === authUser?._id) ??
@@ -110,12 +110,10 @@ const ReelsPage = () => {
               isLiked = reel.likes?.some(
                 (id) => id === authUser?._id.toString(),
               );
-              const isAuthUser = reel.author._id === authUser?._id;
+             
               const isBookmarked =
                 authUser?.bookmarks?.includes(reel._id) ?? false;
-              const isFollowed =
-                reel.author.followers?.some((id) => id === authUser?._id) ??
-                false;
+              
               return (
                 <CarouselItem
                   key={reel._id}

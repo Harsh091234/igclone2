@@ -173,7 +173,7 @@ export const followOrUnfollowUser = async (req: Request, res: Response) => {
   try {
     
 
-    const targetUserId = req.params.id.trim();
+    const targetUserId = req.params.id.toString().trim();
 
     if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
       return res.status(400).json({ message: "Invalid user id" });

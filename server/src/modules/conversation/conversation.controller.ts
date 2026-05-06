@@ -29,7 +29,7 @@ export const createMessage = async (req: Request, res: Response) => {
         .status(400)
         .json({ success: false, message: "No sender found" });
     const senderId = sender._id;
-    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
+    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId.toString());
 
     if (senderId.toString() === receiverId.toString()) {
       return res.status(400).json({
@@ -124,7 +124,7 @@ export const createMessage = async (req: Request, res: Response) => {
       io.to(senderSocketId).emit("newMessage", populatedMessage);
 
     const receiverSocketId = getReceiverSocketId(receiverId.toString());
-    console.log("📤 Emitting newMessage to:", receiverSocketId);
+    // console.log("📤 Emitting newMessage to:", receiverSocketId);
     if (receiverSocketId)
       io.to(receiverSocketId).emit("newMessage", populatedMessage);
 
@@ -148,7 +148,7 @@ export const getAllMessages = async (req: Request, res: Response) => {
         .status(400)
         .json({ success: false, message: "No sender found" });
     const senderId = sender._id;
-    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId);
+    const receiverId = new mongoose.Types.ObjectId(req.params.receiverId.toString());
 
     const conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
@@ -162,7 +162,6 @@ export const getAllMessages = async (req: Request, res: Response) => {
       });
     }
 
-    console.log("hi");
     const messages = await Message.find({
       _id: { $in: conversation.messages },
     })

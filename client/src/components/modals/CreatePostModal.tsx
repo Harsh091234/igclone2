@@ -98,25 +98,19 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
   );
   const [lockedAspect, setLockedAspect] = useState<number | null>(null);
   const [carousalApi, setCarousalApi] = useState<any>(null);
-  const [videoMeta, setVideoMeta] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
+ 
 
   const [media, setMedia] = useState<SelectedMedia[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [caption, setCaption] = useState("");
 
-  const [feedRatio, setFeedRatio] = useState<"1/1" | "4/5" | "16/9">("4/5");
+  
 
   const [aspect, setAspect] = useState(1);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [processing, setProcessing] = useState(false);
+  
 
-  const [mediaSize, setMediaSize] = useState<any>(null);
-  const videoWidth = mediaSize?.naturalWidth || mediaSize?.width || 0;
-  const videoHeight = mediaSize?.naturalHeight || mediaSize?.height || 0;
+ 
   // const [crop, setCrop] = useState({
   //   x: 0,
   //   y: 0,
@@ -133,7 +127,7 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [createPost, { isLoading }] = useCreatePostMutation();
-  const effectiveAspect = lockedAspect ?? aspect;
+
   if (!isOpen) return null;
 
   const previewMaxWidth = aspect === 9 / 16 ? 270 : 420;
@@ -144,7 +138,7 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
     setContentType(null);
     setMedia([]);
     setCaption("");
-    setFeedRatio("4/5");
+    
     setAspect(1);
     // setCrop({ x: 0, y: 0 });
     // setZoom(1);
@@ -177,7 +171,7 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
       }
       
       if (file.type.startsWith("video")) {
-        const { frame, width, height } = await getVideoFrame(
+        const { frame } = await getVideoFrame(
           URL.createObjectURL(file),
         );
 
@@ -187,7 +181,7 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
           type: "video",
         });
 
-        setVideoMeta({ width, height }); // ⚠️ only stores last one (we’ll fix later if needed)
+       
       } else {
         processed.push({
           file,
@@ -240,9 +234,6 @@ export default function CreatePostModal({ isOpen, onClose }: Props) {
       toast.error("Upload failed");
     }
   };
-
-  const containerWidth = 420; // your modal width approx
-  const containerHeight = 460; // crop area height
 
   return (
     <div

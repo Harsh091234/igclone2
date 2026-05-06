@@ -160,7 +160,7 @@ export const resendVerificationUrl = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  console.log("hi from login!!");
+  
   try {
     const { email, password } = req.body;
 
@@ -258,7 +258,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
-    const token = req.params.token;
+    const token = req.params.token.toString();
     const hashedToken = crypto // for db
         .createHash("sha256")
         .update(token)
@@ -306,7 +306,7 @@ interface AuthTokenPayload {
 }
 
 export const refreshToken = async (req: Request, res: Response) => {
-  console.log("refresh token api hitted");
+  // console.log("refresh token api hitted");
   try {
     const refreshToken = req.cookies.refresh_token || (req.headers?.authorization?.startsWith("Bearer ")? req.headers.authorization.split(" ")[1] : null);
     if (!refreshToken)

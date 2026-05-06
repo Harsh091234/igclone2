@@ -123,7 +123,7 @@ if (selectedFile.type.startsWith("image")) {
       formdata.append("media", file);
       formdata.append("textLayers", JSON.stringify(textLayers));
       
-      const story = await createStory(formdata).unwrap();
+      await createStory(formdata).unwrap();
       
 
       setAnimateRing(true);

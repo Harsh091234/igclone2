@@ -28,7 +28,7 @@ export async function createStory(req: Request, res: Response) {
 
   
     const file = req.file;
-    console.log("file in backend:", file)
+ 
   
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -60,7 +60,7 @@ export async function createStory(req: Request, res: Response) {
     if (!user) {
       return res.status(400).json({ message: "No auth user found" });
     }
-    console.log("user", user);
+    
 
     const newStory = await Story.create({
       user: user._id,
@@ -150,7 +150,7 @@ export async function getSingleUserStories(req: Request, res: Response) {
 
     // fetch active stories (not expired)
     const stories = await Story.find({
-      user,
+      user: user._id,
       expiresAt: { $gt: new Date() },
     }).sort({ createdAt: 1 }); // oldest first for story playback order
 

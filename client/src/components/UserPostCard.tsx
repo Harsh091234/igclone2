@@ -244,7 +244,7 @@ const MediaBox = ({
           </div>
 
           <button onClick={handleBookmark} disabled={isBookmarkLoading}>
-            <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-black" : ""}`} />
+            <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-primary" : ""}`} />
           </button>
         </div>
 

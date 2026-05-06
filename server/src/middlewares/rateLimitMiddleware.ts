@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 
 const rateLimitHandler = (req: any, res: any, message: string) => {
@@ -33,7 +33,7 @@ const createLimiter = (max: number, message: string) =>
     // ✅ KEY FIX: separate limits per route + user
     keyGenerator: (req) => {
       return (
-        req.ip +
+        ipKeyGenerator(req.ip!) +
         req.originalUrl + // route-specific
         (req.body?.email || "") // user-specific (optional but 🔥)
       );

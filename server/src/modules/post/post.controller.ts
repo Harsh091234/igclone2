@@ -14,38 +14,11 @@ import { deleteCache, getCache, setCache } from "../../config/cache.js";
 import redis from "../../config/redis.js";
 import { cropVideo, getVideoDimensions } from "../../config/ffmpeg.js";
 
-type CropArea = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-function sanitizeCrop(crop: any, videoW: number, videoH: number) {
-  const x = Math.max(0, Math.floor(crop.x));
-  const y = Math.max(0, Math.floor(crop.y));
-  const w = Math.floor(crop.width);
-  const h = Math.floor(crop.height);
-
-  const safeW = Math.min(w, videoW - x);
-  const safeH = Math.min(h, videoH - y);
-
-  if (safeW <= 0 || safeH <= 0) {
-    throw new Error("Invalid crop after sanitization");
-  }
-
-  return {
-    x,
-    y,
-    width: safeW,
-    height: safeH,
-  };
-}
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { caption, isReel, feedRatio, aspect, cropData, originalWidth, originalHeight, mediaWidth, mediaHeight } = req.body;
-    console.log("req.body", req.body)
+    const { caption, isReel, feedRatio, aspect} = req.body;
+    
 
     const authUser = await User.findById(req.user?._id);
     if (!authUser) {
@@ -76,8 +49,7 @@ try {
         const isVideo = file.mimetype.startsWith("video");
   const cropItem = crops.find((c) => c.index === index);
   const crop = cropItem?.crop || null;
-  const oW = cropItem?.originalWidth;
-  const oH = cropItem?.originalHeight;
+ 
         // =========================
         // 🎬 VIDEO HANDLING (SAFE)
         // =========================
@@ -355,7 +327,7 @@ export const commentPost = async (req: Request, res: Response) => {
       });
 
     const comment = await Comment.create({
-      post: id,
+      post: id.toString(),
       author: authUser._id,
       text,
     });
@@ -626,7 +598,6 @@ export const getAllPosts = async (req: Request, res: Response) => {
         comments: post.comments?.filter((comment: any) => comment.author),
       }));
 
-    console.log(validPosts);
     return res.status(200).json({
       success: true,
       posts: validPosts,
@@ -661,7 +632,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
     const cached = await getCache(cacheKey);
 
     if (cached) {
-      console.log("Serving from redis");
+      // console.log("Serving from redis");
       const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
       return res.json({
         success: true,
@@ -689,7 +660,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
 
         const cachedRetry = await getCache(cacheKey);
         if (cachedRetry) {
-          console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
+          // console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
           return res.json({
             success: true,
             posts:
@@ -700,7 +671,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
         }
       }
 
-      console.log(`[${id}] 💥 Fallback to DB after waiting`);
+      // console.log(`[${id}] 💥 Fallback to DB after waiting`);
     }
 
     // 🔥 DB call (only one request ideally)
@@ -782,7 +753,7 @@ export const getUserReels = async (req: Request, res: Response) => {
       author: id,
       "media.type": "video",
     });
-    console.log("reels in backend:", reels)
+  
     res.status(200).json({
       reels,
       hasMore: skip + reels.length < total,
