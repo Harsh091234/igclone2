@@ -8,8 +8,7 @@ RUN npm install -g pnpm
 
 COPY . .
 
-# Install root
-RUN pnpm install
+
 
 # Install client + server separately
 RUN cd client && pnpm install
