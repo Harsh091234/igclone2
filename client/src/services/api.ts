@@ -13,7 +13,8 @@ export const api = createApi({
     "Conversation",
     "Messages",
     "UserStory",
-    "SuggestedUsers"
+    "SuggestedUsers",
+    "Notifications",
   ],
   endpoints: () => ({}),
 });

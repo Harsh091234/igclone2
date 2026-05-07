@@ -4,7 +4,6 @@ import User from "../user/user.model.js";
 
 export const getNotifications = async (req: Request, res: Response) => {
   try {
-  
     const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res
@@ -30,5 +29,36 @@ export const getNotifications = async (req: Request, res: Response) => {
       success: false,
       message: "Error in getNotifications",
     });
+  }
+};
+
+export const markAllNotificationsRead = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?._id;
+
+    await Notification.updateMany(
+      { receiver: userId, isRead: false },
+      { $set: { isRead: true } },
+    );
+
+    res.status(200).json({ success: true });
+  } catch (err: any) {
+    console.log("Error in markAllNotificationsRead :", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const markNotificationRead = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await Notification.findByIdAndUpdate(id, {
+      isRead: true,
+    });
+
+    res.status(200).json({ success: true });
+  } catch (err: any) {
+    console.log("Error in markNotificationRead :", err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 };

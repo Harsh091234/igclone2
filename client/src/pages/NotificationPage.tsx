@@ -12,6 +12,7 @@ import { formatTimeAgo } from "../utils/timeFormatter";
 import {
   notificationApi,
   useGetNotificationsQuery,
+  useMarkAllAsReadMutation,
 } from "../services/notificationApi";
 import { useNavigate } from "react-router-dom";
 import NotificationsSkeleton from "../components/Skeletons/NotificationsSkeleton";
@@ -22,7 +23,13 @@ const NotificationPage = () => {
     useGetNotificationsQuery(undefined);
   const navigate = useNavigate();
   const notifications = notificationData?.notifications;
+const [markAllAsRead] = useMarkAllAsReadMutation();
 
+useEffect(() => {
+  if (!notifications?.length) return;
+
+  markAllAsRead(undefined).unwrap();
+}, [notifications]);
 
   useEffect(() => {
     
