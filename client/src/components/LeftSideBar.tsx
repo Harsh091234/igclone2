@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Home,
   Search,
@@ -15,7 +15,10 @@ import SearchPanel from "./panels/SearchPanel";
 
 import CreatePostModal from "./modals/CreatePostModal";
 import { useGetMeQuery } from "../services/authApi";
-import { useGetNotificationsQuery } from "../services/notificationApi";
+import { notificationApi, useGetNotificationsQuery } from "../services/notificationApi";
+import { useDispatch } from "react-redux";
+import { getSocket } from "../utils/socket";
+import type { AppDispatch } from "../store/store";
 
 const LeftSideBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -23,13 +26,75 @@ const LeftSideBar = () => {
   const [isCreatePostModelOpen, setIsCreatePostModelOpen] =
     useState<boolean>(false);
     const { data: notificationData } = useGetNotificationsQuery(undefined);
-
+  const dispatch = useDispatch<AppDispatch>();
     const hasUnread = notificationData?.notifications?.some(
       (n: any) => !n.isRead,
     );
   const { data } = useGetMeQuery(undefined);
   const authUser = data?.user;
   if (!authUser) return;
+
+
+    useEffect(() => {
+      const socket = getSocket();
+      if (!socket) return;
+
+      const handleNotification = (data: any) => {
+        dispatch(
+          notificationApi.util.updateQueryData(
+            "getNotifications",
+            undefined,
+            (draft: any) => {
+              if (!Array.isArray(draft.notifications)) {
+                draft.notifications = [];
+              }
+
+              const exists = draft.notifications.find(
+                (n: any) => n._id === data._id,
+              );
+
+              if (!exists) {
+                draft.notifications.unshift({
+                  ...data,
+                  isRead: false,
+                });
+              }
+            },
+          ),
+        );
+      };
+
+      const handleRemoveNotification = (payload: any) => {
+        dispatch(
+          notificationApi.util.updateQueryData(
+            "getNotifications",
+            undefined,
+            (draft: any) => {
+              if (!Array.isArray(draft.notifications)) return;
+
+              draft.notifications = draft.notifications.filter(
+                (n: any) =>
+                  !(
+                    n.type === payload.type &&
+                    n.sender._id === payload.sender &&
+                    n.post?._id === payload.post &&
+                    n.story?._id === payload.story &&
+                    n.comment?._id === payload.comment
+                  ),
+              );
+            },
+          ),
+        );
+      };
+
+      socket.on("notification", handleNotification);
+      socket.on("notification:remove", handleRemoveNotification);
+
+      return () => {
+        socket.off("notification", handleNotification);
+        socket.off("notification:remove", handleRemoveNotification);
+      };
+    }, [dispatch]);
 
   return (
     <aside className="w-full bg-card lg:h-screen h-0">
