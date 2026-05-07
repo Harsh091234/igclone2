@@ -1,42 +1,37 @@
 import * as nodemailer from "nodemailer";
 import dns from "dns";
+import dotenv from "dotenv";
 
 dns.setDefaultResultOrder("ipv4first");
-import dotenv from "dotenv";
+
 dotenv.config();
-
-// Step 1: Create transporter using Gmail SMTP
-const transporter = nodemailer.createTransport({
-
-  host: "smtp.gmail.com",
+export const transporter = nodemailer.createTransport({
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL, // your email
-    pass: process.env.APP_PASSWORD, // the app password you generated, paste without spaces
+    user: process.env.EMAIL,
+    pass: process.env.APP_PASSWORD,
   },
-  secure: false,
-  port: 587,
+  connectionTimeout: 10000,
 });
+
 
 export const sendEmail = async (
   email: string,
-
   subject: string,
   html: string,
 ) => {
   try {
-    const message = {
+    const info = await transporter.sendMail({
       from: `"Instagram Clone" <${process.env.EMAIL}>`,
       to: email,
       subject,
       html,
-    };
+    });
 
-    const info = await transporter.sendMail(message);
-
-    console.log("✅ Email sent", info.messageId);
+    console.log("✅ Email sent:", info.messageId);
   } catch (error: any) {
-    console.error(`Error sending ${subject} email:`, error.message);
+    console.error("MAIL ERROR:", error);
 
-    throw new Error("Email could not be sent");
+    throw new Error(error.message);
   }
 };

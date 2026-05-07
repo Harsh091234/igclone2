@@ -1,6 +1,6 @@
-FROM node:20
+FROM node:24
 
-RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg ca-certificates
 
 WORKDIR /app
 
@@ -9,10 +9,10 @@ RUN npm install -g pnpm
 COPY . .
 
 
-
+ENV CI=true
 # Install client + server separately
-RUN cd client && pnpm install
-RUN cd server && pnpm install
+RUN cd client && pnpm install --frozen-lockfile
+RUN cd server && pnpm install  --frozen-lockfile
 
 # Build
 RUN cd client && pnpm run build

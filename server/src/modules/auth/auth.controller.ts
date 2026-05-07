@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../user/user.model.js";
-import { sendEmail } from "../../config/email/emailService.js";
+import { sendEmail, transporter } from "../../config/email/emailService.js";
 import {
   getForgotPasswordEmailTemplate,
   getVerificationEmailTemplate,
@@ -45,6 +45,8 @@ export const register = async (req: Request, res: Response) => {
     
     // for extra mailing safety
     try {
+      await transporter.verify();
+      console.log("SMTP ready")
       await sendEmail(user.email, subject, html);
      res.status(200).json({success:true, user})
     } catch (error: any) {
