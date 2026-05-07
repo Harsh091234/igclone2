@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: igclone-server
-    runtime: node
-
-    buildCommand: ./render-build.sh
-    startCommand: pnpm start

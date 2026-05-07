@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../user/user.model.js";
-import { sendEmail, transporter } from "../../config/email/emailService.js";
-import { sendEmail2} from "../../config/email/emailService2.js"
+
+import { sendEmail} from "../../config/email/emailService2.js"
 import {
   getForgotPasswordEmailTemplate,
   getVerificationEmailTemplate,
@@ -47,7 +47,16 @@ export const register = async (req: Request, res: Response) => {
     // for extra mailing safety
     try {
       
-      await sendEmail2(user.email, name, url );
+      await sendEmail({
+        subject,
+        email: user.email,
+        name,
+        action_url: url,
+        message:
+          "Welcome to Instagram Clone. Please verify your email to continue.",
+        button_text: "Verify Email",
+        button_color: "#3b3b3b",
+      });
      res.status(200).json({success:true, user})
     } catch (error: any) {
       user.emailVerificationToken = undefined;
@@ -148,9 +157,18 @@ export const resendVerificationUrl = async (req: Request, res: Response) => {
       .split("@")[0] // john.doe
       .replace(/[._]/g, " ") // john doe
       .replace(/\b\w/g, (c) => c.toUpperCase()); // John Doe
-    const html = getVerificationEmailTemplate(name, url);
+  
     const subject = "Email Verification";
-    await sendEmail(email, subject, html);
+    await sendEmail({
+      subject,
+      email: user.email,
+      name,
+      action_url: url,
+      message:
+        "Welcome to Instagram Clone. Please verify your email to continue.",
+      button_text: "Verify Email",
+      button_color: "#3b3b3b",
+    });
     return res.status(200).json({
       success: true,
       message: "Verification url resent successfully!, Check inbox",
@@ -246,7 +264,15 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     const subject = "Forgot password";
 
-    await sendEmail(user.email, subject, html);
+    await sendEmail({
+      subject,
+      email: user.email,
+      name: user.fullName,
+      action_url: url,
+      message: "Click below to reset your password.",
+      button_text: "Reset Password",
+      button_color: "#ef4444",
+    });
 
     return res.status(201).json({
       success: true,
