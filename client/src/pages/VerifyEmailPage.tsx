@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 
 const VerifyEmailPage = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  
+  const [seconds, setSeconds] = useState(4);
   const navigate = useNavigate();
  const [message, setMessage] = useState<string | null>(null);
 const [type, setType] = useState<"success" | "error" | null>(null);
@@ -26,27 +26,25 @@ useEffect(() => {
 
   
       if(!token) return;
-        // 1. If already verified → redirect immediately
+   
  
   const verify = async () => {
     try {
       // ✅ If token exists → ALWAYS verify first
 
-     const res =   await verifyEmail(token).unwrap();
+      const res = await verifyEmail(token).unwrap();
 
-        if (res?.message === "User already verified") {
-          setMessage("Your email is already verified.");
-        } else {
-          setMessage("Email verified successfully");
-        }
-      
-        setType("success");
+      if (res?.message === "User already verified") {
+        setMessage("Your email is already verified.");
+      } else {
+        setMessage("Email verified successfully");
+      }
 
-        setTimeout(() => navigate(user? "/": "/login"), 4000);
-        return;
-     
+      setType("success");
+      setSeconds(4); // reset timer
+   
+
       // ✅ No token → fallback check
-    
     } catch (error: any) {
       const msg = error?.data?.message;
 console.log("Error verifying error", msg || "Something went wrong")
@@ -64,7 +62,20 @@ console.log("Error verifying error", msg || "Something went wrong")
   verify();
 }, [token, verifyEmail, navigate]);
 
+useEffect(() => {
+  if (type !== "success") return;
 
+  if (seconds <= 0) {
+    navigate(user ? "/" : "/login");
+    return;
+  }
+
+  const interval = setInterval(() => {
+    setSeconds((prev) => prev - 1);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [type, seconds, navigate, user]);
 
 
   return (
@@ -97,7 +108,7 @@ console.log("Error verifying error", msg || "Something went wrong")
 </p>
 
 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-  Redirecting to {user? "home" : "login"} in 4 seconds...
+  Redirecting to {user? "home" : "login"} in {seconds} seconds...
 </p>
             </>
           )}

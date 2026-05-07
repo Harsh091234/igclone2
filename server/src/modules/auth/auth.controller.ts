@@ -50,6 +50,7 @@ export const register = async (req: Request, res: Response) => {
       await sendEmail({
         subject,
         email: user.email,
+        sender: "Instagram Clone",
         name,
         action_url: url,
         message:
@@ -160,6 +161,7 @@ export const resendVerificationUrl = async (req: Request, res: Response) => {
   
     const subject = "Email Verification";
     await sendEmail({
+      sender: "Instagram Clone",
       subject,
       email: user.email,
       name,
@@ -265,6 +267,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const subject = "Forgot password";
 
     await sendEmail({
+      sender: "Instagram Clone",
       subject,
       email: user.email,
       name: user.fullName,

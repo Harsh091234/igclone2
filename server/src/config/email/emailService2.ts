@@ -5,6 +5,7 @@ dotenv.config();
 
 export const sendEmail = async (data: {
   email: string;
+  sender :string;
   name: string;
   action_url: string;
   subject: string;
@@ -20,6 +21,7 @@ export const sendEmail = async (data: {
       {
         to_email: data.email,
         name: data.name,
+        sender: data.sender,
         action_url: data.action_url,
         message: data.message,
         title: data.subject,
