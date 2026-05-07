@@ -3,7 +3,6 @@ import { toggleLike } from "../utils/toggleLike";
 import { api } from "./api";
 import { authApi } from "./authApi";
 
-
 export const postApi = api.injectEndpoints({
   endpoints: (builder) => ({
     createPost: builder.mutation({
@@ -192,30 +191,35 @@ export const postApi = api.injectEndpoints({
       providesTags: ["UserPosts", "UserComments"],
     }),
 
-    getAllPosts: builder.query({
-      query: ({ page, limit }) =>
-        `/post/get-all-posts?page=${page}&limit=${limit}`,
-      // 🔥 single cache for all pages
-      serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.page}-${queryArgs.limit}`;
-      },
-      // 🔥 merge paginated data
-      merge: (currentCache, newCache) => {
-        const newPosts = (newCache.posts || []).filter(
-          (newPost: Post) =>
-            !currentCache.posts.some((p: Post) => p._id === newPost._id),
-        );
+   getAllPosts: builder.query({
+  query: ({ page, limit }) =>
+    `/post/get-all-posts?page=${page}&limit=${limit}`,
 
-        currentCache.posts.push(...newPosts);
-        currentCache.hasMore = newCache.hasMore ?? false;
-      },
+  serializeQueryArgs: ({ endpointName }) => {
+    return endpointName; // 👈 SINGLE CACHE for all pages
+  },
 
-      // 🔥 refetch when page changes
-      forceRefetch({ currentArg, previousArg }) {
-        return currentArg?.page !== previousArg?.page;
-      },
-      providesTags: ["UserPosts", "UserComments"],
-    }),
+  merge: (currentCache, newCache) => {
+    if (!currentCache.posts) {
+      currentCache.posts = [];
+    }
+
+    const existingIds = new Set(currentCache.posts.map((p: Post) => p._id));
+
+    const filtered = (newCache.posts || []).filter(
+      (p: Post) => !existingIds.has(p._id)
+    );
+
+    currentCache.posts.push(...filtered);
+    currentCache.hasMore = newCache.hasMore;
+  },
+
+  forceRefetch({ currentArg, previousArg }) {
+    return currentArg?.page !== previousArg?.page;
+  },
+
+  providesTags: ["UserPosts", "UserComments"],
+}),
 
     deletePost: builder.mutation({
       query: (id) => ({

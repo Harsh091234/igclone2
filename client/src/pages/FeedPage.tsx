@@ -9,7 +9,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   useFetchSuggestedUsersQuery,
   useFollowOrUnfollowUsersMutation,
-
 } from "../services/userApi";
 import CenterLoading from "../components/CenterLoading";
 import { useGetAllPostsQuery } from "../services/postApi";
@@ -44,7 +43,7 @@ export default function FeedPage() {
   const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [animateRing, setAnimateRing] = useState(false);
-  const [allPosts, setAllPosts] = useState<Post[]>([]); 
+
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [followUser] = useFollowOrUnfollowUsersMutation();
   const { data } = useGetMeQuery(undefined);
@@ -55,8 +54,7 @@ export default function FeedPage() {
   const isFetchingRef = useRef(false);
 
   const authUser = data?.user;
- 
-  
+
   const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery({
     page,
     limit,
@@ -64,13 +62,13 @@ export default function FeedPage() {
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];
-    const { data: notificationData } = useGetNotificationsQuery(undefined);
-  
-      const hasUnread = notificationData?.notifications?.some(
-        (n: any) => !n.isRead,
-      );
+  const { data: notificationData } = useGetNotificationsQuery(undefined);
+
+  const hasUnread = notificationData?.notifications?.some(
+    (n: any) => !n.isRead,
+  );
   const visibleSuggestedUsers = suggestedUsers.slice(0, visibleCount);
- 
+
   const { isLoading: isStoryLoading, data: storyData } =
     useGetAllUsersStoryQuery(undefined);
   const storyGroups = storyData?.stories ?? [];
@@ -96,7 +94,6 @@ export default function FeedPage() {
     (group: any) => group.user._id !== authUser?._id,
   );
 
-  
   const navigate = useNavigate();
 
   const handleCloseStoryViewer = () => {
@@ -108,13 +105,16 @@ export default function FeedPage() {
     setVisibleCount((prev) => (prev === 5 ? 14 : 5));
   };
 
-  const handleFollow = async(id: string, userName: string) => {
+  const handleFollow = async (id: string, userName: string) => {
     try {
-        await followUser({ userId: id, userName }).unwrap();
+      await followUser({ userId: id, userName }).unwrap();
     } catch (error: any) {
-      console.log("Error following user:", error?.data?.message || "Something went wrong")
+      console.log(
+        "Error following user:",
+        error?.data?.message || "Something went wrong",
+      );
     }
-  }
+  };
 
   const goToPrevGroup = () => {
     if (activeGroupIndex === -1) return;
@@ -148,24 +148,6 @@ export default function FeedPage() {
   };
 
   useEffect(() => {
-    if (postData?.posts?.length) {
-      setAllPosts((prev) => {
-        const newPosts = postData.posts;
-
-        // avoid duplicates
-        const existingIds = new Set(prev.map((p) => p._id));
-
-        const merged = [
-          ...prev,
-          ...newPosts.filter((p: any) => !existingIds.has(p._id)),
-        ];
-
-        return merged;
-      });
-    }
-  }, [postData]);
-
-  useEffect(() => {
     const handleResize = () => {
       const newLimit = getLimit();
       setLimit((prev) => {
@@ -182,11 +164,6 @@ export default function FeedPage() {
   useEffect(() => {
     setPage(1);
   }, [limit]);
-  useEffect(() => {
-    if (page === 1) {
-      setAllPosts([]);
-    }
-  }, [page]);
 
   // scroll logic
   useEffect(() => {
@@ -362,9 +339,9 @@ export default function FeedPage() {
             {/* Posts */}
             {isPostsFetching && page === 1 ? (
               <FullPostSkeleton />
-            ) : allPosts.length ? (
+            ) : postData?.posts?.length ? (
               <div>
-                {allPosts.map((post: Post) => (
+                {postData?.posts?.map((post: Post) => (
                   <UserPostCard key={post._id} post={post} />
                 ))}
 
