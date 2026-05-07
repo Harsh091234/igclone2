@@ -6,7 +6,6 @@ import PostCard from "../components/PostCard";
 
 import {
   useFollowOrUnfollowUsersMutation,
-  
   useGetProfileUserQuery,
 } from "../services/userApi";
 
@@ -55,9 +54,9 @@ const ProfilePage = () => {
     "posts",
   );
   const authUser = authData?.user;
-  
+
   const user = profileData?.user;
-  
+
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
 
@@ -77,8 +76,6 @@ const ProfilePage = () => {
     },
   );
 
-  
-
   const isLoadingCurrent =
     activeTab === "reels" ? isReelsFetching : isPostsFetching;
 
@@ -87,22 +84,20 @@ const ProfilePage = () => {
   const [isFollowerModalOpen, setIsFollowerModalOpen] =
     useState<boolean>(false);
 
-  
-
   const [toggleFollow, { isLoading: followLoading }] =
     useFollowOrUnfollowUsersMutation();
 
-    const getId = (u: any) => (typeof u === "string" ? u : u?._id);
-    const isFollowing = (user?.followers ?? []).some(
-  (f: any) => getId(f) === authUser?._id
-);
+  const getId = (u: any) => (typeof u === "string" ? u : u?._id);
+  const isFollowing = (user?.followers ?? []).some(
+    (f: any) => getId(f) === authUser?._id,
+  );
 
   const displayPosts =
-  activeTab === "posts"
-    ? (postData?.posts ?? [])
-    : activeTab === "reels"
-      ? (reelsData?.reels ?? [])
-      : []; // tagged empty
+    activeTab === "posts"
+      ? (postData?.posts ?? [])
+      : activeTab === "reels"
+        ? (reelsData?.reels ?? [])
+        : []; // tagged empty
   const activePost = displayPosts.find((p: Post) => p._id === activePostId);
   const isLoading = isAuthLoading || isProfileLoading;
   const isAuthUser = authUser?._id === user?._id;
@@ -114,21 +109,20 @@ const ProfilePage = () => {
   };
 
   const handleFollow = async (targetUserId: string) => {
-  try {
-    await toggleFollow({
-      userId: targetUserId,
-      userName: name,
-    }).unwrap();
-  } catch (err) {
-    console.log(err);
-  }
-};
+    try {
+      await toggleFollow({
+        userId: targetUserId,
+        userName: name,
+      }).unwrap();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleClick = (url: string) => {
     navigate(`/settings/${url}`);
   };
 
-  
   const handleBookmark = async (postId: string) => {
     const isBookmarked = authUser?.bookmarks?.some(
       (id: any) => id.toString() === postId.toString(),
@@ -299,7 +293,7 @@ const ProfilePage = () => {
             )}
             {isFollowingModalOpen && (
               <FollowingModal
-              user={user}
+                user={user}
                 onClose={() => setIsFollowingModalOpen(false)}
                 userName={user.userName}
                 authUserId={authUser?._id}

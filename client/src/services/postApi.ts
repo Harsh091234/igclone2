@@ -119,43 +119,42 @@ export const postApi = api.injectEndpoints({
         }
       },
     }),
-    getUserPosts: builder.query({
-      query: ({ id, page, limit }) => ({
-        url: `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
-        method: "GET",
-      }),
 
-      // ✅ include limit in cache key
+    getUserPosts: builder.query({
+      query: ({ id, page, limit }) =>
+        `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
+
+      // ✅ SINGLE CACHE per user (NOT per page/limit)
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.id}-${queryArgs.limit}`;
+        return `${endpointName}-${queryArgs.id}`;
       },
 
-      merge: (currentCache, newCache, { arg }) => {
-        const newPosts = newCache?.posts ?? [];
-
-        // ✅ reset on first page
-        if (arg.page === 1) {
-          currentCache.posts = newPosts;
-          return;
+      merge: (currentCache:any, newCache: any) => {
+        if (!currentCache.posts) {
+          currentCache.posts = [];
         }
 
-        const currentPosts = currentCache?.posts ?? [];
-        const existingIds = new Set(currentPosts.map((p: any) => p._id));
+        const existingIds = new Set(currentCache.posts.map((p: any) => p._id));
 
-        const filtered = newPosts.filter((p: any) => !existingIds.has(p._id));
+        const filtered = (newCache.posts || []).filter(
+          (p: any) => !existingIds.has(p._id),
+        );
 
-        currentCache.posts = [...currentPosts, ...filtered];
+        currentCache.posts.push(...filtered);
+        currentCache.hasMore = newCache.hasMore;
       },
 
       forceRefetch({ currentArg, previousArg }) {
         return (
           currentArg?.page !== previousArg?.page ||
-          currentArg?.limit !== previousArg?.limit
+          currentArg?.limit !== previousArg?.limit ||
+          currentArg?.id !== previousArg?.id
         );
       },
 
       providesTags: ["UserPosts", "UserComments"],
     }),
+    
     getUserReels: builder.query({
       query: ({ id, page, limit }) => ({
         url: `/post/get-user-reels/${id}?page=${page}&limit=${limit}`,
@@ -191,35 +190,35 @@ export const postApi = api.injectEndpoints({
       providesTags: ["UserPosts", "UserComments"],
     }),
 
-   getAllPosts: builder.query({
-  query: ({ page, limit }) =>
-    `/post/get-all-posts?page=${page}&limit=${limit}`,
+    getAllPosts: builder.query({
+      query: ({ page, limit }) =>
+        `/post/get-all-posts?page=${page}&limit=${limit}`,
 
-  serializeQueryArgs: ({ endpointName }) => {
-    return endpointName; // 👈 SINGLE CACHE for all pages
-  },
+      serializeQueryArgs: ({ endpointName }) => {
+        return endpointName; // 👈 SINGLE CACHE for all pages
+      },
 
-  merge: (currentCache, newCache) => {
-    if (!currentCache.posts) {
-      currentCache.posts = [];
-    }
+      merge: (currentCache, newCache) => {
+        if (!currentCache.posts) {
+          currentCache.posts = [];
+        }
 
-    const existingIds = new Set(currentCache.posts.map((p: Post) => p._id));
+        const existingIds = new Set(currentCache.posts.map((p: Post) => p._id));
 
-    const filtered = (newCache.posts || []).filter(
-      (p: Post) => !existingIds.has(p._id)
-    );
+        const filtered = (newCache.posts || []).filter(
+          (p: Post) => !existingIds.has(p._id),
+        );
 
-    currentCache.posts.push(...filtered);
-    currentCache.hasMore = newCache.hasMore;
-  },
+        currentCache.posts.push(...filtered);
+        currentCache.hasMore = newCache.hasMore;
+      },
 
-  forceRefetch({ currentArg, previousArg }) {
-    return currentArg?.page !== previousArg?.page;
-  },
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page;
+      },
 
-  providesTags: ["UserPosts", "UserComments"],
-}),
+      providesTags: ["UserPosts", "UserComments"],
+    }),
 
     deletePost: builder.mutation({
       query: (id) => ({
@@ -346,16 +345,22 @@ export const postApi = api.injectEndpoints({
           }
 
           // 🔥 PROFILE POSTS
-          if (query.endpointName === "getUserPosts") {
-            patchResults.push(
-              dispatch(
-                postApi.util.updateQueryData("getUserPosts", args, (draft) => {
-                  updateList(draft.posts);
-                }),
-              ),
-            );
-          }
+      if (query.endpointName === "getUserPosts") {
+        const id = args?.id;
+        if (!id) return;
 
+        patchResults.push(
+          dispatch(
+            postApi.util.updateQueryData(
+              "getUserPosts",
+              { id, page: 1, limit: args.limit ?? 10 },
+              (draft) => {
+                updateList(draft.posts);
+              },
+            ),
+          ),
+        );
+      }
           // 🔥 PROFILE REELS
           if (query.endpointName === "getUserReels") {
             patchResults.push(
