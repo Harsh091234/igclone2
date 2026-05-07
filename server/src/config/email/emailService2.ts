@@ -1,26 +1,34 @@
-import { Resend } from "resend";
+import emailjs from "@emailjs/nodejs";
+import dotenv from "dotenv";
 
-
-
-const resend = new Resend("re_YcRZoLVv_3wD7zd1j4MTPnH4TZTHgLkry");
-
+dotenv.config();
 
 export const sendEmail2 = async (
   email: string,
-  subject: string,
-  html: string,
+  name: string,
+  url: string,
 ) => {
   try {
-    const data = await resend.emails.send({
-      from: `Instagram Clone <${process.env.EMAIL}>`,
-      to: email,
-      subject,
-      html,
-    });
+    const response = await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID!,
+      process.env.EMAILJS_TEMPLATE_ID!,
+      {
+        to_email: email,
+        name,
+        verificationUrl: url,
+      },
+      {
+        publicKey: process.env.EMAILJS_PUBLIC_KEY!,
+        privateKey: process.env.EMAILJS_PRIVATE_KEY!,
+      },
+    );
 
-    console.log("✅ Email sent:", data);
+    console.log("✅ Email sent:", response.status, response.text);
+
+    return response;
   } catch (error) {
-    console.error("❌ Resend email error:", error);
-    throw new Error("Email could not be sent");
+    console.log("MAIL ERROR:", error);
+
+    throw error;
   }
 };

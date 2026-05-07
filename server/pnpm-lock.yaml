@@ -11,6 +11,9 @@ importers:
       '@clerk/express':
         specifier: ^1.7.53
         version: 1.7.79(express@5.2.1)(react@19.2.5)
+      '@emailjs/nodejs':
+        specifier: ^5.0.2
+        version: 5.0.2
       '@upstash/redis':
         specifier: ^1.37.0
         version: 1.37.0
@@ -146,6 +149,10 @@ packages:
   '@derhuerst/http-basic@8.2.4':
     resolution: {integrity: sha512-F9rL9k9Xjf5blCz8HsJRO4diy111cayL2vkY2XE4r4t3n0yPXVYy3KD3nJ1qbrSn9743UWSXH4IwuCa/HWlGFw==}
     engines: {node: '>=6.0.0'}
+
+  '@emailjs/nodejs@5.0.2':
+    resolution: {integrity: sha512-+BrO5rF0msaoEeSKxoa64weUkczd3fTXRCB8/EnKaIRzC8B1EyLDZfr9vYK5TNG/U3Eco9cpjMNnA1IlUBkmOw==}
+    engines: {node: '>=18.0.0'}
 
   '@emnapi/runtime@1.10.0':
     resolution: {integrity: sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==}
@@ -1325,6 +1332,8 @@ snapshots:
       concat-stream: 2.0.0
       http-response-object: 3.0.2
       parse-cache-control: 1.0.1
+
+  '@emailjs/nodejs@5.0.2': {}
 
   '@emnapi/runtime@1.10.0':
     dependencies:

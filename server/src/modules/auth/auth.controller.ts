@@ -40,14 +40,14 @@ export const register = async (req: Request, res: Response) => {
       .replace(/[._]/g, " ") // john doe
       .replace(/\b\w/g, (c) => c.toUpperCase()); // John Doe
 
-    const html = getVerificationEmailTemplate(name, url);
+    // const html = getVerificationEmailTemplate(name, url);
 
     const subject = "Email Verification";
     
     // for extra mailing safety
     try {
       
-      await sendEmail2(user.email, subject, html);
+      await sendEmail2(user.email, name, url );
      res.status(200).json({success:true, user})
     } catch (error: any) {
       user.emailVerificationToken = undefined;
