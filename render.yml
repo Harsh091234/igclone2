@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: igclone-server
+    env: node
+
+    buildCommand: pnpm build
+    startCommand: pnpm start
+
+    aptPackages:
+      - ffmpeg
