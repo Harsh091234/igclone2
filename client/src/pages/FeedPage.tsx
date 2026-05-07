@@ -44,6 +44,7 @@ export default function FeedPage() {
   const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [animateRing, setAnimateRing] = useState(false);
+  const [allPosts, setAllPosts] = useState<Post[]>([]); 
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [followUser] = useFollowOrUnfollowUsersMutation();
   const { data } = useGetMeQuery(undefined);
@@ -147,6 +148,24 @@ export default function FeedPage() {
   };
 
   useEffect(() => {
+    if (postData?.posts?.length) {
+      setAllPosts((prev) => {
+        const newPosts = postData.posts;
+
+        // avoid duplicates
+        const existingIds = new Set(prev.map((p) => p._id));
+
+        const merged = [
+          ...prev,
+          ...newPosts.filter((p: any) => !existingIds.has(p._id)),
+        ];
+
+        return merged;
+      });
+    }
+  }, [postData]);
+
+  useEffect(() => {
     const handleResize = () => {
       const newLimit = getLimit();
       setLimit((prev) => {
@@ -163,6 +182,11 @@ export default function FeedPage() {
   useEffect(() => {
     setPage(1);
   }, [limit]);
+  useEffect(() => {
+    if (page === 1) {
+      setAllPosts([]);
+    }
+  }, [page]);
 
   // scroll logic
   useEffect(() => {
@@ -336,11 +360,11 @@ export default function FeedPage() {
             </div>
 
             {/* Posts */}
-            {isPostsFetching && !postData?.posts?.length ? (
+            {isPostsFetching && page === 1 ? (
               <FullPostSkeleton />
-            ) : postData?.posts?.length ? (
+            ) : allPosts.length ? (
               <div>
-                {postData.posts.map((post: Post) => (
+                {allPosts.map((post: Post) => (
                   <UserPostCard key={post._id} post={post} />
                 ))}
 
