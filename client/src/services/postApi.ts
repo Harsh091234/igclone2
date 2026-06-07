@@ -233,6 +233,7 @@ export const postApi = api.injectEndpoints({
       // providesTags: ["UserReels"],
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
+        console.log("reels", data)
         dispatch(addPosts(data.posts));
       },
     }),

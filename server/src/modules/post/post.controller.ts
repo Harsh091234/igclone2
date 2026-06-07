@@ -92,9 +92,11 @@ try {
       //    CLOUDINARY_FOLDERS.POST_VIDEOS,
       //  );
 
-       fs.unlinkSync(outputPath);
-       fs.unlinkSync(inputPath);
+     
 
+if (!cloudResponse) {
+  throw new Error("Cloudinary upload failed");
+}
        return {
          url: cloudResponse.secure_url,
          publicId: cloudResponse.public_id,
@@ -167,7 +169,10 @@ try {
           CLOUDINARY_FOLDERS.POST_IMAGES
         );
 
-        fs.unlinkSync(file.path);
+        
+if (!cloudResponse) {
+  throw new Error("Cloudinary upload failed");
+}
 
         return {
           url: cloudResponse.secure_url,
@@ -199,7 +204,7 @@ try {
       select: "userName fullName profilePic",
     });
 
-    await deleteCache(`igclone2_user_posts:${authUser._id}:*`);
+   
 
     return res.status(200).json({
       success: true,
@@ -729,34 +734,22 @@ export const getAllReels = async (req: Request, res: Response) => {
     if (reels.length === 0) {
       return res.status(200).json({
         success: true,
-        videos: [],
+        posts: [],
         message: "No reels present",
       });
     }
+    
 
-    const validReels = reels
-      .filter((reel) => reel.author) // remove deleted authors
-      .map((reel) => {
-        const validComments = reel.comments?.filter((c: any) => c.author) || [];
+   const validReels = reels
+     .filter((reel) => reel.author)
+     .map((reel) => {
+       const validComments = reel.comments?.filter((c: any) => c.author) || [];
 
-        return {
-          _id: reel._id,
-          caption: reel.caption,
-          createdAt: reel.createdAt,
-
-          video: {
-            url: reel.media[0].url,
-            publicId: reel.media[0].publicId,
-            aspect: reel.media[0].aspect
-          },
-
-          author: reel.author,
-          likes: reel.likes,
-
-          // (optional) send filtered comments too
-          comments: validComments,
-        };
-      });
+       return {
+         ...reel,
+         comments: validComments,
+       };
+     });
 
     if (validReels.length === 0) {
       return res.status(200).json({
@@ -765,10 +758,10 @@ export const getAllReels = async (req: Request, res: Response) => {
         message: "No valid reels",
       });
     }
-
+      console.log("reels in bkd", validReels);
     return res.status(200).json({
       success: true,
-      videos: validReels,
+      posts: validReels,
     });
   } catch (error: any) {
     console.log("Error in getAllReels:", error);
