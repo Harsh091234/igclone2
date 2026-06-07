@@ -86,12 +86,12 @@ import type { RootState } from "../store/store";
     const isFollowing = (user?.followers ?? []).some(
       (f: any) => getId(f) === authUser?._id,
     );
-
+    console.log("reels", reelsData)
     const displayPosts =
       activeTab === "posts"
         ? (postData?.posts ?? [])
         : activeTab === "reels"
-          ? (reelsData?.reels ?? [])
+          ? (reelsData?.posts ?? [])
           : []; // tagged empty
     const activePost = useSelector((state: RootState) =>
       activePostId ? selectPostById(state, activePostId) : null,

@@ -654,32 +654,45 @@ export const getUserPosts = async (req: Request, res: Response) => {
 
 export const getUserReels = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params; // user id
-   
-    // 🔥 ONLY VIDEO POSTS
-   const posts = await Post.find({
-     author: id,
-     "media.type": "video",
-   })
-     .sort({ createdAt: -1 })
-     .populate({ path: "author", select: "userName profilePic" })
-     .lean();
-  const reels = posts.map((post) => {
-    const video = post.media.find((m: any) => m.type === "video");
+    const { id } = req.params;
 
-    return {
-      ...post,
-      video, // 👈 now frontend gets reel.video.aspect
-    };
-  });
-    
-    res.status(200).json({
-      reels,
-     
+    const reels = await Post.find({
+      author: id,
+      media: { $size: 1 },
+      "media.type": "video",
+    })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "author",
+        select: "userName profilePic followers",
+      })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          select: "userName profilePic",
+        },
+      })
+      .lean();
+
+    const validReels = reels
+      .filter((reel) => reel.author)
+      .map((reel) => ({
+        ...reel,
+        comments: reel.comments?.filter((c: any) => c.author) ?? [],
+      }));
+
+    return res.status(200).json({
+      success: true,
+      posts: validReels,
     });
   } catch (error) {
     console.error("getUserReels error:", error);
-    res.status(500).json({ message: "Server error" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -754,7 +767,7 @@ export const getAllReels = async (req: Request, res: Response) => {
     if (validReels.length === 0) {
       return res.status(200).json({
         success: true,
-        videos: [],
+        posts: [],
         message: "No valid reels",
       });
     }

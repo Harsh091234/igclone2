@@ -139,8 +139,9 @@ export const postApi = api.injectEndpoints({
         url: `/post/get-user-reels/${id}`,
         method: "GET",
       }),
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
+      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+        const { data } = await cacheDataLoaded;
+
         dispatch(addPosts(data.posts));
       },
       // providesTags: ["UserComments"],
@@ -231,9 +232,9 @@ export const postApi = api.injectEndpoints({
     getAllReels: builder.query({
       query: () => "/post/reels",
       // providesTags: ["UserReels"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
-        console.log("reels", data)
+      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+        const { data } = await cacheDataLoaded;
+
         dispatch(addPosts(data.posts));
       },
     }),
