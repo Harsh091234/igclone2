@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Heart,
   MessageCircle,
@@ -28,9 +28,10 @@ import {
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
 import { useGetMeQuery } from "../services/authApi";
-import { useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { selectPostById } from "../redux/postSlice";
 import type { RootState } from "../store/store";
+import { toggleBookmarkLocal } from "../redux/authSlice";
 
 interface PostCardProps {
   postId: string
@@ -40,7 +41,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
   const { data: authData } = useGetMeQuery(undefined);
   const authUser = authData?.user;
   const navigate = useNavigate();
-  
+    const dispatch = useDispatch()
   const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
     useToggleBookmarkPostMutation();
@@ -56,13 +57,18 @@ const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const post = useSelector((state: RootState) => selectPostById(state, postId))
+  const post = useSelector(
+    (state: RootState) => selectPostById(state, postId),
+    shallowEqual,
+  );
   if (!post) return null;
   const isLiked = post.likes?.some(
     (id) => id.toString() === authUser?._id?.toString()
   );
 
-  const isBookmarked = authUser?.bookmarks?.some(
+  
+  const user = useSelector((state: RootState) => state.auth.user)
+  const isBookmarked = user.bookmarks?.some(
     (id: string) => id.toString() === post._id.toString()
   );
 
@@ -87,16 +93,19 @@ const MediaBox = ({
 );
 
   const handleBookmark = async () => {
-    await toggleBookmarkPost(post._id).unwrap();
+     if (!authUser?._id) return;
+dispatch(toggleBookmarkLocal(postId));
+    await toggleBookmarkPost(postId).unwrap();
     toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
   };
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
+      
     await toggleLikePost({
       postId: post._id,
       userId: authUser?._id,
     }).unwrap();
-  };
+  }, [post._id, authUser?._id, toggleLikePost]);
 
   const handleRouteToProfile = () => {
     navigate(`/profile/${post.author.userName}`);
@@ -180,12 +189,13 @@ const MediaBox = ({
             {post.media[0].type === "image" ? (
               <img
                 src={post.media[0].url}
-               className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
               <VideoPlayer
+                key={post.media[0].publicId}
                 src={post.media[0].url}
-               className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             )}
           </MediaBox>
@@ -239,7 +249,7 @@ const MediaBox = ({
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
             <button disabled={isLikeLoading} onClick={handleLike}>
-              <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
+              <Heart className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`} />
             </button>
 
             <button onClick={() => setIsCommentModalOpen(true)}>
@@ -248,26 +258,22 @@ const MediaBox = ({
           </div>
 
           <button onClick={handleBookmark} disabled={isBookmarkLoading}>
-            <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-primary" : ""}`} />
+            <Bookmark
+              className={`w-5 h-5 ${isBookmarked ? "fill-primary" : ""}`}
+            />
           </button>
         </div>
 
-        <p className="font-semibold text-sm mt-1">
-          {post.likes.length} likes
-        </p>
+        <p className="font-semibold text-sm mt-1">{post.likes.length} likes</p>
 
         {post.caption && (
           <p className="text-sm">
-            <span className="font-semibold mr-1">
-              {post.author?.userName}
-            </span>
+            <span className="font-semibold mr-1">{post.author?.userName}</span>
             {post.caption}
           </p>
         )}
 
-        <p className="text-xs text-gray-500">
-          {formatTimeAgo(post.createdAt)}
-        </p>
+        <p className="text-xs text-gray-500">{formatTimeAgo(post.createdAt)}</p>
       </div>
 
       {/* COMMENTS */}

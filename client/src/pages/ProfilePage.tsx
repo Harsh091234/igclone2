@@ -86,7 +86,7 @@ import type { RootState } from "../store/store";
     const isFollowing = (user?.followers ?? []).some(
       (f: any) => getId(f) === authUser?._id,
     );
-    console.log("reels", reelsData)
+    
     const displayPosts =
       activeTab === "posts"
         ? (postData?.posts ?? [])

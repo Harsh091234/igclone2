@@ -3,7 +3,7 @@ import { Card } from "./ui/card";
 import UserAvatar from "./UserAvatar";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   useToggleBookmarkPostMutation,
@@ -14,6 +14,7 @@ import { useGetMeQuery } from "../services/authApi";
 
 import { selectPostById } from "../redux/postSlice";
 import type { RootState } from "../store/store";
+import { toggleBookmarkLocal } from "../redux/authSlice";
 
 interface ReelCardProps {
   reelId: string;
@@ -23,12 +24,12 @@ interface ReelCardProps {
 
 const ReelCard = ({ reelId, onComment, onOptions }: ReelCardProps) => {
   const navigate = useNavigate();
-
+const dispatch = useDispatch()
   const reel = useSelector((state: RootState) => selectPostById(state, reelId));
 
   const { data: authData } = useGetMeQuery(undefined);
 
-  const authUser = authData?.user;
+  const authUser = useSelector((state: RootState) => state.auth.user)
 
   const [toggleLikePost] = useToggleLikePostMutation();
 
@@ -53,6 +54,7 @@ const ReelCard = ({ reelId, onComment, onOptions }: ReelCardProps) => {
 
   const handleBookmark = async () => {
     try {
+     dispatch(toggleBookmarkLocal(reel._id))
       await toggleBookmarkPost(reel._id).unwrap();
 
       toast.success(

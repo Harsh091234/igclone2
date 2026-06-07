@@ -50,6 +50,7 @@ const postsSlice = createSlice({
         post.likes.push(userId);
       }
     },
+    
   },
 });
 

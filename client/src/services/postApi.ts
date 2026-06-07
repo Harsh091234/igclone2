@@ -260,6 +260,7 @@ export const postApi = api.injectEndpoints({
         url: `/post/bookmark/${id}`,
         method: "POST",
       }),
+  
     }),
 
     commentPost: builder.mutation({

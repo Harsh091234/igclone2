@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
@@ -7,15 +7,14 @@ interface VideoPlayerProps {
   src: string;
   className: string;
 }
-
-export default function VideoPlayer({ src, className }: VideoPlayerProps) {
+const VideoPlayer = React.memo(function VideoPlayer({ src, className }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-
+const lastProgressRef = useRef(0);
   /* ───────── Controls ───────── */
 
   const togglePlay = () => {
@@ -46,11 +45,24 @@ export default function VideoPlayer({ src, className }: VideoPlayerProps) {
         src={src}
         className="h-full w-full object-cover"
         onClick={togglePlay}
+        playsInline
+        preload="metadata"
         onTimeUpdate={() => {
-          if (!videoRef.current) return;
-          setProgress((videoRef.current.currentTime / duration) * 100 || 0);
+          if (!videoRef.current || !duration) return;
+
+          const newProgress = (videoRef.current.currentTime / duration) * 100;
+
+          // update only if change is significant
+          if (Math.abs(newProgress - lastProgressRef.current) > 0.5) {
+            lastProgressRef.current = newProgress;
+            setProgress(newProgress);
+          }
         }}
-        onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
+        onLoadedMetadata={() => {
+          if (!videoRef.current) return;
+          const d = videoRef.current.duration;
+          if (!Number.isNaN(d)) setDuration(d);
+        }}
       />
 
       {/* Controls */}
@@ -114,3 +126,6 @@ export default function VideoPlayer({ src, className }: VideoPlayerProps) {
     </div>
   );
 }
+)
+
+export default VideoPlayer;
