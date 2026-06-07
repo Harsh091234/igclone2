@@ -4,7 +4,7 @@ import { api } from '../services/api'
 import notificationReducer from "../redux/noticationSlice"
 import csrfReducer from "../redux/csrfSlice"
 import authReducer from "../redux/authSlice"
-
+import postReducer from "../redux/postSlice"
 export const store = configureStore({
   reducer: {
     [api.reducerPath]: api.reducer,
@@ -12,6 +12,7 @@ export const store = configureStore({
     notifications: notificationReducer,
     csrf: csrfReducer,
     auth: authReducer,
+    posts: postReducer 
    
   },
   middleware: (getDefaultMiddleware) =>

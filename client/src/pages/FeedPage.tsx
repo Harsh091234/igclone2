@@ -55,10 +55,7 @@ export default function FeedPage() {
 
   const authUser = data?.user;
 
-  const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery({
-    page,
-    limit,
-  });
+  const { isFetching: isPostsFetching, data: postData } = useGetAllPostsQuery(undefined);
   const { isLoading: isSuggestedUsersLoading, data: suggestedUsersData } =
     useFetchSuggestedUsersQuery(14);
   const suggestedUsers = suggestedUsersData?.users ?? [];

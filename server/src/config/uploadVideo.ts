@@ -1,4 +1,4 @@
-import cloudinary from "./cloudinary.js";
+import {cloudinary} from "./cloudinary.js";
 
 export const uploadVideo = (buffer: Buffer, folder: string) => {
   return new Promise<any>((resolve, reject) => {

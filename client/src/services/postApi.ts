@@ -1,7 +1,9 @@
+import { current } from "@reduxjs/toolkit";
 import type { Post, Reel } from "../types/post.types";
-import { toggleLike } from "../utils/toggleLike";
+
 import { api } from "./api";
 import { authApi } from "./authApi";
+import { addPosts, toggleLike } from "../redux/postSlice";
 
 export const postApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -121,103 +123,37 @@ export const postApi = api.injectEndpoints({
     }),
 
     getUserPosts: builder.query({
-      query: ({ id, page, limit }) =>
-        `/post/get-user-posts/${id}?page=${page}&limit=${limit}`,
+      query: ({ id }) => `/post/get-user-posts/${id}`,
 
-      // ✅ SINGLE CACHE per user (NOT per page/limit)
-      serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.id}`;
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+
+        dispatch(addPosts(data.posts));
       },
 
-      merge: (currentCache:any, newCache: any) => {
-        if (!currentCache.posts) {
-          currentCache.posts = [];
-        }
-
-        const existingIds = new Set(currentCache.posts.map((p: any) => p._id));
-
-        const filtered = (newCache.posts || []).filter(
-          (p: any) => !existingIds.has(p._id),
-        );
-
-        currentCache.posts.push(...filtered);
-        currentCache.hasMore = newCache.hasMore;
-      },
-
-      forceRefetch({ currentArg, previousArg }) {
-        return (
-          currentArg?.page !== previousArg?.page ||
-          currentArg?.limit !== previousArg?.limit ||
-          currentArg?.id !== previousArg?.id
-        );
-      },
-
-      providesTags: ["UserPosts", "UserComments"],
+      // providesTags: ["UserComments"],
     }),
-    
+
     getUserReels: builder.query({
-      query: ({ id, page, limit }) => ({
-        url: `/post/get-user-reels/${id}?page=${page}&limit=${limit}`,
+      query: ({ id }) => ({
+        url: `/post/get-user-reels/${id}`,
         method: "GET",
       }),
-      serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.id}`;
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        dispatch(addPosts(data.posts));
       },
-
-      // 🔥 MERGE PAGINATION
-      merge: (currentCache, newCache) => {
-        // ✅ ensure arrays exist
-        const currentReels = currentCache.reels ?? [];
-        const incomingReels = newCache?.reels ?? [];
-
-        // ✅ filter safely
-        const newItems = incomingReels.filter(
-          (newReel: Post) =>
-            !currentReels.some((p: Post) => p._id === newReel._id),
-        );
-
-        // ✅ assign properly (IMPORTANT)
-        currentCache.reels = [...currentReels, ...newItems];
-
-        // ✅ hasMore safe
-        currentCache.hasMore = newCache?.hasMore ?? false;
-      },
-
-      // 🔥 REFETCH ONLY WHEN PAGE CHANGES
-      forceRefetch({ currentArg, previousArg }) {
-        return currentArg?.page !== previousArg?.page;
-      },
-      providesTags: ["UserPosts", "UserComments"],
+      // providesTags: ["UserComments"],
     }),
 
     getAllPosts: builder.query({
-      query: ({ page, limit }) =>
-        `/post/get-all-posts?page=${page}&limit=${limit}`,
-
-      serializeQueryArgs: ({ endpointName }) => {
-        return endpointName; // 👈 SINGLE CACHE for all pages
+      query: () => `/post/get-all-posts`,
+      // providesTags: [ "UserComments"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        console.log("data in getuserposts", data);
+        dispatch(addPosts(data.posts));
       },
-
-      merge: (currentCache, newCache) => {
-        if (!currentCache.posts) {
-          currentCache.posts = [];
-        }
-
-        const existingIds = new Set(currentCache.posts.map((p: Post) => p._id));
-
-        const filtered = (newCache.posts || []).filter(
-          (p: Post) => !existingIds.has(p._id),
-        );
-
-        currentCache.posts.push(...filtered);
-        currentCache.hasMore = newCache.hasMore;
-      },
-
-      forceRefetch({ currentArg, previousArg }) {
-        return currentArg?.page !== previousArg?.page;
-      },
-
-      providesTags: ["UserPosts", "UserComments"],
     }),
 
     deletePost: builder.mutation({
@@ -294,90 +230,25 @@ export const postApi = api.injectEndpoints({
 
     getAllReels: builder.query({
       query: () => "/post/reels",
-      providesTags: ["UserReels"],
+      // providesTags: ["UserReels"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        dispatch(addPosts(data.posts));
+      },
     }),
 
     toggleLikePost: builder.mutation({
-      query: ({ postId }) => ({
+      query: ({ postId, userId }) => ({
         url: `/post/like/${postId}`,
         method: "POST",
       }),
-
-      async onQueryStarted(
-        { postId, userId },
-        { dispatch, getState, queryFulfilled },
-      ) {
-        const state: any = getState();
-        const patchResults: any[] = [];
-
-        const applyLike = (item: Post) => {
-          toggleLike(item, userId);
-        };
-
-        Object.values(state.api.queries).forEach((query: any) => {
-          const args = query.originalArgs;
-
-          const updateList = (list: Post[] = []) => {
-            const post = list.find((p) => p._id === postId);
-            if (post) applyLike(post);
-          };
-
-          // 🔥 FEED POSTS
-          if (query.endpointName === "getAllPosts") {
-            patchResults.push(
-              dispatch(
-                postApi.util.updateQueryData("getAllPosts", args, (draft) => {
-                  updateList(draft.posts);
-                }),
-              ),
-            );
-          }
-
-          // 🔥 FEED REELS
-          if (query.endpointName === "getAllReels") {
-            patchResults.push(
-              dispatch(
-                postApi.util.updateQueryData("getAllReels", args, (draft) => {
-                  updateList(draft.videos);
-                }),
-              ),
-            );
-          }
-
-          // 🔥 PROFILE POSTS
-      if (query.endpointName === "getUserPosts") {
-        const id = args?.id;
-        if (!id) return;
-
-        patchResults.push(
-          dispatch(
-            postApi.util.updateQueryData(
-              "getUserPosts",
-              { id, page: 1, limit: args.limit ?? 10 },
-              (draft) => {
-                updateList(draft.posts);
-              },
-            ),
-          ),
-        );
-      }
-          // 🔥 PROFILE REELS
-          if (query.endpointName === "getUserReels") {
-            patchResults.push(
-              dispatch(
-                postApi.util.updateQueryData("getUserReels", args, (draft) => {
-                  updateList(draft.reels);
-                }),
-              ),
-            );
-          }
-        });
+      async onQueryStarted({ postId, userId }, { dispatch, queryFulfilled }) {
+        dispatch(toggleLike({ postId, userId }));
 
         try {
           await queryFulfilled;
-        } catch (err) {
-          // ❌ rollback if API fails
-          patchResults.forEach((patch) => patch.undo());
+        } catch {
+          dispatch(toggleLike({ postId, userId }));
         }
       },
     }),
@@ -387,50 +258,6 @@ export const postApi = api.injectEndpoints({
         url: `/post/bookmark/${id}`,
         method: "POST",
       }),
-
-      //Optimistic
-      async onQueryStarted(postId, { dispatch, queryFulfilled, getState }) {
-        const patches = [];
-        const state: any = getState();
-        // AUTH USER
-        patches.push(
-          dispatch(
-            authApi.util.updateQueryData("getMe", undefined, (draft) => {
-              if (!draft.user) return;
-
-              const bookmarks = draft.user.bookmarks ?? [];
-              const index = bookmarks.findIndex(
-                (id: any) => id.toString() === postId.toString(),
-              );
-
-              if (index !== -1) bookmarks.splice(index, 1);
-              else bookmarks.push(postId);
-            }),
-          ),
-        );
-
-        // PROFILE POSTS
-        Object.values(state.api.queries).forEach((query: any) => {
-          const args = query.originalArgs;
-
-          if (query.endpointName === "getUserPosts") {
-            patches.push(
-              dispatch(
-                postApi.util.updateQueryData("getUserPosts", args, (draft) => {
-                  const post = draft.posts?.find((p: Post) => p._id === postId);
-                  if (post) post.isBookmarked = !post.isBookmarked;
-                }),
-              ),
-            );
-          }
-        });
-
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          patches.forEach((p) => p.undo());
-        }
-      },
     }),
 
     commentPost: builder.mutation({

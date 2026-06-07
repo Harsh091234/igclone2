@@ -276,7 +276,7 @@ const CommentPostModal = ({
           <div className="px-4 py-2 border-t flex flex-col gap-1">
             <div className="flex flex-col gap-1">
               <div className="flex gap-3">
-                <button disabled={isLikeLoading} onClick={handleLike}>
+                <button  onClick={handleLike}>
                   <Heart
                     className={`h-5 w-5 ${isLiked ? "fill-primary" : ""}`}
                   />

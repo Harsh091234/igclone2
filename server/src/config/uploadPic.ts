@@ -1,4 +1,4 @@
-import cloudinary from "./cloudinary.js";
+import {cloudinary} from "./cloudinary.js";
 
 export const uploadBase64Image = async (base64String: string, folder: string) => {
   try {

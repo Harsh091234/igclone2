@@ -13,6 +13,7 @@ import Notification from "../notification/notification.model.js";
 import { deleteCache, getCache, setCache } from "../../config/cache.js";
 import redis from "../../config/redis.js";
 import { cropVideo, getVideoDimensions } from "../../config/ffmpeg.js";
+import { uploadOnCloudinary } from "@/config/cloudinary.js";
 
 
 export const createPost = async (req: Request, res: Response) => {
@@ -85,10 +86,11 @@ try {
        // 🔥 SAFE FFmpeg CALL
        await cropVideo(inputPath, outputPath, scaledCrop);
 
-       const cloudResponse = await uploadVideo(
-         fs.readFileSync(outputPath),
-         CLOUDINARY_FOLDERS.POST_VIDEOS,
-       );
+       const cloudResponse = await uploadOnCloudinary(outputPath, CLOUDINARY_FOLDERS.POST_VIDEOS)
+      //  const cloudResponse = await uploadVideo(
+      //    fs.readFileSync(outputPath),
+      //    CLOUDINARY_FOLDERS.POST_VIDEOS,
+      //  );
 
        fs.unlinkSync(outputPath);
        fs.unlinkSync(inputPath);
@@ -217,7 +219,7 @@ try {
 export const toggleLikePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; //post id
-
+    
     const authUser = await User.findById(req.user?._id);
     if (!authUser)
       return res.status(401).json({
@@ -557,18 +559,9 @@ export const toggleBookmarkPost = async (req: Request, res: Response) => {
 //get post + top 2 comments
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const MAX_PAGE = 99;
-    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-    const MAX_LIMIT = 20;
-    const limit = Math.min(
-      MAX_LIMIT,
-      Math.max(5, Number(req.query.limit) || 5),
-    ); // values 2>=  and <= 5;
-    const skip = (page - 1) * limit;
+ 
     const posts = await Post.find()
-      .sort({ createdAt: -1 }) // latest posts first
-      .skip(skip)
-      .limit(limit)
+      .sort({ createdAt: -1 }) // latest posts first  
       .populate({ path: "author", select: "userName profilePic" })
       .populate({
         path: "comments",
@@ -580,7 +573,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
       })
       .lean();
 
-    const totalPosts = await Post.countDocuments();
+   
 
     if (posts.length === 0)
       return res.status(200).json({
@@ -601,7 +594,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       posts: validPosts,
-      hasMore: skip + validPosts.length < totalPosts,
+    
     });
   } catch (error: any) {
     console.log("Error in getAllPosts:", error.message);
@@ -614,94 +607,35 @@ export const getAllPosts = async (req: Request, res: Response) => {
 };
 
 export const getUserPosts = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  if (!id)
-    return res.status(400).json({ success: false, message: "id is undefined" });
-  const MAX_PAGE = 99;
-  const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-  const MAX_LIMIT = 15;
-  const limit = Math.min(MAX_LIMIT, Math.max(5, Number(req.query.limit) || 10)); // values >=5  and <= 15;
-
-  const cacheKey = `igclone2_user_posts:${id}:page:${page}:limit:${limit}`;
-  const lockKey = `lock:${cacheKey}`;
-
-  let lockAcquired = false;
-
   try {
-    const skip = (page - 1) * limit;
-    const cached = await getCache(cacheKey);
+    const { id } = req.params;
 
-    if (cached) {
-      // console.log("Serving from redis");
-      const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
-      return res.json({
-        success: true,
-        posts: parsed.posts,
-        hasMore: parsed.hasMore,
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "id is required",
       });
     }
 
-    // 🔒 Acquire lock
-    const lock =
-      process.env.NODE_ENV === "production"
-        ? await redis.set(lockKey, "locked", { nx: true, ex: 10 })
-        : await redis.set(lockKey, "locked", { NX: true, EX: 10 });
+    
 
-    if (lock) {
-      lockAcquired = true;
-    }
+    
 
-    //  If lock NOT acquired → wait
-    if (!lock) {
-      let retries = 10;
-
-      while (retries--) {
-        await new Promise((res) => setTimeout(res, 2000));
-
-        const cachedRetry = await getCache(cacheKey);
-        if (cachedRetry) {
-          // console.log(`[${id}] ⚡ Cache found during wait! Returning...`);
-          return res.json({
-            success: true,
-            posts:
-              typeof cachedRetry === "string"
-                ? JSON.parse(cachedRetry)
-                : cachedRetry,
-          });
-        }
-      }
-
-      // console.log(`[${id}] 💥 Fallback to DB after waiting`);
-    }
-
-    // 🔥 DB call (only one request ideally)
     const posts = await Post.find({ author: id })
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({ path: "author", select: "userName profilePic" })
+    
+      .populate({
+        path: "author",
+        select: "userName profilePic",
+      })
       .lean();
 
     const totalPosts = await Post.countDocuments({ author: id });
-    if (posts.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No posts found",
-        hasMore: false,
-      });
-    }
-
-    const response = {
-      posts,
-      hasMore: skip + posts.length < totalPosts,
-    };
-
-    await setCache(cacheKey, response, 180);
 
     return res.status(200).json({
       success: true,
       posts,
-      hasMore: skip + posts.length < totalPosts,
+     
     });
   } catch (error: any) {
     console.log("Error in getUserPosts:", error.message);
@@ -710,35 +644,19 @@ export const getUserPosts = async (req: Request, res: Response) => {
       success: false,
       message: "Error in getUserPosts",
     });
-  } finally {
-    // 🔓 Release lock (CRITICAL)
-    if (lockAcquired) {
-      await redis.del(lockKey);
-    }
   }
 };
 
 export const getUserReels = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; // user id
-    const MAX_PAGE = 99;
-    const page = Math.min(MAX_PAGE, Math.max(1, Number(req.query.page) || 1)); //values > 0  and < 99
-    const MAX_LIMIT = 15;
-    const limit = Math.min(
-      MAX_LIMIT,
-      Math.max(5, Number(req.query.limit) || 10),
-    ); // values >=5  and <= 15;
-
-    const skip = (page - 1) * limit;
-
+   
     // 🔥 ONLY VIDEO POSTS
    const posts = await Post.find({
      author: id,
      "media.type": "video",
    })
      .sort({ createdAt: -1 })
-     .skip(skip)
-     .limit(limit)
      .populate({ path: "author", select: "userName profilePic" })
      .lean();
   const reels = posts.map((post) => {
@@ -749,14 +667,10 @@ export const getUserReels = async (req: Request, res: Response) => {
       video, // 👈 now frontend gets reel.video.aspect
     };
   });
-    const total = await Post.countDocuments({
-      author: id,
-      "media.type": "video",
-    });
-  
+    
     res.status(200).json({
       reels,
-      hasMore: skip + reels.length < total,
+     
     });
   } catch (error) {
     console.error("getUserReels error:", error);

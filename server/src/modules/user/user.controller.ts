@@ -1,4 +1,4 @@
-import cloudinary from "../../config/cloudinary.js";
+import {cloudinary} from "../../config/cloudinary.js";
 import { uploadBase64Image } from "../../config/uploadPic.js";
 import User from "./user.model.js";
 
