@@ -32,13 +32,7 @@ import { selectPostById, selectPostIds } from "../redux/postSlice";
 import type { RootState } from "../store/store";
   // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
-  const getLimit = () => {
-    const width = window.innerWidth;
-
-    if (width < 640) return 9; // mobile
-    if (width < 1024) return 12; // tablet (sm/md)
-    return 7; // desktop (lg+)
-  };
+ 
 
   const ProfilePage = () => {
     const { name } = useParams<{ name: string }>();
@@ -66,8 +60,8 @@ import type { RootState } from "../store/store";
       skip: !user?._id || activeTab !== "posts",
     },
   );
-    console.log("posts", postData)
-    const ids =   useSelector(selectPostIds)
+    
+ 
 
     const { data: reelsData, isFetching: isReelsFetching } = useGetUserReelsQuery(
       { id: user?._id },
@@ -110,7 +104,7 @@ import type { RootState } from "../store/store";
     const handleRouteToProfile = () => {
       navigate(`/profile/${user?.userName}`);
     };
-    console.log("activepostinpp", activePost)
+    
     const handleFollow = async (targetUserId: string) => {
       try {
         await toggleFollow({
@@ -369,11 +363,11 @@ import type { RootState } from "../store/store";
             ) : displayPosts.length > 0 ? (
               <>
                 {/* ✅ Posts */}
-                {ids.map((id) => (
+                {displayPosts.map((post) => (
                   <PostCard
-                    key={id}
-                    postId={id as string}
-                    onClick={() => setActivePostId(id as string)}
+                    key={post._id}
+                    postId={post._id}
+                    onClick={() => setActivePostId(post._id)}
                   />
                 ))}
                 {/* ✅ Infinite scroll loading */}

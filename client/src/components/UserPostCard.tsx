@@ -28,12 +28,15 @@ import {
 } from "./ui/carousel";
 import CustomConfirmModal from "./modals/CustomConfirmModal";
 import { useGetMeQuery } from "../services/authApi";
+import { useSelector } from "react-redux";
+import { selectPostById } from "../redux/postSlice";
+import type { RootState } from "../store/store";
 
 interface PostCardProps {
-  post: Post;
+  postId: string
 }
 
-const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
+const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
   const { data: authData } = useGetMeQuery(undefined);
   const authUser = authData?.user;
   const navigate = useNavigate();
@@ -53,7 +56,8 @@ const UserPostCard: React.FC<PostCardProps> = ({ post }) => {
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-
+  const post = useSelector((state: RootState) => selectPostById(state, postId))
+  if (!post) return null;
   const isLiked = post.likes?.some(
     (id) => id.toString() === authUser?._id?.toString()
   );

@@ -11,7 +11,7 @@ interface PostCardProps{
 
 export const PostCard = ({ postId, onClick}: PostCardProps) => {
   const post = useSelector((state: RootState) => selectPostById(state, postId));
-  console.log("post",post)
+
    if (!post) return null;
 
    const media = post.media?.[0];

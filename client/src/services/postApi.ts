@@ -125,8 +125,8 @@ export const postApi = api.injectEndpoints({
     getUserPosts: builder.query({
       query: ({ id }) => `/post/get-user-posts/${id}`,
 
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
+      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+        const { data } = await cacheDataLoaded;
 
         dispatch(addPosts(data.posts));
       },
@@ -149,9 +149,9 @@ export const postApi = api.injectEndpoints({
     getAllPosts: builder.query({
       query: () => `/post/get-all-posts`,
       // providesTags: [ "UserComments"],
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
-        console.log("data in getuserposts", data);
+      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+        const { data } = await cacheDataLoaded;
+
         dispatch(addPosts(data.posts));
       },
     }),

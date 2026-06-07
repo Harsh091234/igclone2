@@ -143,7 +143,7 @@ export default function FeedPage() {
       handleCloseStoryViewer();
     }
   };
-
+  
   useEffect(() => {
     const handleResize = () => {
       const newLimit = getLimit();
@@ -339,7 +339,7 @@ export default function FeedPage() {
             ) : postData?.posts?.length ? (
               <div>
                 {postData?.posts?.map((post: Post) => (
-                  <UserPostCard key={post._id} post={post} />
+                  <UserPostCard key={post._id} postId={post._id} />
                 ))}
 
                 {isPostsFetching && <FullPostSkeleton />}
