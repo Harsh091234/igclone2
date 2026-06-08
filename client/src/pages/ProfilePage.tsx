@@ -27,9 +27,10 @@
   import FollowingModal from "../components/modals/FollowingModal";
   import FollowersModal from "../components/modals/FollowersModal";
   import { useGetMeQuery } from "../services/authApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectPostById, selectPostIds } from "../redux/postSlice";
 import type { RootState } from "../store/store";
+import { toggleBookmarkLocal } from "../redux/authSlice";
   // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
  
@@ -38,7 +39,7 @@ import type { RootState } from "../store/store";
     const { name } = useParams<{ name: string }>();
     if (!name) return;
     const [activePostId, setActivePostId] = useState<string | null>(null);
-   
+    const dispatch = useDispatch()
     const navigate = useNavigate();
     const { data: authData, isLoading: isAuthLoading } = useGetMeQuery(undefined);
     const { data: profileData, isLoading: isProfileLoading } =
@@ -46,11 +47,11 @@ import type { RootState } from "../store/store";
     const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
       "posts",
     );
-    const authUser = authData?.user;
+    const authUser = useSelector((state: RootState) => state.auth.user)
 
     const user = profileData?.user;
 
-    const [toggleLikePost, { isLoading: isLikeLoading }] =
+    const [toggleLikePost] =
       useToggleLikePostMutation();
 
     const { isFetching: isPostsFetching, data: postData } =
@@ -98,7 +99,7 @@ import type { RootState } from "../store/store";
     );
     const isLoading = isAuthLoading || isProfileLoading;
     const isAuthUser = authUser?._id === user?._id;
-    const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+    const [toggleBookmarkPost] =
       useToggleBookmarkPostMutation();
     const authFollowingIds = authUser?.following?.map((u: any) => u._id) ?? [];
     const handleRouteToProfile = () => {
@@ -130,7 +131,7 @@ import type { RootState } from "../store/store";
       const isBookmarked = authUser?.bookmarks?.some(
         (id: any) => id.toString() === postId.toString(),
       );
-
+      dispatch(toggleBookmarkLocal(activePostId))
       await toggleBookmarkPost(postId).unwrap();
 
       toast.success(isBookmarked ? "Post is unbookmarked" : "Post is bookmarked");
@@ -385,10 +386,10 @@ import type { RootState } from "../store/store";
               isOpen={true}
               onClose={() => setActivePostId(null)}
               post={activePost}
-              isLikeLoading={isLikeLoading}
+            
               handleLike={handleLike}
               handleBookmark={() => handleBookmark(activePost._id)}
-              isBookmarkLoading={isBookmarkLoading}
+              
               isLiked={
                 authUser?._id ? activePost.likes.includes(authUser._id) : false
               }

@@ -27,10 +27,9 @@ interface PostDialogProps {
   isOpen: boolean;
   onClose: () => void;
   post: Post | Reel;
-  isLikeLoading: boolean;
   handleLike: () => void;
   handleBookmark: () => void;
-  isBookmarkLoading: boolean;
+  
   isBookmarked?: boolean;
   isLiked: boolean;
   handleRouteToProfile: () => void;
@@ -40,10 +39,10 @@ const CommentPostModal = ({
   isOpen,
   onClose,
   post,
-  isLikeLoading,
+  
   handleLike,
   handleBookmark,
-  isBookmarkLoading,
+  
   isBookmarked,
   isLiked,
   handleRouteToProfile,
@@ -281,7 +280,7 @@ const CommentPostModal = ({
                     className={`h-5 w-5 ${isLiked ? "fill-primary" : ""}`}
                   />
                 </button>
-                <button disabled={isBookmarkLoading} onClick={handleBookmark}>
+                <button onClick={handleBookmark}>
                   <Bookmark
                     className={`h-5 w-5 ${isBookmarked ? "fill-primary" : ""}`}
                   />

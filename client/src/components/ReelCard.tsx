@@ -27,7 +27,7 @@ const ReelCard = ({ reelId, onComment, onOptions }: ReelCardProps) => {
 const dispatch = useDispatch()
   const reel = useSelector((state: RootState) => selectPostById(state, reelId));
 
-  const { data: authData } = useGetMeQuery(undefined);
+  
 
   const authUser = useSelector((state: RootState) => state.auth.user)
 

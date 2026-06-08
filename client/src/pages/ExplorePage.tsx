@@ -12,6 +12,10 @@ import { useNavigate } from "react-router-dom";
 
 import toast from "react-hot-toast";
 import { useGetMeQuery } from "../services/authApi";
+import SearchBar from "../components/SearchBar";
+import { useLazySearchUsersQuery } from "../services/userApi";
+import { SearchUsersSkeleton } from "../components/Skeletons/SearchUsersSkeleton";
+import UserAvatar from "../components/UserAvatar";
 const ExplorePage = () => {
   const [bookmarkPost, { isLoading: isBookmarking }] =
     useToggleBookmarkPostMutation();
@@ -45,7 +49,12 @@ const ExplorePage = () => {
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
- 
+  const [searchUsers, {isLoading: isSearchLoading, data: searchData}] = useLazySearchUsersQuery()
+  const [query, setQuery] = useState("");
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
+
+  const users = searchData?.users ?? [];
+  console.log("search data", searchData )
   const hasMounted = useRef(false);
   const handleLike = async () => {
     if (!selectedPost || !authUser?._id) return;
@@ -198,8 +207,71 @@ const ExplorePage = () => {
   return (
     <div
       ref={containerRef}
-      className="h-screen overflow-y-auto px-5 pb-15 sm:pb-0 pt-7"
+      className="h-screen relative  overflow-y-auto px-5 pb-15 sm:pb-0 lg:py-7"
     >
+      <div className=" sticky top-0 bg-background py-5 z-50 lg:hidden">
+        <SearchBar
+          onSearch={(value) => {
+            setQuery(value);
+
+            if (value.length >= 2) {
+              setShowSearchOverlay(true);
+              searchUsers(value);
+            } else {
+              setShowSearchOverlay(false);
+            }
+          }}
+        />
+        {showSearchOverlay && (
+          <div
+            className="
+      absolute  
+      bg-background 
+      w-full
+      
+    "
+          >
+            {isSearchLoading ? (
+              <div className="px-4">
+                <SearchUsersSkeleton />
+              </div>
+            ) : users.length > 0 ? (
+              <div className="px-2">
+                {users.map((user: any) => (
+                  <div
+                    key={user._id}
+                    onClick={() => {
+                      setShowSearchOverlay(false);
+                      navigate(`/profile/${user.userName}`);
+                    }}
+                    className="
+              flex items-center gap-3
+              p-2 rounded-lg
+              hover:bg-accent
+              cursor-pointer
+              transition
+            "
+                  >
+                   <UserAvatar classes="h-7 w-7" user={user}/>
+
+                    <div className="flex flex-col ">
+                      <p className="font-semibold text-sm">@{user.userName}</p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {user.fullName}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex justify-center items-center h-10">
+                <p className="text-muted-foreground text-sm">No users found</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       {allPosts.length === 0 && !isFetching ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-muted-foreground text-lg font-medium">
@@ -238,8 +310,6 @@ const ExplorePage = () => {
                 return <SkeletonCard key={i} type={randomType} />;
               })}
           </Masonry>
-
-         
         </>
       )}
 

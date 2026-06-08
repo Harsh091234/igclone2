@@ -43,7 +43,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
   const navigate = useNavigate();
     const dispatch = useDispatch()
   const [deleteComment] = useDeleteCommentMutation();
-  const [toggleBookmarkPost, { isLoading: isBookmarkLoading }] =
+  const [toggleBookmarkPost] =
     useToggleBookmarkPostMutation();
   const [toggleLikePost, { isLoading: isLikeLoading }] =
     useToggleLikePostMutation();
@@ -257,7 +257,7 @@ dispatch(toggleBookmarkLocal(postId));
             </button>
           </div>
 
-          <button onClick={handleBookmark} disabled={isBookmarkLoading}>
+          <button onClick={handleBookmark}>
             <Bookmark
               className={`w-5 h-5 ${isBookmarked ? "fill-primary" : ""}`}
             />
@@ -310,7 +310,7 @@ dispatch(toggleBookmarkLocal(postId));
           onClose={() => setIsCommentModalOpen(false)}
           post={post}
           isBookmarked={isBookmarked}
-          isBookmarkLoading={isBookmarkLoading}
+          
           isLiked={isLiked}
           isLikeLoading={isLikeLoading}
           handleLike={handleLike}
