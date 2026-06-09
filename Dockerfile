@@ -11,8 +11,8 @@ COPY . .
 
 ENV CI=true
 # Install client + server separately
-RUN cd client && pnpm install --frozen-lockfile
-RUN cd server && pnpm install  --frozen-lockfile
+RUN cd client && pnpm install 
+RUN cd server && pnpm install  
 
 # Build
 RUN cd client && pnpm run build
