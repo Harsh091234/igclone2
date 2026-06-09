@@ -364,7 +364,7 @@ import { toggleBookmarkLocal } from "../redux/authSlice";
             ) : displayPosts.length > 0 ? (
               <>
                 {/* ✅ Posts */}
-                {displayPosts.map((post) => (
+                {displayPosts.map((post: any) => (
                   <PostCard
                     key={post._id}
                     postId={post._id}

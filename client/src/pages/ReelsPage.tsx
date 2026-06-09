@@ -4,7 +4,7 @@ import {
   CarouselItem,
 } from "../components/ui/carousel";
 
-import { useGetAllReelsQuery } from "../services/postApi";
+import { useGetAllReelsQuery, useToggleBookmarkPostMutation, useToggleLikePostMutation } from "../services/postApi";
 import ReelSkeleton from "../components/Skeletons/ReelSkeleton";
 
 import { useState } from "react";
@@ -14,33 +14,35 @@ import ReelOptionsModal from "../components/modals/ReelOptionsModal";
 import CommentPostModal from "../components/modals/CommentPostModal";
 import AccountInfoModal from "../components/modals/AccountInfoModal";
 
-import { useGetMeQuery } from "../services/authApi";
 
-import { useSelector } from "react-redux";
-import { selectPostById } from "../redux/postSlice";
+
+import { useDispatch, useSelector } from "react-redux";
+import { selectPostById} from "../redux/postSlice";
 import type { RootState } from "../store/store";
 
 import {
   useFollowOrUnfollowUsersMutation,
   useGetProfileUserQuery,
 } from "../services/userApi";
-import type { Post, Reel } from "../types/post.types";
+import { toggleBookmarkLocal } from "../redux/authSlice";
+
 
 const ReelsPage = () => {
   const { isLoading: isReelLoading, data: reelData } =
     useGetAllReelsQuery(undefined);
 
-  const { data: authData } = useGetMeQuery(undefined);
+  const dispatch = useDispatch()
 
-  const authUser = authData?.user;
+  const authUser = useSelector((state: RootState) => state.auth.user);
 
   const reels = reelData?.posts ?? [];
-
+  const [bookmarkPost] = useToggleBookmarkPostMutation();
   const [activeReelId, setActiveReelId] = useState<string | null>(null);
 
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [isReelModalOpen, setIsReelModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [likePost] = useToggleLikePostMutation()
 
   const [toggleFollow] = useFollowOrUnfollowUsersMutation();
 
@@ -58,7 +60,8 @@ const ReelsPage = () => {
       skip: !activeReel,
     },
   );
-
+  const isBookmarked = authUser?.bookmarks?.some((id: string) => id === activeReelId)
+  const isLiked = activeReel?.likes.some((id: string) => id === authUser?._id)
   const handleFollow = async (userId: string, userName: string) => {
     try {
       await toggleFollow({
@@ -68,6 +71,16 @@ const ReelsPage = () => {
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const handleBookmark = async() => {
+    dispatch(toggleBookmarkLocal(activeReelId))
+    await bookmarkPost(activeReelId).unwrap();
+  }
+
+  const handleLike = async () => {
+   
+    await likePost({postId: activeReelId, userId: authUser?._id!})
   };
 
   return (
@@ -148,6 +161,11 @@ const ReelsPage = () => {
           onClose={() => setIsCommentModalOpen(false)}
           post={activeReel}
           handleRouteToProfile={() => {}}
+          handleBookmark={handleBookmark}
+
+          isBookmarked={isBookmarked}
+          handleLike={handleLike}
+          isLiked={isLiked!}
         />
       )}
 

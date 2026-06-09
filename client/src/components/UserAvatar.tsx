@@ -1,4 +1,4 @@
-import type { Author, ReelAuthor } from "../types/post.types";
+import type { Author } from "../types/post.types";
 import type { User } from "../types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 

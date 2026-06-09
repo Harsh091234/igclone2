@@ -1,8 +1,8 @@
-import { current } from "@reduxjs/toolkit";
+
 import type { Post, Reel } from "../types/post.types";
 
 import { api } from "./api";
-import { authApi } from "./authApi";
+
 import { addPosts, toggleLike } from "../redux/postSlice";
 
 export const postApi = api.injectEndpoints({
@@ -125,7 +125,7 @@ export const postApi = api.injectEndpoints({
     getUserPosts: builder.query({
       query: ({ id }) => `/post/get-user-posts/${id}`,
 
-      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+      async onCacheEntryAdded(_, { cacheDataLoaded, dispatch }) {
         const { data } = await cacheDataLoaded;
 
         dispatch(addPosts(data.posts));
@@ -139,7 +139,7 @@ export const postApi = api.injectEndpoints({
         url: `/post/get-user-reels/${id}`,
         method: "GET",
       }),
-      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+      async onCacheEntryAdded(_, { cacheDataLoaded, dispatch }) {
         const { data } = await cacheDataLoaded;
 
         dispatch(addPosts(data.posts));
@@ -150,7 +150,7 @@ export const postApi = api.injectEndpoints({
     getAllPosts: builder.query({
       query: () => `/post/get-all-posts`,
       // providesTags: [ "UserComments"],
-      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+      async onCacheEntryAdded(_, { cacheDataLoaded, dispatch }) {
         const { data } = await cacheDataLoaded;
 
         dispatch(addPosts(data.posts));
@@ -232,7 +232,7 @@ export const postApi = api.injectEndpoints({
     getAllReels: builder.query({
       query: () => "/post/reels",
       // providesTags: ["UserReels"],
-      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch }) {
+      async onCacheEntryAdded(_, { cacheDataLoaded, dispatch }) {
         const { data } = await cacheDataLoaded;
 
         dispatch(addPosts(data.posts));
@@ -240,7 +240,7 @@ export const postApi = api.injectEndpoints({
     }),
 
     toggleLikePost: builder.mutation({
-      query: ({ postId, userId }) => ({
+      query: ({ postId }) => ({
         url: `/post/like/${postId}`,
         method: "POST",
       }),

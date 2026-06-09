@@ -33,7 +33,7 @@ const authSlice = createSlice({
       if (exists) {
         state.user.bookmarks = bookmarks.filter((id) => id !== postId);
       } else {
-        state.user.bookmarks.push(postId);
+        state?.user?.bookmarks?.push(postId);
       }
     },
   },
