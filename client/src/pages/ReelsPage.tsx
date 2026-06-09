@@ -24,6 +24,7 @@ import {
   useFollowOrUnfollowUsersMutation,
   useGetProfileUserQuery,
 } from "../services/userApi";
+import type { Post, Reel } from "../types/post.types";
 
 const ReelsPage = () => {
   const { isLoading: isReelLoading, data: reelData } =
@@ -103,7 +104,7 @@ const ReelsPage = () => {
 
           {!isReelLoading &&
             reels.length > 0 &&
-            reels.map((reel) => (
+            reels.map((reel: any) => (
               <CarouselItem
                 key={reel._id}
                 className="h-full overflow-hidden w-full flex"
@@ -131,7 +132,7 @@ const ReelsPage = () => {
           isAuthUser={activeReel.author._id === authUser?._id}
           onClose={() => setIsReelModalOpen(false)}
           onFollow={() =>
-            handleFollow(activeReel.author._id, activeReel.author.userName)
+            handleFollow(activeReel.author._id, activeReel.author.userName!)
           }
           onGoToPost={() => {
             setIsCommentModalOpen(true);

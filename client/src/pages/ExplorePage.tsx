@@ -11,13 +11,16 @@ import CommentPostModal from "../components/modals/CommentPostModal";
 import { useNavigate } from "react-router-dom";
 
 import toast from "react-hot-toast";
-import { useGetMeQuery } from "../services/authApi";
+
 import SearchBar from "../components/SearchBar";
 import { useLazySearchUsersQuery } from "../services/userApi";
 import { SearchUsersSkeleton } from "../components/Skeletons/SearchUsersSkeleton";
 import UserAvatar from "../components/UserAvatar";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleBookmarkLocal } from "../redux/authSlice";
+import type { RootState } from "../store/store";
 const ExplorePage = () => {
-  const [bookmarkPost, { isLoading: isBookmarking }] =
+  const [bookmarkPost] =
     useToggleBookmarkPostMutation();
   const [page, setPage] = useState<number>(1);
   const [allPosts, setAllPosts] = useState<any[]>([]);
@@ -28,14 +31,14 @@ const ExplorePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [currentAuthorName, setCurrentAuthorName] = useState<string>("");
-  const [likePost, { isLoading: isLikeLoading }] = useToggleLikePostMutation();
-  const { data: authData } = useGetMeQuery(undefined);
+  const [likePost] = useToggleLikePostMutation();
+  
   const LIMIT = 20;
   const { isFetching, data: postData } = useGetAllPostsQuery({page, limit: LIMIT});
   const isFetchingRef = useRef(false);
   const [layoutKey, setLayoutKey] = useState(0);
 
-  const authUser = authData?.user;
+  const authUser = useSelector((state: RootState) => state.auth.user);
   const breakpoints = {
     default: 4,
     1100: 3,
@@ -48,9 +51,11 @@ const ExplorePage = () => {
     (id: any) => id.toString() === selectedPost?._id.toString(),
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchUsers, {isLoading: isSearchLoading, data: searchData}] = useLazySearchUsersQuery()
   const [query, setQuery] = useState("");
+  console.log(query)
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
 
   const users = searchData?.users ?? [];
@@ -182,13 +187,9 @@ const ExplorePage = () => {
     );
 
     // 🔥 Optimistic UI update
-    setBookmarks((prev) =>
-      alreadyBookmarked
-        ? prev.filter((id) => id.toString() !== postId.toString())
-        : [...prev, postId],
-    );
-
+   
     try {
+      dispatch(toggleBookmarkLocal(postId))
       await bookmarkPost(postId).unwrap();
 
       toast.success(
@@ -318,10 +319,10 @@ const ExplorePage = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           post={selectedPost}
-          isLikeLoading={isLikeLoading}
+      
           handleLike={handleLike}
           handleBookmark={handleBookmark}
-          isBookmarkLoading={isBookmarking}
+        
           isBookmarked={isBookmarked}
           isLiked={isLiked}
           handleRouteToProfile={() => navigate(`/profile/${currentAuthorName}`)}

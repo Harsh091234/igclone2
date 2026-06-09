@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 import { selectPostById } from "../redux/postSlice";
-import type { Post } from "../types/post.types";
+
 
 interface PostCardProps{
    

@@ -5,7 +5,7 @@ import {
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
-import type { Post } from "../types/post.types";
+
 import { formatTimeAgo } from "../utils/timeFormatter";
 import { PostMenuModal } from "./modals/PostMenuModal";
 import {
@@ -45,7 +45,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
   const [deleteComment] = useDeleteCommentMutation();
   const [toggleBookmarkPost] =
     useToggleBookmarkPostMutation();
-  const [toggleLikePost, { isLoading: isLikeLoading }] =
+  const [toggleLikePost] =
     useToggleLikePostMutation();
 
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -68,7 +68,7 @@ const UserPostCard: React.FC<PostCardProps> = ({ postId }) => {
 
   
   const user = useSelector((state: RootState) => state.auth.user)
-  const isBookmarked = user.bookmarks?.some(
+  const isBookmarked = user?.bookmarks?.some(
     (id: string) => id.toString() === post._id.toString()
   );
 
@@ -248,8 +248,8 @@ dispatch(toggleBookmarkLocal(postId));
       <div className="px-3 py-2">
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
-            <button disabled={isLikeLoading} onClick={handleLike}>
-              <Heart className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`} />
+            <button  onClick={handleLike}>
+              <Heart className={`w-5 h-5 ${isLiked ? "fill-primary" : ""}`} />
             </button>
 
             <button onClick={() => setIsCommentModalOpen(true)}>
@@ -312,7 +312,7 @@ dispatch(toggleBookmarkLocal(postId));
           isBookmarked={isBookmarked}
           
           isLiked={isLiked}
-          isLikeLoading={isLikeLoading}
+        
           handleLike={handleLike}
           handleBookmark={handleBookmark}
           handleRouteToProfile={handleRouteToProfile}

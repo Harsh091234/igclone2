@@ -10,7 +10,7 @@ import {
   useToggleLikePostMutation,
 } from "../services/postApi";
 
-import { useGetMeQuery } from "../services/authApi";
+
 
 import { selectPostById } from "../redux/postSlice";
 import type { RootState } from "../store/store";
@@ -77,7 +77,7 @@ const dispatch = useDispatch()
           {/* Left */}
           <div className="flex flex-col justify-end gap-2 text-white text-sm">
             <div className="flex items-center gap-2">
-              <UserAvatar classes="h-8 w-8" user={reel.author} />
+              <UserAvatar classes="h-8 w-8" profilePic={reel.author.profilePic} />
 
               <p
                 onClick={handleRouteToProfile}

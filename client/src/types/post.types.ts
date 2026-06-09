@@ -13,14 +13,16 @@ export interface Media {
   aspectRatio?: number;
 }
 
+export interface ReelAuthor {
+  _id: string;
+  userName?: string;
+  profilePic?: string;
+}
+
 
 export interface Post {
   _id: string;
-  author: {
-    _id: string;
-    userName?: string;
-    profilePic?: string;
-  };
+  author: Author;
   caption: string;
   media: Media[];
   likes: string[];
@@ -43,7 +45,7 @@ export interface CommentT {
 }
 
 export interface Author {
-  userName: string;
+  userName?: string;
   _id: string;
   profilePic: string;
   followers?: string[];

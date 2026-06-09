@@ -6,7 +6,7 @@ import type { Post } from "../types/post.types";
 import type {RootState} from "../store/store"
 
 export const postsAdapter = createEntityAdapter({
-  selectId: (post) => post._id,
+  selectId: (post: Post) => post._id,
 });
 
 // selectors

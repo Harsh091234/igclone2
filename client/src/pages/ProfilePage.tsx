@@ -1,4 +1,4 @@
-  import { useEffect, useRef, useState } from "react";
+  import {  useState } from "react";
   import { useNavigate, useParams } from "react-router-dom";
   import { Grid, PlaySquare, SettingsIcon, Tag } from "lucide-react";
   // import Highlights from "../components/Highlights";
@@ -21,14 +21,14 @@
   } from "../services/postApi";
 
   import UserPostsSkeleton from "../components/Skeletons/UserPostsSkeleton";
-  import type { Post } from "../types/post.types";
+  
   import CommentPostModal from "../components/modals/CommentPostModal";
   import toast from "react-hot-toast";
   import FollowingModal from "../components/modals/FollowingModal";
   import FollowersModal from "../components/modals/FollowersModal";
   import { useGetMeQuery } from "../services/authApi";
 import { useDispatch, useSelector } from "react-redux";
-import { selectPostById, selectPostIds } from "../redux/postSlice";
+import { selectPostById} from "../redux/postSlice";
 import type { RootState } from "../store/store";
 import { toggleBookmarkLocal } from "../redux/authSlice";
   // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
@@ -41,7 +41,7 @@ import { toggleBookmarkLocal } from "../redux/authSlice";
     const [activePostId, setActivePostId] = useState<string | null>(null);
     const dispatch = useDispatch()
     const navigate = useNavigate();
-    const { data: authData, isLoading: isAuthLoading } = useGetMeQuery(undefined);
+    const {  isLoading: isAuthLoading } = useGetMeQuery(undefined);
     const { data: profileData, isLoading: isProfileLoading } =
       useGetProfileUserQuery(name);
     const [activeTab, setActiveTab] = useState<"posts" | "reels" | "tagged">(
@@ -122,7 +122,7 @@ import { toggleBookmarkLocal } from "../redux/authSlice";
     };
     const handleLike = async() => {
       await toggleLikePost({
-                  postId: activePost._id,
+                  postId: activePost?._id,
                   userId: authUser?._id,
                   profileUserId: user?._id,
                 }).unwrap()

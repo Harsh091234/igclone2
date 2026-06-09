@@ -32,10 +32,8 @@ const LeftSideBar = () => {
     );
   const { data } = useGetMeQuery(undefined);
   const authUser = data?.user;
-  if (!authUser) return;
 
-
-    useEffect(() => {
+   useEffect(() => {
       const socket = getSocket();
       if (!socket) return;
 
@@ -95,6 +93,12 @@ const LeftSideBar = () => {
         socket.off("notification:remove", handleRemoveNotification);
       };
     }, [dispatch]);
+
+    
+  if (!authUser) return;
+
+
+   
 
   return (
     <aside className="w-full bg-card lg:h-screen h-0">

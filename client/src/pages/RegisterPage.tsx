@@ -47,7 +47,7 @@ const {
     navigate("/check-email");
 
   } catch (error: any) {
-    toast.error(error?.data?.message)
+    
     console.log("Error in registering user:", error.message || error?.data?.message || "Something went wrong");
 
     
