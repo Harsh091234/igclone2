@@ -1,19 +1,18 @@
 import { getReceiverSocketId, io } from "../../socket/socket.js";
 import { uploadBase64Image } from "../../config/uploadPic.js";
-import { uploadVideo } from "../../config/uploadVideo.js";
+
 import Comment from "./comment.model.js";
 import Post from "./post.model.js";
-import fs from "fs";
+
 import User from "../user/user.model.js";
 import path from "path";
 import { CLOUDINARY_FOLDERS } from "../../paths/cloudinary.js";
 import { Request, Response } from "express";
 import sharp from "sharp";
 import Notification from "../notification/notification.model.js";
-import { deleteCache, getCache, setCache } from "../../config/cache.js";
-import redis from "../../config/redis.js";
+
 import { cropVideo, getVideoDimensions } from "../../config/ffmpeg.js";
-import { uploadOnCloudinary } from "@/config/cloudinary.js";
+import { uploadOnCloudinary } from "../../config/cloudinary.js";
 
 
 export const createPost = async (req: Request, res: Response) => {
