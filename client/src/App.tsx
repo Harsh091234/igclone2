@@ -6,19 +6,20 @@ import { useEffect } from "react";
 import { setCsrfToken } from "./redux/csrfSlice";
 import { connectSocket, disconnectSocket } from "./utils/socket";
 import { setConnected, setOnlineUsers } from "./redux/socketSlice";
-
+import ServerTimeout from "./components/ServerTimeout";
+import ServerWakeup from "./components/ServerWakeup";
+import {useServerHealth} from "./hooks/useServerHealth"
 import AppRoutes from "./routes/AppRoutes";
 import { setUser } from "./redux/authSlice";
 
 const App = () => {
   const { data, isLoading, error} = useGetMeQuery(undefined);
- 
+  const {serverReady, timedOut} = useServerHealth();
 
   const dispatch = useDispatch<AppDispatch>();
   
   const [getCsrfToken] = useLazyGetCsrfTokenQuery();
 const user = useAppSelector((state) => state.auth.user);
-
 
 
 
@@ -71,6 +72,14 @@ useEffect(() => {
       disconnectSocket();
     };
   }, [user?._id]);
+
+if (!serverReady) {
+  if (timedOut) {
+    return <ServerTimeout onRetry={() => window.location.reload()} />;
+  }
+
+  return <ServerWakeup />;
+}
 
   if (isLoading) {
   return ;
