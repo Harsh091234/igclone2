@@ -9,11 +9,11 @@ import storyRoutes from "./modules/story/story.route.js";
 import authRoutes from "./modules/auth/auth.route.js";
 import cors from "cors";
 
-import path from "node:path";
+
 import { app, server } from "./socket/socket.js";
 import cookieParser from "cookie-parser";
 dotenv.config();
-const __dirname = path.resolve();
+
 const PORT = process.env.PORT || 3001;
 
 connectDB(process.env.MONGO_URI || "");
@@ -43,18 +43,6 @@ app.use("/api/conversation", conversationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/story", storyRoutes);
 
-if (process.env.NODE_ENV === "production") {
-  const a = app.use(express.static(path.join(__dirname, "../client/dist")));
-  const clientPath = path.join(__dirname, "../client/dist");
-
-  console.log("📁 Client dist path:", clientPath);
-
-  app.use(express.static(clientPath));
-
-  app.get(/.*/, (_, res) => {
-    res.sendFile(path.join(__dirname, "../client", "dist", "index.html"));
-  });
-}
 
 server.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
