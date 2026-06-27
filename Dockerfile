@@ -1,21 +1,15 @@
-FROM node:24
-
-RUN apt-get update && apt-get install -y ffmpeg ca-certificates
+FROM node:22-slim
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+EXPOSE 5173
 
-ENV CI=true
-# Install client + server separately
-RUN cd client && pnpm install 
-RUN cd server && pnpm install  
-
-# Build
-RUN cd client && pnpm run build
-RUN cd server && pnpm run build
-
-CMD ["pnpm", "start"]
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]

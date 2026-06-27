@@ -1,5 +1,7 @@
 FROM node:24
 
+RUN apt-get update && apt-get install -y  ca-certificates
+
 WORKDIR /app
 
 RUN npm install -g pnpm
