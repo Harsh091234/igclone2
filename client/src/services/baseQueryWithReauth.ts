@@ -1,10 +1,7 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const baseQueryWithReauth = fetchBaseQuery({
-  baseUrl:
-    import.meta.env.VITE_MODE === "development"
-      ? import.meta.env.VITE_BASE_URI
-      : "/api",
+  baseUrl: import.meta.env.VITE_BASE_URI,
   credentials: "include", // send cookies
   prepareHeaders: (headers, { getState }) => {
     const csrfToken = (getState() as any).csrf.token;
