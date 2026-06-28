@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 import { sanitizeUser } from "./sanitizeDocs.js";
 import crypto from "crypto";
 import Session from "../modules/auth/session.model.js";
+import dotenv from "dotenv"
+dotenv.config()
+
 export const sendTokenResponse = async (
   user: any,
   statusCode: number,
@@ -40,7 +43,7 @@ export const sendTokenResponse = async (
     userAgent: req.headers["user-agent"],
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   });
-
+  
   const accessCookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

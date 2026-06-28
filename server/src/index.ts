@@ -20,11 +20,7 @@ const PORT = process.env.PORT || 3001;
 connectDB(process.env.MONGO_URI || "");
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL,
-      "http://localhost:3000",
-      "http://localhost:5173",
-    ].filter(Boolean) as string[],
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // allowed methods
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"], // headers your frontend sends
