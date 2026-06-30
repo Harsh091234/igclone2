@@ -63,6 +63,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       trim: true,
       lowercase: true,
       unique: true,
+      sparse: true,
       match: [
         /^[a-zA-Z0-9._]+$/,
         "Username can only contain letters, numbers, dots, or underscores",
