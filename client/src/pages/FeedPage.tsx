@@ -10,7 +10,7 @@ import {
   useFetchSuggestedUsersQuery,
   useFollowOrUnfollowUsersMutation,
 } from "../services/userApi";
-import CenterLoading from "../components/CenterLoading";
+
 import { useGetAllPostsQuery } from "../services/postApi";
 import FullPostSkeleton from "../components/Skeletons/FullPostSkeleton";
 import UserPostCard from "../components/UserPostCard";
