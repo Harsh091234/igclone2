@@ -197,7 +197,7 @@ export default function FeedPage() {
       setIsStoryViewerOpen(true);
     }
   }, [activeGroupId]);
-  if (!authUser) return <CenterLoading />;
+  if (!authUser) return;
 
   return (
     <div className="min-h-screen pt-0 relative">
