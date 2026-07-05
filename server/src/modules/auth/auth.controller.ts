@@ -228,12 +228,14 @@ export const logout = async (req: Request, res: Response) => {
     //  clear cookies
     res.cookie("refresh_token", "", {
       httpOnly: true,
-      expires: new Date(0),
+        secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     res.cookie("access_token", "", {
       httpOnly: true,
-      expires: new Date(0),
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.status(200).json({
