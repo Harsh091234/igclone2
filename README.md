@@ -44,11 +44,7 @@ Instagram is a social media platform that lets users share photos, videos, Stori
 ![Screenshot 4](/client/public/Screenshots/s4.png)
 ![Screenshot 5](/client/public/Screenshots/s5.png)
 ![Screenshot 6](/client/public/Screenshots/s6.png)
-![Screenshot 7](/client/public/Screenshots/s7.png)
-![Screenshot 8](/client/public/Screenshots/s8.png)
-![Screenshot 9](/client/public/Screenshots/s9.png)
-![Screenshot 10](/client/public/Screenshots/s10.png)
-![Screenshot 11](/client/public/Screenshots/s11.png)
+![Screenshot 7](/client/public/Screenshots/s7.jpg)
 
 
 
