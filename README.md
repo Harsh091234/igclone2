@@ -33,7 +33,7 @@ Instagram is a social media platform that lets users share photos, videos, Stori
 * **Containerization** – Docker
 * **Deployment** – Vercel, Render
 
-### 🧰 Development Tools
+###  Development Tools
 - **Build Tool:** Vite  
 - **Package Manager:** pnpm  
 
